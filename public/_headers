@@ -1,0 +1,6 @@
+/*
+  X-Robots-Tag: noindex, nofollow
+/model/img/*
+  Cache-Control: public, max-age=86400
+/concepts/*
+  Cache-Control: public, max-age=86400

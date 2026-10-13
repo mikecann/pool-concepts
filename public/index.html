@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Pool Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Same drawing-sheet look as the model page: a title block, then one entry per concept, newest first. */
+:root {
+  --paper: #F4F6F5; --sheet: #FFFFFF; --ink: #172225; --muted: #5A686B; --rule: #D3DADA;
+  --accent: #3F6489; --scrim: rgba(15, 22, 24, 0.86); --on-scrim: #F4F6F5;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1517; --sheet: #161E21; --ink: #E3EAEA; --muted: #98A6A9; --rule: #2A3539; --accent: #9DB8D8;
+    --scrim: rgba(6, 10, 11, 0.9); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1517; --sheet: #161E21; --ink: #E3EAEA; --muted: #98A6A9; --rule: #2A3539; --accent: #9DB8D8;
+  --scrim: rgba(6, 10, 11, 0.9); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55;
+  margin: 0; padding-inline: max(16px, 3vw); padding-block: 24px 56px; }
+img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 40px; }
+h1, h2, .label { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1; text-wrap: balance; }
+h2 { font-size: clamp(22px, 3vw, 28px); line-height: 1.1; text-wrap: balance; }
+.label { font-size: 13px; letter-spacing: 0.1em; color: var(--muted); font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+a { color: var(--accent); }
+.mono { font-family: var(--font-mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.titleblock { display: grid; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+.titleblock .lede { color: var(--muted); }
+
+.entry { display: grid; gap: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
+.entry:first-of-type { border-top: 0; padding-top: 0; }
+.entry header { display: grid; gap: 6px; }
+.entry .text { display: grid; gap: 10px; }
+
+/* the model gets the big slot */
+.featured { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px 28px; align-items: start; }
+@media (max-width: 860px) { .featured { grid-template-columns: 1fr; } }
+.featured .shot { position: relative; display: block; aspect-ratio: 16 / 9; max-width: 100%; overflow: hidden; border: 1px solid var(--rule); background: var(--sheet); }
+.featured .shot img { width: 100%; height: 100%; object-fit: cover; }
+.featured ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.featured ul li::marker { color: var(--accent); }
+.cta { justify-self: start; display: inline-block; background: var(--ink); color: var(--paper); text-decoration: none; padding: 12px 20px;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-weight: 600; font-size: 16px; }
+.cta:hover { background: var(--accent); }
+
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+figure { margin: 0; display: grid; gap: 6px; min-width: 0; }
+figure a { display: block; border: 1px solid var(--rule); background: var(--sheet); cursor: zoom-in; }
+figure img { width: 100%; height: auto; }
+figcaption { color: var(--muted); font-size: 13px; }
+
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
+dialog::backdrop { background: var(--scrim); }
+dialog img { max-width: 96vw; max-height: 86vh; width: auto; height: auto; }
+dialog .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; color: var(--on-scrim); font-size: 13px; }
+dialog button { font: inherit; background: var(--on-scrim); color: #172225; border: 0; padding: 6px 12px; cursor: pointer;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+footer { border-top: 2px solid var(--ink); padding-top: 12px; color: var(--muted); font-size: 13px; display: grid; gap: 4px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="titleblock">
+    <span class="label">Pool, spa and alfresco</span>
+    <h1>Pool concepts</h1>
+    <p class="lede">Everything we've sketched, rendered and modelled for the backyard, newest first.</p>
+  </header>
+
+  <section class="entry" aria-labelledby="model-h">
+    <div class="featured">
+      <a class="shot" href="model/"><img src="model/img/07_aerial_southwest__proposed.jpg" alt="Aerial view of the 3D model with the proposed pool, spa, sunken lounge and alfresco" width="1600" height="900"></a>
+      <div class="text">
+        <span class="label mono">October 2026</span>
+        <h2 id="model-h">3D model of Bob's SK02 design</h2>
+        <p>The house, the yard and the canal built to the survey, with Bob's pool, spa, sunken lounge and alfresco in place. Flip between today and the new design from 16 spots around the yard.</p>
+        <ul>
+          <li>Where the pool roller could go, and three ways to fit the BBQ and pizza oven</li>
+          <li>The lounge through a summer and a winter day, and the lighting after dark</li>
+          <li>Perforated versus glass pool fence</li>
+          <li>Where the sun lands, and a 3D view to walk around</li>
+        </ul>
+        <a class="cta" href="model/">Open the model</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="entry" aria-labelledby="ai-h">
+    <header>
+      <span class="label mono">30 July 2026</span>
+      <h2 id="ai-h">Concept images of the SK02 layout</h2>
+      <p>Quick AI concept pictures made when Bob's SK02 layout arrived: the pool along the west wall, the sunken fire-pit lounge, and the round spa on a timber deck over the pump shed. The second shows the spa's roll-on cover. They're for the feel of it, not to scale.</p>
+    </header>
+    <div class="pair">
+      <figure>
+        <a href="concepts/2026-07-ai-concept.jpg" data-zoom><img src="concepts/2026-07-ai-concept-sm.jpg" alt="AI concept image: pool, sunken lounge with fire pit and round spa on a timber deck by the canal" width="900" height="594" loading="lazy"></a>
+        <figcaption>The layout from above the canal</figcaption>
+      </figure>
+      <figure>
+        <a href="concepts/2026-07-ai-concept-spa-cover.jpg" data-zoom><img src="concepts/2026-07-ai-concept-spa-cover-sm.jpg" alt="The same concept image with the spa cover rolled up on the deck" width="900" height="594" loading="lazy"></a>
+        <figcaption>Same view with the spa cover rolled up</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="entry" aria-labelledby="su-h">
+    <header>
+      <span class="label mono">June 2026</span>
+      <h2 id="su-h">The first SketchUp concept</h2>
+      <p>The first go, before Bob started: a SketchUp model of the yard with the pool along the west boundary, a raised round spa by the canal, sunken fire-pit seating and steps down to the lawn, plus a rendered version of it. Sent to Bob on 3 June with the drone photos.</p>
+    </header>
+    <div class="pair">
+      <figure>
+        <a href="concepts/2026-06-sketchup-render.jpg" data-zoom><img src="concepts/2026-06-sketchup-render-sm.jpg" alt="Rendered version of the SketchUp concept seen from above the canal" width="900" height="546" loading="lazy"></a>
+        <figcaption>Rendered</figcaption>
+      </figure>
+      <figure>
+        <a href="concepts/2026-06-sketchup-model.jpg" data-zoom><img src="concepts/2026-06-sketchup-model-sm.jpg" alt="The SketchUp model of the yard" width="900" height="546" loading="lazy"></a>
+        <figcaption>The SketchUp model</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <footer>
+    <span>Family project page. It isn't listed on search engines.</span>
+    <span>Aerial imagery in the 3D model: Esri, Vantor, Earthstar Geographics.</span>
+  </footer>
+</div>
+
+<dialog id="zoom" aria-label="Enlarged image">
+  <img id="zoom-img" alt="">
+  <div class="bar"><span id="zoom-cap"></span><button type="button" id="zoom-close">Close</button></div>
+</dialog>
+
+<script>
+const dlg = document.getElementById("zoom");
+document.querySelectorAll("[data-zoom]").forEach(a => a.addEventListener("click", (e) => {
+  if (!dlg.showModal) return;          // very old browsers just follow the link
+  e.preventDefault();
+  const img = a.querySelector("img");
+  document.getElementById("zoom-img").src = a.getAttribute("href");
+  document.getElementById("zoom-img").alt = img.alt;
+  document.getElementById("zoom-cap").textContent = a.parentElement.querySelector("figcaption").textContent;
+  dlg.showModal();
+}));
+document.getElementById("zoom-close").onclick = () => dlg.close();
+dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>
