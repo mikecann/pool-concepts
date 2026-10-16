@@ -132,7 +132,12 @@
   "size": 2.0,
   "sizeY": 0.25,
   "shape": "SQUARE",
-  "set": "both"
+  "set": "both",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ]
  },
  {
   "name": "int_light_1",
@@ -159,7 +164,12 @@
   "size": 3.0,
   "sizeY": 0.25,
   "shape": "SQUARE",
-  "set": "both"
+  "set": "both",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ]
  },
  {
   "name": "int_light_2",
@@ -186,7 +196,12 @@
   "size": 2.0,
   "sizeY": 0.25,
   "shape": "SQUARE",
-  "set": "both"
+  "set": "both",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ]
  },
  {
   "name": "led_bench_light_0",
@@ -213,7 +228,12 @@
   "size": 2.78,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
-  "set": "proposed"
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06924
+  ]
  },
  {
   "name": "led_bench_light_1",
@@ -240,7 +260,12 @@
   "size": 2.45,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
-  "set": "proposed"
+  "set": "proposed",
+  "xaxis": [
+   -0.06925,
+   0.0,
+   0.9976
+  ]
  },
  {
   "name": "led_firepit_light",

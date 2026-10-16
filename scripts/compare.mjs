@@ -4,7 +4,8 @@ import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 import sharp from 'sharp';
 const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
-const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round6/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
+const EVAL = arg('eval', '');
+const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round7/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
 mkdirSync(OUT, { recursive: true });
 // [camera, minutes, the Cycles render it should look like]
 const ONLY = arg('only', '');
@@ -14,6 +15,8 @@ const ALL = [
   ['15_lounge_from_alfresco', 7 * 60 + 30, 'times_15_lounge_from_alfresco_summer_0730.jpg'],
   ['15_lounge_from_alfresco', 18 * 60 + 30, 'times_15_lounge_from_alfresco_summer_1830.jpg'],
   ['15_lounge_from_alfresco', 19 * 60 + 40, 'times_15_lounge_from_alfresco_summer_1940.jpg'],
+  ['13_deep_end_to_house', 19 * 60 + 40, 'night_13_deep_end_to_house_dusk.jpg'],
+  ['15_lounge_from_alfresco', 21 * 60, 'times_15_lounge_from_alfresco_summer_2100.jpg'],
 ];
 const SHOTS = ONLY ? ALL.filter((_, i) => ONLY.split(',').map(Number).includes(i)) : ALL;
 const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -23,7 +26,7 @@ await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), nul
 await p.addStyleTag({ content: '.hud,.hint-pill,.welcome,.status-pill,.gate-tip,.fps,.crosshair{display:none!important}' });
 const tiles = [];
 for (const [cam, t, ref] of SHOTS) {
-  await p.evaluate(([cam, t]) => { __viewer.setTime(t); __viewer.goToCam(cam, true); }, [cam, t]);
+  await p.evaluate(([cam, t, ev]) => { __viewer.setTime(t); __viewer.goToCam(cam, true); if (ev) (0, eval)(ev); }, [cam, t, EVAL]);
   await p.waitForTimeout(2200);   // fov ease + TRAA settle
   const file = `${OUT}/${LABEL}_${cam}_${t}.png`;
   await p.locator('#canvas').screenshot({ path: file });

@@ -386,7 +386,86 @@ Iteration 7 is the dusk hitch Mike reported. Which lights are visible is part of
 - **Shadow diagnosis:** `shtest/`, including the shadow-map dumps `shtest/smap.png` (before) and `smap_fixed.png`
 - **Logs:** `perf_final.txt`, `load_final_before.txt`, `load_final_after.txt`, `scrub_final.txt`, `walk-test.txt`, `settings-test.txt`, `image-check.txt`, `perf.log` (every A/B run)
 
+## Round 7
+
+**Goal:** fix the independent reviewer's P0 and P1 findings (`review/r4/review.md`), then close the biggest realism gaps against Cycles, using the same loop: measure → one change → re-measure → screenshot compare → keep or revert.
+
+**Targets**
+- **Quality switching:** changing quality at any time keeps sun shadows, with zero WebGPU errors.
+- **Frame rate:** Medium holds 60 fps at the alfresco, sunken lounge, pool edge and play area at DPR 1 and DPR 2. High holds 60 at DPR 2. Ultra is capped or labelled honestly.
+- **Dusk scrub:** no frame over 50 ms.
+- **Load:** warm load under 8 s.
+- **Console:** no errors or warnings, including the "uv" warning.
+- **Options:** every option combination is clean, including `gate_south+pier_across`.
+- **Realism:** pool, spa and canal water, sky horizon haze, paving joints, dusk and night all move visibly closer to the Cycles stills.
+
+### Round 7 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | **Quality switch (P0).** First tried swapping in a new sun light on a resize: errors dropped from hundreds to 10–148 but didn't go away. Then fixed the shadow-map size: Medium now uses 4096 like High and Ultra, the map is never resized once it exists, and only the shadow box changes | reviewer's `shadowerr.mjs`: 216 / 422 errors → **0 / 0 / 0 / 0**; shadows survive every switch (`review/round7/qswitch_sheet.png`) | **Kept** (the light-swap attempt was reverted) |
+| 2 | Mirrors are always built and only drawn when the quality wants them, so Low → High now gets reflections | mirrors after Low → High: 0 → 2 | **Kept** |
+| 3 | UVs for textured meshes that had none (`ensure_uvs()` in `export_web.py`: world-metre box projection; the lawns are world-XY planar) | "uv not found" warning gone; the lawn shows its grass texture and normal map (`lawn_close.png`) | **Kept** |
+| 4 | Small fixes: shallow-roller card (13 render, flies to 13), view 21 added, phones default to Low, the quality chip shows the selection on load, Ultra capped at 1.5× pixel ratio and labelled "Ultra (slow)", URL values validated and never remembered, phone help without E/Space, grass cells frustum-culled | all checked (`console.txt`, settings script, phone probe) | **Kept** |
+| 5 | Water: deeper Mondo teal absorption, a sharper caustic net, a calmer spa; the canal gets long low swell in three directions with no sun glitter | canal reads as a calm mirror of the far bank instead of navy glitter (`water_AB.png`) | **Kept** |
+| 6 | Sky horizon haze: desaturate and lighten the lowest band in the sky node (and so in the env map), plus distance fog from 25 m | pale hazy horizon close to Cycles; no fps cost (`haze_AB.png`, `haze2.png`) | **Kept** (first, gentler try kept as the base and strengthened) |
+| 7 | Tile joints on the coping and pavers, an anti-aliased TSL grid in UV metres with per-tile tone | joints visible on the coping and the canal path (`joints_zoom2.png`). The concourse is aggregate in the model, so it has no joints there; Cycles shows it the same way | **Kept** |
+| 8 | Dusk: a civil-twilight sky term (deep blue overhead, warm band towards the sun), windows glow 8× brighter, no stars in the water reflections | 19:40 is now a blue twilight with lit windows instead of black (`cmp/dusk1_vs_cycles.png`) | **Kept** |
+| 9 | Bench LED area lights: export each rectangle's long axis (`xaxis` in lights.json) so they're oriented along their benches, and use 4× three's LTC intensity | the floor wash now runs along both benches, as in Cycles (`led_variants.png`, `cmp/dusk2_vs_cycles.png`) | **Kept** |
+| 10 | Fire pit flames: orange, normal-blended, stretched 2× taller | no longer a white blob; still thinner than Cycles' flames (`flame_zoom3.png`) | **Kept**, partial |
+
+**Final numbers** (GPU free, 1600×900):
+
+| | Before | After |
+|---|---|---|
+| Medium, alfresco / lounge / pool edge / play area, DPR 1 | 60 fps | 60 fps |
+| Medium, same four, DPR 2 | 60 fps | 60 fps |
+| High, DPR 2 | 60 fps | 60 fps |
+| Ultra, DPR 2 | 43–48 fps (reviewer: 30, 20 at the play area) | 38–48 fps, labelled "Ultra (slow)" |
+| Dusk scrub, longest frame | 16.8–24 ms | 19–23 ms, none over 50 ms |
+| Warm load, first frame / settled | 0.95 / 2.7 s (reviewer) | 1.0 / 2.8–2.9 s |
+| Console during a full session (4 quality switches, times, cameras, bad URL values) | hundreds of errors plus the "uv" warning | **0** messages |
+| Images | — | 165 checked, 0 missing |
+| Walk test (steps, gates, jump, fence) | — | all pass |
+
+**Option combinations:** all 24 pier × kitchen × north-fence combinations are clean. With `pier_across` and the continuous kitchen, the gate now hinges at z 4.30 (south end of the leg) instead of 3.25 (`review/round7/across_gate.png`). The reviewer's `options.mjs` lists that combination as "sk02/across|south/across", but that's only names: the south gate's meshes are named `fence_pool_east_sk02_across_a_gate0_1/_2` in the export, and only one gate is visible.
+
+**Still behind Cycles, and why:**
+- **Pool body:** ours is still brighter and more see-through than Cycles' Mondo blue at mid-day, and our caustics are a soft net rather than Cycles' sharp one. Our water is a screen-space approximation; Cycles traces real refraction and caustics.
+- **Flames:** better, but still thin. A proper fire needs a particle or volume effect.
+- **Timber:** the pier deck still reads purple-grey in shade (reviewer P2). The shade is too blue from the sky IBL; untouched this round.
+- **Shadows:** a little softer and lower in contrast than Cycles.
+- **Not done:** the reviewer's other P2s (perforated-fence opacity at grazing angles, spa screen tint, the fire bowl's contact shadow, seated eye height, immutable cache headers).
+
+**Screenshots (`review/round7/`):**
+- **Against Cycles:** `cmp/final_vs_cycles.png`, `cmp/dusk2_vs_cycles.png`
+- **A/Bs:**
+  - `water_AB.png`
+  - `haze_AB.png`, `haze2.png`
+  - `joints_zoom2.png`
+  - `led_variants.png`
+  - `flame_zoom3.png`
+  - `lawn_close.png`
+  - `qswitch_sheet.png`
+  - `across_gate.png`
+- **Pages:** `pages/`
+- **Logs:**
+  - `shadowerr_before.txt` / `shadowerr_after.txt`
+  - `perf_dpr_base.txt` / `perf_dpr_final.txt`
+  - `scrub.txt`
+  - `load.txt`
+  - `console.txt`
+  - `options.txt`
+  - `walk-test.txt`
+  - `image-check.txt`
+  - `pages-check.txt`
+
 ## Summary
+
+**Round 7:**
+- **Fixes:** changing quality now keeps shadows with zero errors, the lawn and benchtops have UVs, phones start on Low, and Ultra is capped and labelled "Ultra (slow)".
+- **Looks:** the water, sky haze, tile joints, dusk, bench lighting and flames are all closer to Cycles.
+- **Performance:** Medium and High hold 60 fps at DPR 1 and 2, the console is clean, and every option combination works.
 
 **Round 6:**
 - **Dusk hitch fixed:** scrubbing through dusk never takes more than 24 ms a frame (it was 1.7 to 22 s).

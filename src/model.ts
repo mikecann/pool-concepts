@@ -4,10 +4,10 @@
 // Node extras from the export: set (existing | proposed | both), option (roller_*, kitchen_*, gate_*),
 // people, night (light fittings), collide, lod ("far"), water (pool | spa | canal), window.
 import {
-  AdditiveBlending, Box3, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
+  AdditiveBlending, Box3, Matrix4, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
   type Light, type Material, type Texture, type WebGPURenderer, RectAreaLightNode,
 } from 'three/webgpu';
-import { float, materialColor, mix, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
+import { abs, clamp, dot, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTexturesLib.js';
@@ -20,7 +20,7 @@ import type { Atmosphere } from './atmosphere';
 
 export type LightDef = {
   name: string; type: 'POINT' | 'SPOT' | 'AREA'; position: number[]; direction: number[]; color: number[];
-  power: number; spotAngle?: number; spotBlend?: number; size?: number; sizeY?: number; set?: string; option?: string;
+  power: number; xaxis?: number[]; spotAngle?: number; spotBlend?: number; size?: number; sizeY?: number; set?: string; option?: string;
 };
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
 export type Scenario = 'existing' | 'proposed';
@@ -103,6 +103,36 @@ function dedupeMaterials(root: Object3D) {
     mesh.material = Array.isArray(mesh.material) ? out : out[0];
   });
   return all.size;
+}
+
+/**
+ * Tile joints that stay visible at any distance. The coping and the existing pavers have joints baked into
+ * their textures (mats.py tiles_overlay), but at 3 px wide in a 1024 px tile they mip away to nothing a few
+ * metres off. This draws the same grid analytically in the texture's own UV metres (joints at multiples of the
+ * tile size, as the baked overlay), anti-aliased with fwidth, so a joint fades to a faint line rather than
+ * vanishing. Ground faces only. ?joints0=1 turns it off.
+ */
+const JOINTS: Record<string, { tile: number; width: number; grout: [number, number, number] }> = {
+  coping: { tile: 0.4, width: 0.009, grout: [0.2, 0.195, 0.185] },
+  pavers_existing: { tile: 0.4, width: 0.01, grout: [0.26, 0.22, 0.17] },
+};
+const DUSK0 = new URLSearchParams(location.search).has('dusk0');
+const NO_JOINTS = new URLSearchParams(location.search).has('joints0');
+function tileJoints(base: any, j: { tile: number; width: number; grout: [number, number, number] }) {
+  const u = uv().div(j.tile);
+  const d = abs(fract(u.add(0.5)).sub(0.5));             // distance to the nearest joint, in tiles
+  const fw = fwidth(u).max(1e-5);
+  const half = vec2(j.width / j.tile / 2);
+  const line = float(1).sub(smoothstep(half, half.add(fw.mul(1.2)), d).x.mul(smoothstep(half, half.add(fw.mul(1.2)), d).y));
+  // a joint thinner than a pixel still darkens a little (its coverage), so the grid reads at a distance
+  const coverage = clamp(half.x.div(fw.x.max(fw.y)).mul(1.6), 0.4, 1);
+  const ground = smoothstep(0.6, 0.85, normalWorld.y);
+  const grout = vec3(...j.grout);
+  // each tile a touch lighter or darker, as laid stone is
+  const cell = floor(u);
+  const h = fract(sin(dot(cell, vec2(12.9898, 78.233))).mul(43758.5453));
+  const tone = float(1).add(h.sub(0.5).mul(0.09).mul(ground));
+  return mix(base.rgb.mul(tone), grout, line.mul(coverage).mul(ground).mul(0.9));
 }
 
 export class Model {
@@ -311,7 +341,7 @@ export class Model {
         n.envMapIntensity = 1;
         if (u.window) {
           // lit rooms behind the glass after dark
-          n.emissiveNode = vec3(1.0, 0.58, 0.28).mul(this.atm.nightU).mul(0.018);
+          n.emissiveNode = DUSK0 ? vec3(1.0, 0.58, 0.28).mul(this.atm.nightU).mul(0.018) : vec3(1.0, 0.72, 0.45).mul(this.atm.nightU).mul(0.14);   // rooms lit behind the glass
         }
         mesh.material = n;
         return;
@@ -330,6 +360,12 @@ export class Model {
         mesh.castShadow = false;
         this.ledMats.push({ mat: n, level });
         if (o.name.startsWith('firepit_flames')) this.flames = mesh;
+      }
+      const joint = JOINTS[mats[0]?.name as string];
+      if (joint && !NO_JOINTS) {
+        const n = conv(mats[0]);
+        if (!n.colorNode) n.colorNode = tileJoints(materialColor, joint);
+        mesh.material = n;
       }
       if (mats[0]?.name === 'lawn') {
         const n = conv(mats[0]);
@@ -353,11 +389,20 @@ export class Model {
       const bb = mesh.geometry.boundingBox!;
       const t = positionLocal.y.sub(bb.min.y).div(Math.max(0.01, bb.max.y - bb.min.y)).clamp(0, 1);
       const wob = mx_noise_float(vec3(positionLocal.x.mul(6), positionLocal.y.mul(4).sub(time.mul(3.1)), positionLocal.z.mul(6))).mul(0.045).mul(t);
-      fm.positionNode = positionLocal.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
-      const hot = vec3(1.0, 0.62, 0.22), tip = vec3(0.9, 0.22, 0.03);
-      fm.colorNode = mix(hot, tip, t.pow(0.7)).mul(float(2.6).mul(this.fireFlicker)).mul(this.atm.nightU).mul(float(1).sub(t.pow(2).mul(0.85)));
+      // taller than the Blender cones (the Cycles flames stand well above the rim): stretch up from the base
+      const c = bb.getCenter(new Vector3());
+      const stretch = DUSK0 ? positionLocal : vec3(positionLocal.x.sub(c.x).mul(1.15).add(c.x), positionLocal.y.sub(bb.min.y).mul(2.0).add(bb.min.y), positionLocal.z.sub(c.z).mul(1.15).add(c.z));
+      fm.positionNode = stretch.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
+      const hot = DUSK0 ? vec3(1.0, 0.62, 0.22) : vec3(1.0, 0.45, 0.12), tip = DUSK0 ? vec3(0.9, 0.22, 0.03) : vec3(0.75, 0.13, 0.02);
+      // kept under the night bloom threshold so the tongues keep their shape instead of blooming white
+      fm.colorNode = mix(hot, tip, t.pow(0.7)).mul(float(DUSK0 ? 2.6 : 3.2).mul(this.fireFlicker)).mul(this.atm.nightU).mul(float(1).sub(t.pow(2).mul(0.85)));
       fm.transparent = true; fm.depthWrite = false;
-      fm.blending = AdditiveBlending;
+      if (DUSK0) fm.blending = AdditiveBlending;
+      else {
+        // solid orange tongues that thin out towards the tips (additive blending washed them into the lit bowl)
+        fm.opacityNode = float(1).sub(t.pow(1.6)).mul(0.9).mul(this.atm.nightU);
+        fm.side = DoubleSide;
+      }
     }
   }
 
@@ -442,7 +487,17 @@ export class Model {
         const r = new RectAreaLight(col, 0, w, h);
         r.position.copy(pos);
         r.lookAt(pos.clone().add(new Vector3(...(d.direction as [number, number, number]))));
-        base = d.power / (Math.PI * w * h);
+        if (d.xaxis) {
+          // lookAt can't know the strip's spin about its axis: build the basis from the exported long side, so the
+          // 2.5 m bench strips run along their benches (one of them ran across its bench before)
+          const z = new Vector3(...(d.direction as [number, number, number])).negate().normalize();
+          const x = new Vector3(...(d.xaxis as [number, number, number])).normalize();
+          const y = new Vector3().crossVectors(z, x).normalize();
+          r.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
+        }
+        // three's LTC area lights come out darker than Cycles' for a thin strip a few cm off the floor: x4 matches the
+        // floor wash in the 19:40 and 21:00 renders
+        base = d.power / (Math.PI * w * h) * (DUSK0 ? 1 : 4);
         light = r;
       } else {
         const p = new PointLight(col, 0, d.name.includes('pool') ? 9 : 14, 2);
@@ -517,20 +572,24 @@ export class Model {
   }
 
   /** Render the planar reflections whose water is on screen. */
-  renderMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number) {
+  renderMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number, enabled = true) {
     // Shadow maps must not be drawn inside a mirror pass: the canal mirror hides our whole lot while it renders
     // (Mirror.skip), and a shadow map drawn then had no yard in it, so the sun cast no shadows in the yard.
     // Hold every pending shadow update until the main pass, which sees the whole scene.
+    const stars = this.atm.starsU.value; this.atm.starsU.value = 0;   // stars reflected in rippling water glitter like noise
     const shadows = [this.atm.sun, ...this.shadowLights].map(l => (l as any).shadow).filter(Boolean);
     const pending = shadows.map(sh => sh.needsUpdate);
     for (const sh of shadows) sh.needsUpdate = false;
-    try { this.drawMirrors(renderer, scene, camera, w, h); }
-    finally { shadows.forEach((sh, i) => { if (pending[i]) sh.needsUpdate = true; }); }
+    try { this.drawMirrors(renderer, scene, camera, w, h, enabled); }
+    finally { shadows.forEach((sh, i) => { if (pending[i]) sh.needsUpdate = true; }); this.atm.starsU.value = stars; }
   }
 
-  private drawMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number) {
+  private drawMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number, enabled: boolean) {
     for (const m of this.mirrors) {
-      if (!m.ready) continue;
+      if (!m.ready || !enabled) {   // not compiled yet, or this quality has no reflections: the sky env map reflects
+        if (m.on.value !== 0) { m.on.value = 0; for (const w of m.meshes) (w.material as any).envMapIntensity = 1; }
+        continue;
+      }
       m.on.value = Math.min(1, m.on.value + 0.08);
       for (const w of m.meshes) (w.material as any).envMapIntensity = 1 - m.on.value;
       if (m.visible(camera)) m.render(renderer, scene, camera, w, h);

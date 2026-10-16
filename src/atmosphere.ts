@@ -6,7 +6,7 @@
 import {
   CircleGeometry, Color, DirectionalLight, Mesh, MeshBasicNodeMaterial, PMREMGenerator, Scene, Vector3, type RenderTarget, type WebGPURenderer,
 } from 'three/webgpu';
-import { cameraPosition, Fn, fract, max, mix, normalize, positionWorld, pow, smoothstep, sin, dot, uniform, vec3, vec4, floor } from 'three/tsl';
+import { cameraPosition, float, Fn, fract, max, mix, normalize, positionWorld, pow, smoothstep, sin, dot, uniform, vec3, vec4, floor } from 'three/tsl';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { sunDirection, sunPosition } from './sun';
 
@@ -44,6 +44,10 @@ export class Atmosphere {
   readonly state: SunState = { az: 0, el: 0, dir: new Vector3(0, 1, 0), day: 1, night: 0, dusk: 0 };
   /** 0 by day, 1 when it's properly dark: drives the lighting scheme, window glow and exposure. */
   readonly nightU = uniform(0);
+  /** How much the horizon band hazes over: strong by day, faint at dusk so the sunset colours survive. */
+  readonly hazeU = uniform(0.8);
+  /** Strength of the twilight glow: 0 by day and at full night, peaking a few degrees after sunset. */
+  readonly twilightU = uniform(0);
   /** Stars only once it's properly dark (nautical twilight). */
   readonly starsU = uniform(0);
   readonly sunColorU = uniform(new Color(1, 1, 1));
@@ -69,7 +73,14 @@ export class Atmosphere {
       s.mieCoefficient.value = SKY.mieCoefficient; s.mieDirectionalG.value = SKY.mieDirectionalG;
       s.cloudCoverage.value = 0.18; s.cloudDensity.value = 0.35; s.cloudScale.value = 0.00018; s.cloudElevation.value = 0.55;
       const base = s.material.colorNode as any;
-      s.material.colorNode = vec4(base.rgb.mul(this.skyGain).add(this.nightSky(s === this.sky)), 1);
+      // horizon haze: towards the horizon the sky desaturates and lightens (coastal air), as in the Cycles stills;
+      // the env map sky gets the same, so the IBL lighting desaturates with it
+      const sky = base.rgb.mul(this.skyGain).toVar();
+      const dirY = normalize(positionWorld.sub(cameraPosition)).y;
+      const band = pow(float(1).sub(max(dirY, 0)), 2.5).mul(this.hazeU);
+      const lum = dot(sky, vec3(0.2126, 0.7152, 0.0722));
+      const hazed = mix(sky, vec3(lum).mul(vec3(1.06, 1.09, 1.14)).mul(1.4), band);
+      s.material.colorNode = vec4(hazed.add(this.nightSky(s === this.sky)), 1);
       s.frustumCulled = false;
     }
     this.envSky.showSunDisc.value = 0;   // the directional light is the sun; a disc in the env map would light everything twice
@@ -100,6 +111,13 @@ export class Atmosphere {
       // deep blue overhead, a little lighter at the horizon (light pollution from Busselton to the east)
       const grad = mix(vec3(0.0022, 0.0032, 0.0065), vec3(0.0006, 0.0009, 0.0021), pow(up, 0.5));
       let c = grad.mul(night);
+      // civil twilight (sun 0 to -8 deg): the Preetham sky has already gone dark, but the real one is a deep
+      // blue overhead with a warm band low in the west where the sun went down
+      const toSun = max(dot(normalize(vec3(d.x, 0, d.z)), normalize(vec3(this.sunDirU.x, 0, this.sunDirU.z))), 0);
+      const low = pow(float(1).sub(up), 3);
+      const zenith = vec3(0.0055, 0.009, 0.022), warm = vec3(0.05, 0.022, 0.008), band = vec3(0.012, 0.012, 0.016);
+      const tw = mix(zenith, band, low).add(warm.mul(low).mul(pow(toSun, 2.5)));
+      c = c.add(tw.mul(this.twilightU));
       if (withStars) {
         const cell = floor(d.mul(420));
         const h = fract(sin(dot(cell, vec3(12.9898, 78.233, 45.164))).mul(43758.5453));
@@ -147,6 +165,8 @@ export class Atmosphere {
     this.sunIntensityU.value = strength;
     this.sunDirU.value.copy(st.dir);
     this.nightU.value = st.night;
+    this.twilightU.value = new URLSearchParams(location.search).has('dusk0') ? 0 : smooth(1.5, -2.5, el) * (1 - smooth(-6, -11, el));
+    this.hazeU.value = new URLSearchParams(location.search).has('haze0') ? 0 : 0.95 * smooth(2, 15, el);
     this.starsU.value = smooth(-5, -13, el);
 
     // haze colour for distant fog and the env ground
@@ -178,12 +198,15 @@ export class Atmosphere {
   /** Keep the sun's shadow box centred on the viewer, snapped to whole shadow texels so edges don't crawl. */
   placeShadow(focus: Vector3, halfSize: number, mapSize: number) {
     const s = this.sun, cam = s.shadow.camera;
-    if (cam.right !== halfSize || s.shadow.mapSize.x !== mapSize) {
+    // The map size is fixed once the shadow map exists: resizing a live map destroys its depth texture while three
+    // still has bind groups pointing at it (shadows vanished and every frame logged errors after a quality change,
+    // and swapping in a new light didn't fully clear it either). A new size applies on the next load.
+    if (!s.shadow.map) s.shadow.mapSize.set(mapSize, mapSize);
+    if (cam.right !== halfSize) {
       cam.left = -halfSize; cam.right = halfSize; cam.top = halfSize; cam.bottom = -halfSize;
       cam.updateProjectionMatrix();
-      s.shadow.mapSize.set(mapSize, mapSize);   // the shadow node resizes its map on the next update
     }
-    const texel = (2 * halfSize) / mapSize;
+    const texel = (2 * halfSize) / s.shadow.mapSize.x;
     // snap in light space
     const dir = this.state.dir.clone().normalize();
     const up = Math.abs(dir.y) > 0.99 ? new Vector3(0, 0, 1) : new Vector3(0, 1, 0);

@@ -27,14 +27,21 @@ type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?:
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 const remember = (patch: Settings) => {
+  if (fromUrl) return;
   Object.assign(settings, patch);
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* private mode: just don't remember */ }
 };
 
+// URL values are checked, and never written into the remembered settings (a renders-page link is a one-off visit)
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const urlDate = DATE_RE.test(params.get('date') ?? '') && !isNaN(Date.parse(params.get('date')!)) ? params.get('date')! : null;
+const urlMinutes = (() => { const t = Number(params.get('t')); return params.has('t') && Number.isFinite(t) && t >= 0 && t < 1440 ? t : null; })();
+let fromUrl = false;   // true while applying URL values, so remember() leaves them out
+
 // ---------- state ----------
 const S = {
-  date: params.get('date') ?? settings.date ?? '2027-01-16',
-  minutes: params.has('t') ? Number(params.get('t')) : settings.minutes ?? 13 * 60,
+  date: urlDate ?? (DATE_RE.test(settings.date ?? '') ? settings.date! : '2027-01-16'),
+  minutes: urlMinutes ?? (Number.isFinite(settings.minutes) ? settings.minutes! : 13 * 60),
   playing: false,
   scenario: 'proposed' as Scenario,
   quality: 'High' as Quality,
@@ -55,7 +62,7 @@ function startQuality(): Quality {
   const q = params.get('q');
   if (q && q in QUALITY) return q as Quality;
   if (settings.quality && settings.quality in QUALITY) return settings.quality;
-  return 'Medium';
+  return isTouch ? 'Low' : 'Medium';   // phones get the cheap path; desktops Medium
 }
 
 async function main() {
@@ -79,7 +86,7 @@ async function main() {
   pinRenderDepth(renderer, pinned);
   // distant haze: the far bank 70 to 200 m away softens a little, like the photos
   const fogColor = uniform(atm.fogColor);
-  scene.fogNode = fog(fogColor, rangeFogFactor(35, 1400));
+  scene.fogNode = fog(fogColor, params.has('haze0') ? rangeFogFactor(35, 1400) : rangeFogFactor(25, 900));
 
   const model = new Model(renderer, atm);
   model.people = settings.people ?? true;
@@ -89,7 +96,8 @@ async function main() {
   mark('glb');
   progress(0.64, 'Building the scene…');
   await nextFrame();   // let the text paint
-  model.setup(data as any, QUALITY[S.quality].reflections && params.get('refl') !== '0', QUALITY[S.quality].reflectionScale);
+  // mirrors are always built (so switching up from Low adds reflections); they're only drawn when the quality wants them
+  model.setup(data as any, params.get('refl') !== '0', QUALITY[S.quality].reflectionScale);
   const cams = await camsP;
   for (const m of model.mirrors) pinned.set(m.target, 0);
   mark('model');
@@ -102,6 +110,7 @@ async function main() {
   orbit.minDistance = 2; orbit.maxDistance = 220;
 
   let post!: Post;
+  let renderQualityChips: (() => void) | null = null;
   let booted = false;   // true once the first frame is up and the full post-processing is on
   let grassBuilt = -1, grassReady = false;
   const setQuality = (q: Quality, rebuild = true) => {
@@ -110,6 +119,8 @@ async function main() {
     renderer.setPixelRatio(Math.min(devicePixelRatio, cfg.pixelRatio));
     resize();
     model.showFar = cfg.far;
+    for (const m of model.mirrors) m.scale = m.meshes.some(w => w.userData.water === 'canal') ? cfg.reflectionScale * 0.7 : cfg.reflectionScale;
+    if (booted && cfg.reflections) prepareMirrors();
     if (grassReady && grassBuilt !== cfg.grass) { model.grass.matchTexture(model.lawns[0]?.material); model.grass.build(model.lawns, cfg.grass); grassBuilt = cfg.grass; }
     model.grass.radius.value = cfg.grassRadius;
     model.apply();
@@ -120,7 +131,7 @@ async function main() {
       if (booted) post.upgrade();
       post.setNight(atm.state.night);
     }
-    document.querySelectorAll('#opt-quality button').forEach(b => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.q === q)));
+    renderQualityChips?.();
     shadowDirty = true;
   };
 
@@ -219,7 +230,8 @@ async function main() {
   cards($('cards-roller'), ROLLER_CHOICES, () => model.roller, v => {
     ensureProposed(); model.roller = v; optChanged();
     // look down the pool from the opposite end, as the option renders do
-    goToCam('05_pool_north_end');   // looks down the pool to the deep end, where most of the options are
+    // the shallow-end roller sits behind camera 05, so look back up the pool from the deep end for that one
+    goToCam(v === 'roller_shallow' ? '13_deep_end_to_house' : '05_pool_north_end');
   });
   cards($('cards-kitchen'), KITCHEN_CHOICES, () => model.kitchen, v => {
     ensureProposed(); model.kitchen = v; optChanged(); goToCam('16_outdoor_kitchen');
@@ -242,7 +254,7 @@ async function main() {
   const peopleBox = $<HTMLInputElement>('opt-people');
   peopleBox.checked = model.people;
   peopleBox.onchange = () => { model.people = peopleBox.checked; optChanged(); remember({ people: model.people }); };
-  chipRow($('opt-quality'), (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q] as [string, string]), () => S.quality,
+  renderQualityChips = chipRow($('opt-quality'), (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q === 'Ultra' ? 'Ultra (slow)' : q] as [string, string]), () => S.quality,
     v => { remember({ quality: v as Quality }); setQuality(v as Quality); });
   const fpsEl = $('fps');
   const fpsBox = $<HTMLInputElement>('opt-fps');
@@ -380,7 +392,7 @@ async function main() {
   setQuality(S.quality);
   mark('post+grass');
   atm.placeShadow(new Vector3(1.3, 3, 2.6), QUALITY[S.quality].shadowHalf, QUALITY[S.quality].shadowMap);
-  setDate(S.date);
+  fromUrl = urlDate !== null; setDate(S.date); fromUrl = false;   // a ?date= link isn't remembered
   setTime(S.minutes, true);
   mark('sun+env');
   walker.rebuild(model.root);
@@ -399,15 +411,18 @@ async function main() {
   if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
   model.apply(); renderRoller();
   // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&fence=glass&scenario=existing
-  if (params.get('scenario') === 'existing') setScenario('existing');
-  if (params.get('roller')) model.roller = params.get('roller')!;
-  if (params.get('kitchen')) model.kitchen = params.get('kitchen')!;
-  if (params.get('fence') === 'glass') model.fence = 'glass';
-  if (params.get('pier')) model.pier = params.get('pier')!;
-  // ?nfence=moved&passage=aggregate (the prefix is optional)
-  if (params.get('nfence')) model.nfence = params.get('nfence')!.replace(/^(nfence_)?/, 'nfence_');
-  if (params.get('passage')) model.passage = params.get('passage')!.replace(/^(passage_)?/, 'passage_');
+  // (unknown values are ignored; the nfence_/passage_ prefixes are optional)
+  fromUrl = true;
+  const fromParam = (k: string, list: Choice[], prefix = '') => { const v = params.get(k); if (!v) return undefined; return valid(v.startsWith(prefix) ? v : prefix + v, list); };
+  if (params.get('scenario') === 'existing' || params.get('scenario') === 'proposed') setScenario(params.get('scenario') as Scenario);
+  model.roller = fromParam('roller', ROLLER_CHOICES) ?? model.roller;
+  model.kitchen = fromParam('kitchen', KITCHEN_CHOICES) ?? model.kitchen;
+  model.fence = (fromParam('fence', FENCE_CHOICES) as 'perforated' | 'glass' | undefined) ?? model.fence;
+  model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
+  model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
+  model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
   if (['roller', 'kitchen', 'fence', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  fromUrl = false;
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
@@ -496,6 +511,16 @@ async function main() {
       shadowDirty = true;
     }
   };
+  /** Compile the water mirrors' pipelines in the background, then let them fade in. */
+  let mirrorsPreparing: Promise<void> | null = null;
+  function prepareMirrors() {
+    if (!mirrorsPreparing) mirrorsPreparing = (async () => {
+      const db = renderer.getDrawingBufferSize(new Vector2());
+      for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); m.ready = true; }
+    })();
+    return mirrorsPreparing;
+  }
+
   async function finishLoading() {
     const { target, mrt } = post.target;
     try {
@@ -507,7 +532,7 @@ async function main() {
       booted = true; mark('upgraded');
 
       const db = renderer.getDrawingBufferSize(new Vector2());
-      for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); m.ready = true; }
+      if (QUALITY[S.quality].reflections) await prepareMirrors();
       await settle();
       mark('mirrors');
 
@@ -582,7 +607,7 @@ async function main() {
     frameNo++;
     const db = renderer.getDrawingBufferSize(new Vector2());
     if (firstFrame) mark('frame-start');
-    renderClean(renderer, () => { model.renderMirrors(renderer, scene, camera, db.x, db.y); post.render(); });
+    renderClean(renderer, () => { model.renderMirrors(renderer, scene, camera, db.x, db.y, QUALITY[S.quality].reflections); post.render(); });
     if (firstFrame) mark('first-frame');
     // per-frame counters for scripts/perf.mjs: draw calls, triangles and (with ?gpu=1) GPU time per frame
     const inf = renderer.info.render;

@@ -16,7 +16,7 @@ import type { Mirror } from './mirror';
 
 export type WaterKind = 'pool' | 'spa' | 'canal';
 
-const PRESETS: Record<WaterKind, {
+const OLD_PRESETS: Record<WaterKind, {
   absorb: [number, number, number]; scatter: [number, number, number]; rough: number; refract: number;
   waves: [number, number, number, number, number][]; detail: number; detailScale: number; detailSpeed: number;
 }> = {
@@ -36,6 +36,22 @@ const PRESETS: Record<WaterKind, {
   canal: { absorb: [1.2, 0.6, 0.55], scatter: [0.016, 0.045, 0.04], rough: 0.05, refract: 0.02,
     waves: [[1.2, 5.5, 0.03, 0.75, 0], [2.6, 2.7, 0.014, 1.1, 0], [0.3, 1.3, 0.006, 1.7, 0], [3.9, 0.7, 0.003, 2.4, 0]],
     detail: 0.05, detailScale: 1.4, detailSpeed: 0.3 },
+};
+
+type Preset = typeof OLD_PRESETS['pool'] & { glint?: number; caustic?: number };
+/** Round 7 water: a deeper Mondo teal pool and spa, and a calm, mirror-like canal. ?water0=1 for the old look. */
+const PRESETS: Record<WaterKind, Preset> = new URLSearchParams(location.search).has('water0') ? OLD_PRESETS : {
+  pool: { absorb: [1.05, 0.3, 0.17], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
+    waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
+    detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1 },
+  spa: { absorb: [1.05, 0.3, 0.17], scatter: [0.005, 0.034, 0.055], rough: 0.03, refract: 0.04,
+    waves: [[0.9, 0.7, 0.0012, 2.0, 0], [2.7, 0.45, 0.0008, 2.6, 0], [4.6, 0.3, 0.0005, 3.2, 0]],
+    detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1 },
+  // a sheltered canal on a calm day: long, low swell in three directions (no repeating pattern), and a slow
+  // broken noise on top; the sun's glitter is turned off so the far bank's reflection carries it
+  canal: { absorb: [1.2, 0.6, 0.55], scatter: [0.012, 0.035, 0.034], rough: 0.09, refract: 0.02,
+    waves: [[1.2, 11.0, 0.0075, 0.45, 0], [2.9, 6.3, 0.004, 0.6, 0], [0.2, 3.7, 0.0018, 0.85, 0]],
+    detail: 0.022, detailScale: 0.6, detailSpeed: 0.12, glint: 0 },
 };
 
 /** Surface slope (dh/dx, dh/dz) of a sum of travelling sine waves plus a little noise. */
@@ -64,6 +80,7 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   m.metalness = 0;
   m.roughness = P.rough;
   (m as any).ior = 1.33;
+  if (P.glint === 0) (m as any).specularIntensity = 0;   // no sun glitter; the mirror and Fresnel do the work
   m.colorNode = vec3(0);
 
   const g = slope(kind)(positionWorld.xz);
@@ -73,7 +90,7 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   // planar reflection, nudged by the ripples. It replaces the sky env reflection (added with Fresnel below),
   // so the lighting model only contributes the sun's glint.
   // how far the ripples push the reflection around: gentle on the pool and spa, choppier on the canal
-  const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.15, canal: 0.25 }[kind])) : null;
+  const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.12, canal: P.glint === 0 ? 0.35 : 0.25 }[kind])) : null;
   // until the mirror's shaders are ready (it's built after the first frame) the sky env map reflects instead;
   // mirror.on fades from one to the other, and the material's envMapIntensity follows it each frame
   if (reflection) m.userData.mirror = mirror;
@@ -137,8 +154,10 @@ export function causticsAlbedo(base: any, box: { minX: number; maxX: number; min
     .mul(smoothstep(level, level.sub(0.05), wp.y));
   const cst = caustic(wp.xz.mul(0.42)).add(caustic(wp.xz.mul(0.42).add(vec2(0.013, 0.008))).mul(0.6));
   // a high sun focuses crisp caustics; a low evening sun through calm water gives only a faint shimmer
-  const strength = smoothstep(0.15, 0.75, sunDir.y).mul(inside);
-  const gain = select(inside.greaterThan(0), mix(float(1), float(0.84).add(cst.mul(0.95)), strength), float(1));
+  const strength = smoothstep(0.1, 0.6, sunDir.y).mul(inside);
+  // Round 7: a sharper, brighter net like Cycles' (the old soft blotches with ?water0=1)
+  const sharp = new URLSearchParams(location.search).has('water0') ? float(0.84).add(cst.mul(0.95)) : float(0.62).add(pow(cst, 1.6).mul(2.4));
+  const gain = select(inside.greaterThan(0), mix(float(1), sharp, strength), float(1));
   return base.mul(gain);
 }
 

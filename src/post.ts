@@ -16,9 +16,9 @@ export const QUALITY: Record<Quality, { pixelRatio: number; shadowMap: number; s
   /** Grass tufts per m² near the viewer, and how far out they reach (m). 0 = texture only. */
   grass: number; grassRadius: number }> = {
   Low: { pixelRatio: 1.25, shadowMap: 2048, shadowHalf: 28, ssgi: null, taa: false, reflections: false, reflectionScale: 0.3, far: false, plants: true, grass: 0, grassRadius: 0 },
-  Medium: { pixelRatio: 1, shadowMap: 2048, shadowHalf: 32, ssgi: [1, 12], taa: true, reflections: true, reflectionScale: 0.35, far: true, plants: true, grass: 0, grassRadius: 0 },
+  Medium: { pixelRatio: 1, shadowMap: 4096, shadowHalf: 32, ssgi: [1, 12], taa: true, reflections: true, reflectionScale: 0.35, far: true, plants: true, grass: 0, grassRadius: 0 },
   High: { pixelRatio: 1.25, shadowMap: 4096, shadowHalf: 38, ssgi: [2, 10], taa: true, reflections: true, reflectionScale: 0.5, far: true, plants: true, grass: 110, grassRadius: 12 },
-  Ultra: { pixelRatio: 1.75, shadowMap: 4096, shadowHalf: 32, ssgi: [3, 16], taa: true, reflections: true, reflectionScale: 0.75, far: true, plants: true, grass: 150, grassRadius: 18 },
+  Ultra: { pixelRatio: 1.5, shadowMap: 4096, shadowHalf: 32, ssgi: [3, 16], taa: true, reflections: true, reflectionScale: 0.75, far: true, plants: true, grass: 150, grassRadius: 18 },
 };
 
 export class Post {

@@ -136,7 +136,7 @@ export class Grass {
         const im = new InstancedMesh(this.geo, this.material as unknown as Material, mats.length);
         mats.forEach((m, i) => im.setMatrixAt(i, m));
         im.instanceMatrix.needsUpdate = true;
-        im.frustumCulled = false;
+        im.computeBoundingSphere();   // instances are world-space, so the sphere covers the 4 m cell: let three cull it
         im.castShadow = false; im.receiveShadow = true;
         im.userData.collide = false;
         const [cx, cz] = key.split(',').map(Number);
