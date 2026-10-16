@@ -7,7 +7,7 @@ import {
 } from 'three/webgpu';
 import { MeshBVH } from 'three-mesh-bvh';
 
-const EYE = 1.65, RADIUS = 0.24, STEP = 0.26, WALK = 1.45, RUN = 3.4, GRAVITY = 9.8;
+const EYE = 1.65, RADIUS = 0.24, STEP = 0.26, WALK = 2.2, RUN = 4.5, GRAVITY = 9.8;
 /** A small hop: 0.45 m. With the 0.26 m step-up that's well short of the 1.2 m pool fence. */
 const JUMP = 0.45;
 
