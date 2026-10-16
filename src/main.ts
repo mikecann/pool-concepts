@@ -130,6 +130,7 @@ async function main() {
     renderer.setPixelRatio(Math.min(devicePixelRatio, cfg.pixelRatio));
     resize();
     model.showFar = cfg.far;
+    model.lowQuality = q === 'Low';
     for (const m of model.mirrors) m.scale = m.meshes.some(w => w.userData.water === 'canal') ? cfg.reflectionScale * 0.7 : cfg.reflectionScale;
     if (booted && cfg.reflections) prepareMirrors();
     if (grassReady && grassBuilt !== cfg.grass) { model.grass.matchTexture(model.lawns[0]?.material); model.grass.build(model.lawns, cfg.grass); grassBuilt = cfg.grass; }
@@ -139,11 +140,19 @@ async function main() {
       post?.dispose();
       post = new Post(renderer, scene, camera, params.get('post') === '0' ? 'Low' : q); post.exposureU.value = atm.exposure;
       pinned.set(post.target.target, 1);
-      if (booted) post.upgrade();
+      if (booted) {
+        post.upgrade();
+        // Round 13: and swap it in once warmed up, as loading does. Without this a quality switch left the boot chain
+        // on screen (no SSGI or TRAA) while also drawing the full chain underneath every frame
+        const p = post;
+        let n = 0;
+        const commit = () => { if (post !== p) return; if (++n < 20) { requestAnimationFrame(commit); return; } p.commitUpgrade(); shadowHold = 30; };
+        requestAnimationFrame(commit);
+      }
       post.setNight(atm.state.night);
     }
     renderQualityChips?.();
-    shadowDirty = true;
+    shadowDirty = true; shadowHold = 60;
   };
 
   function resize() {
@@ -158,6 +167,10 @@ async function main() {
   // ---------- time ----------
   const timeInput = $<HTMLInputElement>('time'), clock = $('clock'), sunread = $('sunread');
   const fmt = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
+  // shadowHold: frames to keep redrawing the sun's shadow map after a rebuild (quality, scenario, options). Pipelines
+  // recompile over the next frames, and a shadow map drawn while its casters weren't ready yet stayed empty: no sun
+  // shadows at all after a quality switch (Round 13). Three frames was enough only when nothing recompiled.
+  let shadowHold = 0;
   let shadowDirty = true, shadowFrames = 0, frameNo = 0, lastSunDir = new Vector3();
   const drawTicks = () => {
     const t = sunTimes(S.date), ticks = $('ticks');
@@ -193,7 +206,8 @@ async function main() {
 
   // ---------- scenario, options ----------
   const setScenario = (s: Scenario) => {
-    S.scenario = s; model.scenario = s; model.apply(); walker.rebuild(model.root); shadowDirty = true;
+    S.scenario = s; model.scenario = s; model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
+    if (skyBaked) void rebakeSky();   // Round 13: the scenario changes what covers what (the alfresco roof)
     remember({ scenario: s });
     $('sc-existing').setAttribute('aria-pressed', String(s === 'existing'));
     $('sc-proposed').setAttribute('aria-pressed', String(s === 'proposed'));
@@ -216,7 +230,7 @@ async function main() {
     return render;
   };
   const optChanged = () => {
-    model.apply(); walker.rebuild(model.root); shadowDirty = true;
+    model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
     remember({ options: { roller: model.roller, kitchen: model.kitchen, fence: model.fence, pier: model.pier, nfence: model.nfence, passage: model.passage } });
   };
   renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
@@ -294,9 +308,14 @@ async function main() {
       } else orbit.target.copy(camera.position.clone().addScaledVector(fwd, 25));
       orbit.update();
     } else {
-      const p = orbit.target;
+      // land where the drone was looking, if you could stand there; otherwise back where you last stood, or the
+      // start spot (Round 13: from the lounge or spa views the drone looks over the canal, and you fell into the void)
       const fwd = new Vector3(); camera.getWorldDirection(fwd);
-      walker.place(p.x, 3, p.z, Math.atan2(-fwd.x, -fwd.z), 0);
+      const yaw = Math.atan2(-fwd.x, -fwd.z);
+      const t = orbit.target, g = walker.walkableAt(t.x, t.z);
+      const spot = g !== null ? new Vector3(t.x, g, t.z)
+        : walker.walkableAt(walker.lastStood.x, walker.lastStood.z, walker.lastStood.y + 1.5) !== null ? walker.lastStood.clone() : new Vector3(1.3, 2.37, 2.6);
+      walker.place(spot.x, spot.y + 0.4, spot.z, yaw, 0);
     }
     shadowDirty = true;
   };
@@ -413,6 +432,17 @@ async function main() {
   // the sky twice, env and mirror: at grazing angles that turned the canal milky white. ?doubleenv=1 for before.
   if (!params.has('doubleenv')) for (const w of model.waters) (w.material as any).envMap = scene.environment;
   const skyVis = new SkyVis();
+  /** Bake sky visibility for what's in the scene now; a request made while one runs is coalesced into one more. */
+  let skyBaking: Promise<void> | null = null, skyAgain = false, skyBaked = false;
+  const rebakeSky = async (): Promise<void> => {
+    if (SKYVIS_OFF || !walker.wallsBVH) return;
+    if (skyBaking) { skyAgain = true; return skyBaking; }
+    skyBaking = (async () => {
+      do { skyAgain = false; await skyVis.bake(walker.wallsBVH!, () => new Promise(r => setTimeout(r, 0))); } while (skyAgain);
+      skyBaked = true; skyBaking = null;
+    })();
+    return skyBaking;
+  };
   skyVis.apply(model.root, scene.environment!, (m: any) => renderer.library.fromMaterial(m));
   walker.rebuild(model.root);
   mark('collider');
@@ -574,7 +604,7 @@ async function main() {
       await compileFor(renderer, scene, camera, target, mrt);
       await settle();
       mark('far+grass');
-      if (!SKYVIS_OFF && walker.wallsBVH) { const ms = await skyVis.bake(walker.wallsBVH, () => new Promise(r => setTimeout(r, 0))); mark('skyvis'); console.debug('sky visibility baked in', Math.round(ms), 'ms'); }
+      if (!SKYVIS_OFF && walker.wallsBVH) { await rebakeSky(); mark('skyvis'); }
 
       // turn around, and the lighting scheme after dark, in the background, so neither stalls later
       setStatus('Getting the rest of the yard ready…');
@@ -634,6 +664,7 @@ async function main() {
       shadowDirty = false;
     }
     atm.sun.shadow.autoUpdate = false;
+    if (shadowHold > 0) { shadowHold--; if (shadowFrames < 1) shadowFrames = 1; }
     if (shadowFrames > 0) { atm.sun.shadow.needsUpdate = true; shadowFrames--; }
     frameNo++;
     const db = renderer.getDrawingBufferSize(new Vector2());

@@ -762,7 +762,47 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 
 **Model:** the GLB is re-exported. To deploy, copy public/model/web from the-pool, which I've already done here. The `?v=` hash changes on build.
 
+## Round 13
+
+**Goal:** the reviewer's r7 regressions first (`review/r7/review.md`), then the Low and night items. Plus a regression test for the shadow bug class.
+
+**New test:** `node scripts/switch-test.mjs` starts from a Today load, switches the scenario both ways and the quality both ways (Low ↔ High, Low → Medium), by day and by night. It fails on any WebGPU error or console error. It also fails if the sun's shadows are missing, measured as the share of dark pixels at camera 13 at 14:45 against a fresh load of the same scenario.
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | **Root cause of Today → Proposed:** three's `AnalyticLightNode.setup` disposes a light's shared shadow node when a material is set up while the light set differs. Proposed-only lights (including the two shadow-casting downlights) were hidden in Today, so pressing Proposed changed the light set, every material recompiled, and the shadow map still bound elsewhere was destroyed. Now no light's visibility ever depends on the scenario or options; those only set its intensity to 0. The light set and the shadow maps are fixed from load, like the dusk fix in Round 6 (`?lightswap=1` for before) | switch-test: 24–284 'Destroyed ShadowDepthTexture' errors per switch → 0 | Kept |
+| 2 | **Found by the new test:** a quality switch built the full post chain (`post.upgrade()`) but never committed it, ever since the quality chips existed. Every frame drew the full chain, then the boot chain over it: no SSGI AO or TRAA, and twice the render cost. Now it commits after 20 frames, as loading does. Rebuilds (quality, scenario, options) also keep the sun's shadow map refreshing for 60 frames | Dark share after a switch 24% → 30.9% (a fresh High load is 30.4%) | Kept |
+| 3 | Drone → Walk lands at the drone's look point only if you can stand there (ground ≥ 1.0 m, not water). Otherwise it goes back to where you last stood, or the start spot (`Walker.walkableAt`, `lastStood`) | After 'go to' 06 or 14: feet y −20 (in the void) → (0.6, 2.18, 6.0) and (3.45, 2.21, 7.9) | Kept |
+| 4 | The sky-visibility bake re-runs on every scenario switch (coalesced while one is running) | Alfresco floor at 16 after Today → Proposed: 87.8 luma, the same as a fresh Proposed load | Kept |
+| 5 | Bench strip lights ×0.55 on Low (`?benchlow=`) | The white flare on the lounge floor at night on Low → gone (`review/round13/low_bench.png`) | Kept |
+| 6 | Low: far trees on (`far: true`). Without a planar mirror the canal reflects the sky env at 0.45 (`?canalenv=`) | White canal and bare far bank → blue canal with the tree line (`low_canal.png`). Low holds 60 fps at DPR 1 and 2 | Kept |
+| 7 | Far tree line: canopies 1.3×, albedo 0.75×, plus a second, offset ring of instanced canopies (one more draw call per batch) (`?farring=0`, `?farscale=1`, `?fardark=1` for before) | Scattered trees → a continuous dense band (`far_trees.png`). Still a little hazier than Cycles at that distance | Kept |
+| 8 | Flame brightness 0.65 → 0.32 (orange edges keep their saturation); alfresco ceiling glow 0.2 → 0.35 | Flames a touch more orange. Cycles' own flames are white-hot with orange edges, which ours now resemble. Soffit visibly lit at dusk (`flames_ceiling.png`, `flames_gain.png`) | Kept |
+
+**Numbers:**
+- **Frame rate:** Low, Medium and High hold 60 fps at DPR 1 and 2 on all four views.
+- **Dusk scrub:** max 20 ms, 0 frames over 50 ms.
+- **Load:** warm, the cover lifts at 1.63 s and it's interactive at 2.55 s.
+- **switch-test:** PASS.
+- **Console:** clean.
+- **Other checks:** the page checks, settings, walk test, images (165, 0 missing) and phone portrait and landscape all pass.
+
+**Screenshots (`review/round13/`):**
+- `switch_before/`, `switch_after/`, `switch_final/`
+- `q_check.png`, `iso.png`: the quality-switch AO loss
+- `low_bench.png`, `low_canal.png`, `far_trees.png`, `flames_ceiling.png`, `flames_gain.png`
+- `pages/`, `phone/`
+
 ## Summary
+
+**Round 13:**
+- **Today → Proposed shadows:** fixed at the root: the light set is now constant across scenarios.
+- **Quality switches:** now actually commit the full post chain. This was a long-standing bug: no AO or TRAA after a switch, at double the cost.
+- **Drone → Walk:** never drops you into the void.
+- **Sky bake:** follows the scenario.
+- **Low:** the bench glare is gone, and the canal is blue with the far trees back.
+- **Far trees:** a denser tree line.
+- **New `scripts/switch-test.mjs`:** guards scenario and quality switches.
 
 **Round 12:** an all-camera sweep, Today and Proposed.
 - **Pavers:** cream like Cycles. Their grade was being wiped by the pool's caustics pass, which also lit Today's lawn as if under water.

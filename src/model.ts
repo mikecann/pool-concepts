@@ -142,7 +142,7 @@ const WET_PATH = Number(new URLSearchParams(location.search).get('wetpath') ?? 3
 const SPA_GAIN = Number(new URLSearchParams(location.search).get('spagain') ?? 2);
 const WET_GAIN = Number(new URLSearchParams(location.search).get('wetgain') ?? 3);
 const GLITTER = new URLSearchParams(location.search).has('glitter');
-const CEIL = Number(new URLSearchParams(location.search).get('ceil') ?? 0.2);
+const CEIL = Number(new URLSearchParams(location.search).get('ceil') ?? 0.35);
 const WIN_OPACITY = Number(new URLSearchParams(location.search).get('win') ?? (new URLSearchParams(location.search).has('rooms0') ? 0.82 : 0.4));
 const ROOMS0 = new URLSearchParams(location.search).has('rooms0');
 const ROOM_DAY = Number(new URLSearchParams(location.search).get('roomday') ?? 1.5);
@@ -150,9 +150,17 @@ const ROOM_NIGHT = Number(new URLSearchParams(location.search).get('roomnight') 
 const LAWN11 = new URLSearchParams(location.search).has('lawn11');
 const LAWN_GRADE: [number, number, number] = [0.51, 0.54, 0.22];
 const NO_BARK = new URLSearchParams(location.search).has('bark0');
+const BENCH_LOW = Number(new URLSearchParams(location.search).get('benchlow') ?? 0.55);
+/**
+ * The water's sky reflection while it has no planar mirror (Low, phones; or before the mirrors are ready). The canal's
+ * murky water reflects a dimmer sky (Cycles: mid blue-grey), where the full sky env made it white (Round 13).
+ */
+const envBase = (w: Mesh) => (w.userData.water === 'canal' ? CANAL_ENV : 1);
+const CANAL_ENV = Number(new URLSearchParams(location.search).get('canalenv') ?? 0.45);
+const SCEN_SWAP = new URLSearchParams(location.search).has('lightswap');
 const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
 const FLAME10 = new URLSearchParams(location.search).has('flame10');
-const FLAME_GAIN = Number(new URLSearchParams(location.search).get('flamegain') ?? 0.65);
+const FLAME_GAIN = Number(new URLSearchParams(location.search).get('flamegain') ?? 0.32);
 const DUSK0 = new URLSearchParams(location.search).has('dusk0');
 const NO_JOINTS = new URLSearchParams(location.search).has('joints0');
 function tileJoints(base: any, j: { tile: number; width: number; grout: [number, number, number] }) {
@@ -182,6 +190,8 @@ export class Model {
   readonly lawns: Mesh[] = [];
   readonly grass = new Grass();
   flames: Object3D | null = null;
+  /** Set by the viewer: Low quality (phones). */
+  lowQuality = false;
   private ledMats: { mat: MeshStandardNodeMaterial; level: number }[] = [];
   readonly mirrors: Mirror[] = [];
   private fireFlicker = uniform(1);
@@ -724,12 +734,19 @@ export class Model {
     const swap = LIGHT_SWAP || !this.lightsConstant;
     const on = night > 0.004;
     for (const { light, base, def } of this.nightLights) {
-      const vis = (swap ? on : true) && this.visibleFor(light.userData);
+      // Round 13: the scenario and options only change a light's intensity, never its visibility. A light that
+      // appears changes every material's lighting; three recompiles them, and on the way disposed the shadow map the
+      // other materials were still drawing with ("Destroyed ShadowDepthTexture", no sun shadows after Today ->
+      // Proposed). So the set of lights, like the set of shadow maps, is fixed from load. ?lightswap=1 for before.
+      const here = this.visibleFor(light.userData);
+      const vis = SCEN_SWAP ? (swap ? on : true) && here : swap ? on : true;
       if (light.visible !== vis) { light.visible = vis; if (light.castShadow) light.shadow!.needsUpdate = true; }
-      light.intensity = base * night * (def.name.startsWith('led_firepit') ? flick : 1);
+      // on Low (no TRAA or SSGI) the bench strips' floor wash clips to a white flare: about 0.6x there (Round 13)
+      const low = this.lowQuality && def.name.startsWith('led_bench') ? BENCH_LOW : 1;
+      light.intensity = (here ? base * night * low : 0) * (def.name.startsWith('led_firepit') ? flick : 1);
     }
-    this.poolGlow.value = this.poolLight?.visible ? night * GLOW : 0;
-    this.spaGlow.value = this.spaLight?.visible ? night * GLOW * SPA_GAIN : 0;
+    this.poolGlow.value = this.poolLight && this.visibleFor(this.poolLight.userData) ? night * GLOW : 0;
+    this.spaGlow.value = this.spaLight && this.visibleFor(this.spaLight.userData) ? night * GLOW * SPA_GAIN : 0;
     // shadow maps of the night lights: refresh while they're fading in, then they're static
     if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
     // (hiding a mesh doesn't change any shader, unlike the lights: the flames simply go away by day)
@@ -781,11 +798,11 @@ export class Model {
   private drawMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number, enabled: boolean) {
     for (const m of this.mirrors) {
       if (!m.ready || !enabled) {   // not compiled yet, or this quality has no reflections: the sky env map reflects
-        if (m.on.value !== 0) { m.on.value = 0; for (const w of m.meshes) (w.material as any).envMapIntensity = 1; }
+        if (m.on.value !== 0 || !(m as any).envSet) { m.on.value = 0; (m as any).envSet = true; for (const w of m.meshes) (w.material as any).envMapIntensity = envBase(w); }
         continue;
       }
       m.on.value = Math.min(1, m.on.value + 0.08);
-      for (const w of m.meshes) (w.material as any).envMapIntensity = 1 - m.on.value;
+      for (const w of m.meshes) (w.material as any).envMapIntensity = envBase(w) * (1 - m.on.value);
       if (m.visible(camera)) m.render(renderer, scene, camera, w, h);
     }
   }

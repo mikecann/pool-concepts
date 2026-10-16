@@ -7,6 +7,10 @@ import { BufferAttribute, Color, DoubleSide, type Light, InstancedMesh, Matrix4,
 import { abs, dot, float, fract, lights, materialColor, mix, mx_noise_float, normalView, positionViewDirection, positionWorld, normalWorld, sin, smoothstep, vec2, vec3 } from 'three/tsl';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
+const P = new URLSearchParams(location.search);
+/** Round 13: the far tree line denser and darker, as Cycles' (?farring=0, ?farscale=1, ?fardark=1 for Round 12). */
+const FAR_RING = P.get('farring') !== '0', FAR_SCALE = Number(P.get('farscale') ?? 1.3), FAR_DARK = Number(P.get('fardark') ?? 0.75);
+
 function softGeometry(src: BufferGeometry) {
   // drop the faceted normals, weld, then bend the smooth normals towards "away from the centre"
   const g = src.clone();
@@ -50,7 +54,7 @@ function foliageMaterial(base: Color, sun: Light | null) {
   // per-tree tint: some greyer and olive (eucalypts), some deeper green, a few a touch yellow
   const tint = mix(vec3(0.8, 0.9, 0.84), vec3(1.08, 1.05, 0.86), s1);
   m.color.copy(base);
-  m.colorNode = materialColor.mul(tint).mul(mix(float(0.55), float(1.15), clumps())).mul(mix(float(0.55), float(1.0), under)).mul(mix(float(0.85), float(1.08), fine()));
+  m.colorNode = materialColor.mul(FAR_DARK).mul(tint).mul(mix(float(0.55), float(1.15), clumps())).mul(mix(float(0.55), float(1.0), under)).mul(mix(float(0.85), float(1.08), fine()));
   // ragged edge: where the (bent) normal turns side-on to the eye, noise cuts leaf-shaped holes
   const rim = float(1).sub(abs(dot(normalView, positionViewDirection)));
   m.opacityNode = float(1).sub(smoothstep(0.42, 0.78, rim.add(fine().sub(0.5).mul(0.55)).add(clumps().sub(0.5).mul(0.3))));
@@ -63,6 +67,7 @@ export async function softenFarTrees(meshes: InstancedMesh[], sun: Light | null 
   const mats = new Map<string, MeshStandardNodeMaterial>();
   const m4 = new Matrix4(), pos = new Vector3(), q = new Quaternion(), s = new Vector3(), spin = new Quaternion(), up = new Vector3(0, 1, 0);
   let n = 0;
+  const rings: InstancedMesh[] = [];
   for (const mesh of meshes) {
     await new Promise(r => setTimeout(r, 0));   // one tree batch per task
     let g = geos.get(mesh.geometry);
@@ -79,7 +84,7 @@ export async function softenFarTrees(meshes: InstancedMesh[], sun: Light | null 
       const h = Math.sin((pos.x * 12.9898 + pos.z * 78.233) * 43758.5453) * 0.5 + 0.5;
       const h2 = Math.sin((pos.x * 39.346 + pos.z * 11.135) * 24634.6345) * 0.5 + 0.5;
       // kept modest so canopies still sit on their (separately instanced) trunks
-      const k = 0.9 + 0.2 * h;
+      const k = (0.9 + 0.2 * h) * FAR_SCALE;
       s.multiplyScalar(k); s.y *= 0.95 + 0.15 * h2;
       spin.setFromAxisAngle(up, h2 * Math.PI * 2);
       q.premultiply(spin);
@@ -89,7 +94,30 @@ export async function softenFarTrees(meshes: InstancedMesh[], sun: Light | null 
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
     n += mesh.count;
+    // Round 13: a second, offset ring of canopies (same geometry and material, so one more draw call per batch)
+    // closes the gaps between the far trees, where Cycles shows a dense dark band
+    if (FAR_RING && mesh.parent) {
+      const ring = new InstancedMesh(g, mesh.material, mesh.count);
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i, m4);
+        m4.decompose(pos, q, s);
+        const h = Math.sin((pos.x * 7.13 + pos.z * 3.71) * 9631.7) * 0.5 + 0.5, a = h * Math.PI * 2;
+        pos.x += Math.cos(a) * (2.5 + 2 * h); pos.z += Math.sin(a) * (2.5 + 2 * h); pos.y -= 0.3;
+        s.multiplyScalar(0.8 + 0.2 * h);
+        m4.compose(pos, q, s);
+        ring.setMatrixAt(i, m4);
+      }
+      ring.instanceMatrix.needsUpdate = true;
+      ring.computeBoundingSphere();
+      ring.userData = { ...mesh.userData };
+      ring.castShadow = false; ring.receiveShadow = mesh.receiveShadow;
+      ring.name = mesh.name + '_ring';
+      mesh.parent.add(ring);
+      rings.push(ring);
+      n += mesh.count;
+    }
   }
+  meshes.push(...rings);   // the caller puts them on the far layer with the rest
   return n;
 }
 

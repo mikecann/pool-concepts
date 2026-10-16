@@ -130,6 +130,17 @@ export class Walker {
     return hit ? hit.point.y : -Infinity;
   }
 
+  /** The floor height you could stand on at (x, z), or null: no floor, under water, or down in the canal (Round 13). */
+  walkableAt(x: number, z: number, fromY = 4.5) {
+    const g = this.groundAt(x, z, fromY);
+    if (!Number.isFinite(g) || g < 1.0) return null;
+    const w = this.waterAt(x, z, fromY);
+    if (Number.isFinite(w) && w > g - 0.01) return null;
+    return g;
+  }
+  /** Where the walker last stood on solid ground (for leaving drone mode somewhere sensible). */
+  readonly lastStood = new Vector3(1.3, 2.37, 2.6);
+
   /** Put the walker on the floor under (x, z) near height y, facing the given direction. */
   place(x: number, y: number, z: number, yaw: number, pitch = 0, eyeY?: number) {
     const g = this.groundAt(x, z, y + 0.5);
@@ -247,6 +258,7 @@ export class Walker {
     const g = this.groundAt(this.feet.x, this.feet.z, this.feet.y + STEP + 0.02);
     if (Number.isFinite(g) && g >= this.feet.y - 0.06 && this.vy <= 0) {
       this.feet.y = g; this.vy = 0; this.grounded = true;
+      if (g >= 1.0) this.lastStood.copy(this.feet);
     } else {
       this.grounded = false;
       this.vy -= GRAVITY * dt;
