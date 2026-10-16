@@ -7,7 +7,7 @@ import { Post, QUALITY, type Quality } from './post';
 import { Walker } from './walk';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { FENCE_CHOICES, KITCHEN_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { FENCE_CHOICES, KITCHEN_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -206,6 +206,9 @@ async function main() {
   cards($('cards-fence'), FENCE_CHOICES, () => model.fence, v => {
     ensureProposed(); model.fence = v as 'perforated' | 'glass'; optChanged(); goToCam('03_lawn_to_terrace');
   });
+  cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
+    ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
+  });
   const renderRoller = () => cardGroups.forEach(r => r()), renderKitchen = renderRoller;
   void renderKitchen;
 
@@ -357,7 +360,8 @@ async function main() {
   if (params.get('roller')) model.roller = params.get('roller')!;
   if (params.get('kitchen')) model.kitchen = params.get('kitchen')!;
   if (params.get('fence') === 'glass') model.fence = 'glass';
-  if (params.has('roller') || params.has('kitchen') || params.has('fence')) { optChanged(); renderRoller(); }
+  if (params.get('pier')) model.pier = params.get('pier')!;
+  if (params.has('roller') || params.has('kitchen') || params.has('fence') || params.has('pier')) { optChanged(); renderRoller(); }
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.

@@ -21,4 +21,10 @@ export const FENCE_CHOICES: Choice[] = [
   { value: 'glass', title: 'Glass', note: 'Frameless glass, as SK02 draws it. Keeps the pool and spa in view, for about $630 more.', img: 'card_fence_glass.jpg', src: '03_lawn_to_terrace__glass.jpg' },
 ];
 
-export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...FENCE_CHOICES].map(c => ({ img: c.img, src: c.src }));
+export const PIER_CHOICES: Choice[] = [
+  { value: 'pier_as_drawn', title: 'As drawn', note: "The 0.5 m pier is a foothold 0.4 m from the fence, inside the climbing zone, and the fence is only 1.1 m above the deck. Unlikely to pass.", img: 'card_pier_as_drawn.jpg', src: 'options_18_pier_fence_pier_as_drawn.jpg' },
+  { value: 'pier_tall', title: '1.8 m section', note: 'The fence and gate are 1.8 m high from the deck past the gate and the pier, so no climbing zone applies there. 1.2 m from the deck elsewhere.', img: 'card_pier_tall.jpg', src: 'options_18_pier_fence_pier_tall.jpg' },
+  { value: 'pier_around', title: 'Round the pier', note: 'The fence steps out onto the deck and round the pier, so the pier is on the pool side. Takes about a 1 m by 1.2 m bite out of the deck.', img: 'card_pier_around.jpg', src: 'options_18_pier_fence_pier_around.jpg' },
+];
+
+export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...FENCE_CHOICES, ...PIER_CHOICES].map(c => ({ img: c.img, src: c.src }));

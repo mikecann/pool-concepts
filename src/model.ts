@@ -102,6 +102,8 @@ export class Model {
   scenario: Scenario = 'proposed';
   roller = 'none';
   kitchen = 'kitchen_split';
+  /** The east fence beside the pavilion pier: as drawn, a 1.8 m section, or taken round the pier. */
+  pier = 'pier_as_drawn';
   people = true;   // the figures are there to judge scale, so they start on
   showFar = true;
   farReady = false;
@@ -427,7 +429,9 @@ export class Model {
     if (u.option) {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
-      if (u.option !== this.roller && u.option !== this.kitchen && u.option !== gate) return false;
+      // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
+      const chosen = [this.roller, this.kitchen, gate, this.pier];
+      if (!String(u.option).split('+').every(part => chosen.includes(part))) return false;
     }
     if (u.people && !this.people) return false;
     if (u.lod === 'far' && (!this.showFar || !this.farReady)) return false;
