@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Keel Retreat Walkthrough</title>
+<meta name="description" content="Walk around the proposed pool, spa, sunken lounge and alfresco at 35 Keel Retreat, with the sun for any date and time.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23172225%22/%3E%3Crect x=%226%22 y=%2210%22 width=%2220%22 height=%2212%22 fill=%22%2399AFC9%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<div class="app" id="app">
+  <main class="world" id="world" aria-label="3D walkthrough of the backyard">
+    <canvas id="canvas" tabindex="0" aria-label="Backyard in 3D. Click to look around, W A S D or the arrow keys to walk."></canvas>
+
+    <header class="hud top">
+      <div class="brand">
+        <a class="back" href="../">&larr; Pool concepts</a>
+        <span class="title">35 Keel Retreat <span class="sub">pool, spa &amp; alfresco</span></span>
+      </div>
+      <div class="seg" role="group" aria-label="Scenario">
+        <button id="sc-existing" aria-pressed="false">Today</button>
+        <button id="sc-proposed" aria-pressed="true">Proposed</button>
+      </div>
+      <div class="hud-right">
+        <div class="seg" role="group" aria-label="Camera mode">
+          <button id="mode-walk" aria-pressed="true">Walk</button>
+          <button id="mode-drone" aria-pressed="false">Drone</button>
+        </div>
+        <label class="sr" for="goto">Go to a viewpoint</label>
+        <select id="goto" class="hud-select"><option value="">Go to…</option></select>
+        <button class="hud-btn" id="panel-toggle" aria-expanded="true" aria-controls="panel"><span class="open-label"><span class="long">Renders &amp; options</span><span class="short">Renders</span></span><span class="close-label">Hide panel</span></button>
+      </div>
+    </header>
+
+    <div class="hint-pill" id="hint" hidden></div>
+    <section class="welcome" id="welcome" role="dialog" aria-labelledby="welcome-h" hidden>
+      <span class="label">First time here?</span>
+      <h2 id="welcome-h">How to walk around</h2>
+      <ul class="keys desk">
+        <li><b>Click</b> the view to look around with the mouse</li>
+        <li><b>W A S D</b> or the <b>arrow keys</b> to walk</li>
+        <li><b>Shift</b> to run</li>
+        <li><b>Esc</b> to stop looking and get your mouse back</li>
+      </ul>
+      <ul class="keys phone">
+        <li>The <b>stick</b> bottom left to walk</li>
+        <li><b>Drag</b> anywhere else to look</li>
+      </ul>
+      <p class="hint">The slider at the bottom sets the time of day. Renders, options and notes are in the panel.</p>
+      <button type="button" id="welcome-ok">Got it</button>
+    </section>
+    <div class="crosshair" id="crosshair" aria-hidden="true"></div>
+    <div class="joystick" id="joystick" aria-hidden="true"><div class="knob" id="knob"></div></div>
+
+    <section class="hud timebar" aria-label="Date and time">
+      <button class="play" id="play" aria-label="Play the day" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"/><path class="i-pause" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <div class="clock"><output id="clock" for="time">13:00</output><span id="sunread" class="mono"></span></div>
+      <div class="slider-wrap">
+        <input type="range" id="time" min="0" max="1439" step="1" value="780" aria-label="Time of day, AWST">
+        <div class="ticks" aria-hidden="true" id="ticks"></div>
+      </div>
+      <div class="date">
+        <div class="seg small" role="group" aria-label="Date">
+          <button data-date="2027-01-16" aria-pressed="true">16 Jan</button>
+          <button data-date="2027-06-21" aria-pressed="false">21 Jun</button>
+        </div>
+        <label class="sr" for="date">Custom date</label>
+        <input type="date" id="date" value="2027-01-16">
+      </div>
+    </section>
+
+    <div class="loading" id="loading" role="status" aria-live="polite">
+      <div class="card">
+        <span class="label">Lot 517 · 35 Keel Retreat, Geographe</span>
+        <h1>Step into the backyard</h1>
+        <div class="bar"><div class="fill" id="load-fill"></div></div>
+        <span class="mono" id="load-text">Starting…</span>
+      </div>
+    </div>
+    <div class="fps mono" id="fps" hidden></div>
+  </main>
+
+  <aside class="panel" id="panel" aria-label="Renders, options and notes">
+    <div class="grab" id="grab" aria-hidden="true"><span></span></div>
+    <div class="panel-scroll" id="panel-scroll">
+      <section class="block live">
+        <span class="label">In the walkthrough</span>
+        <div class="field">
+          <span class="fl">Pool roller</span>
+          <div class="chips" role="group" aria-label="Pool roller" id="opt-roller"></div>
+        </div>
+        <div class="field">
+          <span class="fl">Outdoor kitchen</span>
+          <div class="chips" role="group" aria-label="Outdoor kitchen layout" id="opt-kitchen"></div>
+        </div>
+        <div class="field row">
+          <label class="check"><input type="checkbox" id="opt-people" checked> People for scale</label>
+          <label class="check"><input type="checkbox" id="opt-fps"> Frame rate</label>
+        </div>
+        <div class="field">
+          <span class="fl">Picture quality</span>
+          <div class="chips" role="group" aria-label="Picture quality" id="opt-quality"></div>
+        </div>
+        <p class="hint" id="controls-help">Click the view, then <b>W A S D</b> or the arrows to walk, the mouse to look, <b>Shift</b> to run, <b>Esc</b> to let go. On a phone, use the stick and drag to look.</p>
+      </section>
+      <div id="gallery"></div>
+    </div>
+  </aside>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

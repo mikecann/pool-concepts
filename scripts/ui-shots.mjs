@@ -1,0 +1,63 @@
+// Screenshot the page chrome: sidebar open (desktop, light + dark), drone mode, winter, and a phone at Low.
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+const OUT = process.argv[2] ?? 'review/ui';
+mkdirSync(OUT, { recursive: true });
+const browser = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const ready = p => p.waitForFunction(() => document.getElementById('loading')?.classList.contains('done'), null, { timeout: 180000 });
+const frames = (p, n) => p.evaluate(n => new Promise(r => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
+const adapter = async p => p.evaluate(async () => { const a = await navigator.gpu?.requestAdapter(); return a ? `${a.info?.vendor} ${a.info?.architecture}` : 'none'; });
+
+const desk = await browser.newPage({ viewport: { width: 1600, height: 900 } });
+await desk.goto('http://localhost:4173/model/?q=High');
+console.log('GPU adapter:', await adapter(desk));
+await ready(desk);
+await frames(desk, 20);
+console.log('desktop help shown:', await desk.evaluate(() => !document.getElementById('welcome').hidden));
+await desk.screenshot({ path: `${OUT}/desktop_first_visit.png` });
+await desk.click('#welcome-ok');
+console.log('desktop help after Got it:', await desk.evaluate(() => !document.getElementById('welcome').hidden), 'stored:', await desk.evaluate(() => localStorage.getItem('pool-walk-help')));
+await desk.addStyleTag({ content: '.hint-pill{display:none!important}' });
+await desk.evaluate(() => { __viewer.setPanel(true); __viewer.setTime(17 * 60 + 30); });
+await frames(desk, 60);
+await desk.screenshot({ path: `${OUT}/desktop_panel_light.png` });
+await desk.evaluate(() => { document.documentElement.dataset.theme = 'dark'; document.getElementById('panel-scroll').scrollTop = 1400; });
+await frames(desk, 10);
+await desk.screenshot({ path: `${OUT}/desktop_panel_dark.png` });
+await desk.evaluate(() => { delete document.documentElement.dataset.theme; __viewer.setPanel(false); __viewer.goToCam('07_aerial_southwest'); __viewer.setTime(16 * 60); });
+await frames(desk, 60);
+await desk.screenshot({ path: `${OUT}/drone_aerial_1600.png` });
+await desk.evaluate(() => { __viewer.setDate('2027-06-21'); __viewer.setTime(13 * 60); __viewer.place(1.3, 3.0, 2.6, 156, -5); });
+await frames(desk, 60);
+await desk.screenshot({ path: `${OUT}/winter_alfresco_1300.png` });
+await desk.evaluate(() => { __viewer.setDate('2027-01-16'); __viewer.setTime(14 * 60 + 45); __viewer.setScenario('existing'); });
+await frames(desk, 60);
+await desk.screenshot({ path: `${OUT}/today_alfresco_1445.png` });
+console.log('desktop fps', await desk.evaluate(() => document.getElementById('fps').textContent));
+
+const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+const phone = await ctx.newPage();
+await phone.goto('http://localhost:4173/model/');
+await ready(phone);
+await phone.evaluate(() => __viewer.setTime(17 * 60 + 30));
+await frames(phone, 40);
+await phone.screenshot({ path: `${OUT}/phone_first_visit.png` });
+await phone.tap('#welcome-ok');
+await frames(phone, 10);
+await phone.screenshot({ path: `${OUT}/phone_low.png` });
+// layout check: HUD boxes must not overlap each other, and nothing may run off the 390 px screen
+console.log('phone layout', JSON.stringify(await phone.evaluate(() => {
+  const r = id => document.querySelector(id).getBoundingClientRect();
+  const boxes = { brand: r('.brand'), scenario: r('.hud.top > .seg'), right: r('.hud-right'), timebar: r('.timebar'), joystick: r('#joystick') };
+  const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  const names = Object.keys(boxes), overlaps = [];
+  for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) if (hit(boxes[names[i]], boxes[names[j]])) overlaps.push(names[i] + '/' + names[j]);
+  const off = names.filter(n => boxes[n].left < 0 || boxes[n].right > innerWidth + 0.5 || boxes[n].bottom > innerHeight + 0.5);
+  const topH = Math.max(boxes.brand.bottom, boxes.scenario.bottom, boxes.right.bottom), botH = innerHeight - boxes.timebar.top;
+  return { overlaps, off, viewShare: +((innerHeight - topH - botH) / innerHeight).toFixed(2), topH: Math.round(topH), timebarH: Math.round(botH), scrollW: document.documentElement.scrollWidth };
+})));
+await phone.evaluate(() => __viewer.setPanel(true));
+await frames(phone, 20);
+await phone.screenshot({ path: `${OUT}/phone_drawer.png` });
+console.log('phone quality', await phone.evaluate(() => __viewer.state().quality));
+await browser.close();

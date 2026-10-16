@@ -1,0 +1,22 @@
+{
+  "name": "pool-concepts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && rm -rf public/model/assets && vite build",
+    "serve": "python3 -m http.server 4173 --directory public",
+    "review": "node scripts/review.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1",
+    "three-mesh-bvh": "0.9.16"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "4.5.1",
+    "@types/three": "0.186.0",
+    "playwright": "1.64.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}

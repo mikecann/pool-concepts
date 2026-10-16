@@ -1,0 +1,434 @@
+[
+ {
+  "name": "alfresco_downlight_0",
+  "type": "SPOT",
+  "position": [
+   0.19091,
+   5.04349,
+   1.97895
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.82,
+   0.6
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.15,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "alfresco_downlight_1",
+  "type": "SPOT",
+  "position": [
+   2.18611,
+   5.11333,
+   2.11742
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.82,
+   0.6
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.15,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "alfresco_downlight_2",
+  "type": "SPOT",
+  "position": [
+   0.05244,
+   5.04349,
+   3.97415
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.82,
+   0.6
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.15,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "alfresco_downlight_3",
+  "type": "SPOT",
+  "position": [
+   2.04765,
+   5.11333,
+   4.11262
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.82,
+   0.6
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.15,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "int_light_0",
+  "type": "AREA",
+  "position": [
+   1.55829,
+   4.858,
+   -1.83553
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.9,
+   0.78
+  ],
+  "power": 192.0,
+  "dayPower": 120.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.0,
+  "sizeY": 0.25,
+  "shape": "SQUARE",
+  "set": "both"
+ },
+ {
+  "name": "int_light_1",
+  "type": "AREA",
+  "position": [
+   7.2487,
+   5.374,
+   -2.94422
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.9,
+   0.78
+  ],
+  "power": 352.0,
+  "dayPower": 220.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 3.0,
+  "sizeY": 0.25,
+  "shape": "SQUARE",
+  "set": "both"
+ },
+ {
+  "name": "int_light_2",
+  "type": "AREA",
+  "position": [
+   12.16747,
+   4.858,
+   -1.60045
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.9,
+   0.78
+  ],
+  "power": 160.0,
+  "dayPower": 100.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.0,
+  "sizeY": 0.25,
+  "shape": "SQUARE",
+  "set": "both"
+ },
+ {
+  "name": "led_bench_light_0",
+  "type": "AREA",
+  "position": [
+   0.78025,
+   2.06,
+   5.90923
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.78,
+   0.52
+  ],
+  "power": 35.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.78,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed"
+ },
+ {
+  "name": "led_bench_light_1",
+  "type": "AREA",
+  "position": [
+   1.34207,
+   2.06,
+   7.34655
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.78,
+   0.52
+  ],
+  "power": 35.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.45,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed"
+ },
+ {
+  "name": "led_firepit_light",
+  "type": "POINT",
+  "position": [
+   -0.25014,
+   2.22,
+   7.61193
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.64,
+   0.3
+  ],
+  "power": 160.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.2,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "led_spa_light",
+  "type": "POINT",
+  "position": [
+   1.59,
+   1.84,
+   9.69
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.75,
+   0.9,
+   1.0
+  ],
+  "power": 25.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "led_uplight_0",
+  "type": "SPOT",
+  "position": [
+   -6.46656,
+   2.4,
+   2.0
+  ],
+  "direction": [
+   -0.33035,
+   0.94386,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.55
+  ],
+  "power": 18.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.95993,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "led_uplight_1",
+  "type": "SPOT",
+  "position": [
+   -7.04191,
+   2.4,
+   4.4
+  ],
+  "direction": [
+   -0.33035,
+   0.94386,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.55
+  ],
+  "power": 18.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.95993,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "led_uplight_2",
+  "type": "SPOT",
+  "position": [
+   -7.61725,
+   2.4,
+   6.8
+  ],
+  "direction": [
+   -0.33035,
+   0.94386,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.55
+  ],
+  "power": 18.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.95993,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "led_uplight_3",
+  "type": "SPOT",
+  "position": [
+   -8.1926,
+   2.4,
+   9.2
+  ],
+  "direction": [
+   -0.33035,
+   0.94386,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.55
+  ],
+  "power": 18.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.95993,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ },
+ {
+  "name": "pool_light",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.55,
+   0.85,
+   1.0
+  ],
+  "power": 90.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed"
+ }
+]
