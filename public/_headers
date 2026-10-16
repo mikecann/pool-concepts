@@ -4,3 +4,7 @@
   Cache-Control: public, max-age=86400
 /concepts/*
   Cache-Control: public, max-age=86400
+/model/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/model/web/*
+  Cache-Control: public, max-age=604800

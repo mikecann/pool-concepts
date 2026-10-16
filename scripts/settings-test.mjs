@@ -9,7 +9,7 @@ const state = () => p.evaluate(() => { const V = __viewer, m = V.model; return {
 await p.goto('http://localhost:4173/model/walk/?nohelp'); await ready();
 console.log('first visit ', JSON.stringify(await state()));
 await p.evaluate(() => { __viewer.setPanel(true); });
-await p.locator('#opt-quality button', { hasText: 'Low' }).click();
+await p.locator('#opt-quality button', { hasText: /^Low$/ }).click();
 await p.locator('#opt-fps').uncheck();
 await p.locator('#opt-people').uncheck();
 await p.locator('#cards-roller .card', { hasText: 'Low-profile' }).click();

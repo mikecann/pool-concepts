@@ -32,6 +32,9 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 export type SunState = { az: number; el: number; dir: Vector3; day: number; night: number; dusk: number };
 
+/** How tightly the haze hugs the horizon: 6 keeps the sky blue above ~20° (Cycles), 2.5 was the old overcast look. */
+const HAZE_POW = Number(new URLSearchParams(location.search).get('hazepow') ?? 6);
+
 export class Atmosphere {
   readonly sky = new SkyMesh();
   readonly sun = new DirectionalLight(0xffffff, 6.5);
@@ -77,7 +80,7 @@ export class Atmosphere {
       // the env map sky gets the same, so the IBL lighting desaturates with it
       const sky = base.rgb.mul(this.skyGain).toVar();
       const dirY = normalize(positionWorld.sub(cameraPosition)).y;
-      const band = pow(float(1).sub(max(dirY, 0)), 2.5).mul(this.hazeU);
+      const band = pow(float(1).sub(max(dirY, 0)), HAZE_POW).mul(this.hazeU);
       const lum = dot(sky, vec3(0.2126, 0.7152, 0.0722));
       const hazed = mix(sky, vec3(lum).mul(vec3(1.06, 1.09, 1.14)).mul(1.4), band);
       s.material.colorNode = vec4(hazed.add(this.nightSky(s === this.sky)), 1);

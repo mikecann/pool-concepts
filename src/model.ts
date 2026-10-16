@@ -7,7 +7,7 @@ import {
   AdditiveBlending, Box3, Matrix4, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
   type Light, type Material, type Texture, type WebGPURenderer, RectAreaLightNode,
 } from 'three/webgpu';
-import { abs, clamp, dot, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
+import { abs, clamp, dot, max, materialRoughness, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTexturesLib.js';
@@ -29,7 +29,8 @@ export type Scenario = 'existing' | 'proposed';
 // and spots; area lights emit from one side, so W / (π · area) as radiance.
 type AnyLight = Light & { shadow?: any };
 const POINT_SCALE = 1 / (4 * Math.PI);
-const KEY_SHADOW_LIGHTS = ['led_firepit_light', 'alfresco_downlight_1', 'alfresco_downlight_0+1'];
+// the fire pit light's 512 cube shadow drew a square patch on the lounge floor, so only a downlight casts shadows
+const KEY_SHADOW_LIGHTS = ['alfresco_downlight_1', 'alfresco_downlight_0+1'];
 
 /** Merge lights of the given name prefixes two at a time (sorted by name): mean position and direction, summed power. */
 function pairUp(defs: LightDef[], prefixes: string[]) {
@@ -112,10 +113,24 @@ function dedupeMaterials(root: Object3D) {
  * tile size, as the baked overlay), anti-aliased with fwidth, so a joint fades to a faint line rather than
  * vanishing. Ground faces only. ?joints0=1 turns it off.
  */
+const OLD_JOINTS = new URLSearchParams(location.search).has('jointsold');
 const JOINTS: Record<string, { tile: number; width: number; grout: [number, number, number] }> = {
-  coping: { tile: 0.4, width: 0.009, grout: [0.2, 0.195, 0.185] },
-  pavers_existing: { tile: 0.4, width: 0.01, grout: [0.26, 0.22, 0.17] },
+  coping: { tile: 0.4, width: OLD_JOINTS ? 0.009 : 0.011, grout: [0.2, 0.195, 0.185] },
+  pavers_existing: { tile: 0.4, width: OLD_JOINTS ? 0.01 : 0.012, grout: [0.26, 0.22, 0.17] },
 };
+/**
+ * Timber albedo graded against the Cycles stills (the baked textures came out far too light and saturated):
+ * the composite decking and lounge steps are dark brown, the pavilion's hardwood a grey-brown rather than
+ * purple-red, and the outdoor table set honey rather than red. ?timber0=1 turns it off.
+ */
+const TIMBER: Record<string, { sat: number; mul: [number, number, number]; rough?: number }> = {
+  composite_deck: { sat: 0.7, mul: [0.42, 0.4, 0.38] },
+  bench_slats: { sat: 0.75, mul: [0.6, 0.56, 0.52] },
+  deck_hardwood: { sat: 0.75, mul: [1.0, 0.98, 0.78], rough: 0.8 },
+  outdoor_table_chair_set_01_table: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
+  outdoor_table_chair_set_01_chair: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
+};
+const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
 const DUSK0 = new URLSearchParams(location.search).has('dusk0');
 const NO_JOINTS = new URLSearchParams(location.search).has('joints0');
 function tileJoints(base: any, j: { tile: number; width: number; grout: [number, number, number] }) {
@@ -125,14 +140,16 @@ function tileJoints(base: any, j: { tile: number; width: number; grout: [number,
   const half = vec2(j.width / j.tile / 2);
   const line = float(1).sub(smoothstep(half, half.add(fw.mul(1.2)), d).x.mul(smoothstep(half, half.add(fw.mul(1.2)), d).y));
   // a joint thinner than a pixel still darkens a little (its coverage), so the grid reads at a distance
-  const coverage = clamp(half.x.div(fw.x.max(fw.y)).mul(1.6), 0.4, 1);
+  const coverage = clamp(half.x.div(fw.x.max(fw.y)).mul(1.6), OLD_JOINTS ? 0.4 : 0.55, 1);
   const ground = smoothstep(0.6, 0.85, normalWorld.y);
-  const grout = vec3(...j.grout);
+  // Round 8: the joint is the stone's own colour in shadow (~0.45x), pulled a little toward the grout colour,
+  // so it reads as a recess with contrast on both the pale coping and the older pavers. ?jointsold=1 for before.
+  const grout = OLD_JOINTS ? vec3(...j.grout) : mix(base.rgb.mul(0.35), vec3(...j.grout), 0.2);
   // each tile a touch lighter or darker, as laid stone is
   const cell = floor(u);
   const h = fract(sin(dot(cell, vec2(12.9898, 78.233))).mul(43758.5453));
   const tone = float(1).add(h.sub(0.5).mul(0.09).mul(ground));
-  return mix(base.rgb.mul(tone), grout, line.mul(coverage).mul(ground).mul(0.9));
+  return mix(base.rgb.mul(tone), grout, line.mul(coverage).mul(ground).mul(OLD_JOINTS ? 0.9 : 1));
 }
 
 export class Model {
@@ -179,8 +196,8 @@ export class Model {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     return Promise.all([
-      loader.loadAsync(base + 'pool-model.glb', e => { if (e.total) onProgress(e.loaded / e.total); }),
-      fetch(base + 'lights.json').then(r => (r.ok ? r.json() : [])).catch(() => []) as Promise<LightDef[]>,
+      loader.loadAsync(base + 'pool-model.glb?v=' + __MODEL_V__, e => { if (e.total) onProgress(e.loaded / e.total); }),
+      fetch(base + 'lights.json?v=' + __MODEL_V__).then(r => (r.ok ? r.json() : [])).catch(() => []) as Promise<LightDef[]>,
     ]);
   }
 
@@ -341,9 +358,10 @@ export class Model {
         n.envMapIntensity = 1;
         if (u.window) {
           // lit rooms behind the glass after dark
-          n.emissiveNode = DUSK0 ? vec3(1.0, 0.58, 0.28).mul(this.atm.nightU).mul(0.018) : vec3(1.0, 0.72, 0.45).mul(this.atm.nightU).mul(0.14);   // rooms lit behind the glass
+          n.emissiveNode = DUSK0 ? vec3(1.0, 0.58, 0.28).mul(this.atm.nightU).mul(0.018) : vec3(1.0, 0.72, 0.45).mul(this.atm.nightU).mul(0.28);   // rooms lit behind the glass
         }
         mesh.material = n;
+        mesh.receiveShadow = false;   // the fire light's shadow put a person's silhouette on the spa glass
         return;
       }
       if (u.night || mats[0]?.userData?.led) {
@@ -360,6 +378,17 @@ export class Model {
         mesh.castShadow = false;
         this.ledMats.push({ mat: n, level });
         if (o.name.startsWith('firepit_flames')) this.flames = mesh;
+      }
+      const grade = TIMBER[mats[0]?.name as string];
+      if (grade && !NO_TIMBER) {
+        const n = conv(mats[0]);
+        if (!n.colorNode) {
+          const c = materialColor.rgb, lum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+          n.colorNode = mix(vec3(lum), c, grade.sat).mul(vec3(...grade.mul));
+          // weathered boards: a glossy roughness map put a cold sky sheen over the whole floor
+          if (grade.rough) n.roughnessNode = max(materialRoughness, float(grade.rough));
+        }
+        mesh.material = n;
       }
       const joint = JOINTS[mats[0]?.name as string];
       if (joint && !NO_JOINTS) {
@@ -391,18 +420,16 @@ export class Model {
       const wob = mx_noise_float(vec3(positionLocal.x.mul(6), positionLocal.y.mul(4).sub(time.mul(3.1)), positionLocal.z.mul(6))).mul(0.045).mul(t);
       // taller than the Blender cones (the Cycles flames stand well above the rim): stretch up from the base
       const c = bb.getCenter(new Vector3());
-      const stretch = DUSK0 ? positionLocal : vec3(positionLocal.x.sub(c.x).mul(1.15).add(c.x), positionLocal.y.sub(bb.min.y).mul(2.0).add(bb.min.y), positionLocal.z.sub(c.z).mul(1.15).add(c.z));
+      // taper each tongue to a point towards the top, with a little height added
+      const taper = float(1).sub(t.pow(1.3).mul(0.75));
+      const stretch = DUSK0 ? positionLocal : vec3(positionLocal.x.sub(c.x).mul(taper).add(c.x), positionLocal.y.sub(bb.min.y).mul(1.15).add(bb.min.y), positionLocal.z.sub(c.z).mul(taper).add(c.z));
       fm.positionNode = stretch.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
-      const hot = DUSK0 ? vec3(1.0, 0.62, 0.22) : vec3(1.0, 0.45, 0.12), tip = DUSK0 ? vec3(0.9, 0.22, 0.03) : vec3(0.75, 0.13, 0.02);
-      // kept under the night bloom threshold so the tongues keep their shape instead of blooming white
-      fm.colorNode = mix(hot, tip, t.pow(0.7)).mul(float(DUSK0 ? 2.6 : 3.2).mul(this.fireFlicker)).mul(this.atm.nightU).mul(float(1).sub(t.pow(2).mul(0.85)));
-      fm.transparent = true; fm.depthWrite = false;
-      if (DUSK0) fm.blending = AdditiveBlending;
-      else {
-        // solid orange tongues that thin out towards the tips (additive blending washed them into the lit bowl)
-        fm.opacityNode = float(1).sub(t.pow(1.6)).mul(0.9).mul(this.atm.nightU);
-        fm.side = DoubleSide;
-      }
+      // solid emissive cones like Cycles': a yellow-white core at the base, orange body, deep orange tips.
+      // Opaque (transparent flames turned into screen-door stripes under TRAA); hidden by day by model.update().
+      const core = vec3(1.0, 0.62, 0.2), body = vec3(1.0, 0.36, 0.05), tip = vec3(0.8, 0.14, 0.01);
+      const grad = mix(mix(core, body, smoothstep(0.0, 0.35, t)), tip, smoothstep(0.45, 1.0, t));
+      fm.colorNode = grad.mul(float(0.85).mul(this.fireFlicker)).mul(this.atm.nightU);
+      fm.side = DoubleSide;
     }
   }
 
@@ -497,11 +524,17 @@ export class Model {
         }
         // three's LTC area lights come out darker than Cycles' for a thin strip a few cm off the floor: x4 matches the
         // floor wash in the 19:40 and 21:00 renders
-        base = d.power / (Math.PI * w * h) * (DUSK0 ? 1 : 4);
+        base = d.power / (Math.PI * w * h) * 2;
+        if (d.name.startsWith('led_bench')) r.color.setRGB(1.0, 0.66, 0.36);   // ~2700 K, as the strips are specified
         light = r;
       } else {
         const p = new PointLight(col, 0, d.name.includes('pool') ? 9 : 14, 2);
         p.position.copy(pos);
+        if (d.name.startsWith('led_firepit')) {
+          // just below the bowl's rim: it lights the bowl and the floor round it, and the rim casts the dark ring
+          p.position.y -= 0.12;
+          p.color.setRGB(1.0, 0.55, 0.22);
+        }
         base = d.power * POINT_SCALE;
         light = p;
       }
@@ -539,7 +572,8 @@ export class Model {
     }
     // shadow maps of the night lights: refresh while they're fading in, then they're static
     if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
-    if (this.flames) this.flames.visible = (swap ? on : true) && this.visibleFor(this.flames.userData);
+    // (hiding a mesh doesn't change any shader, unlike the lights: the flames simply go away by day)
+    if (this.flames) this.flames.visible = on && this.visibleFor(this.flames.userData);
   }
 
   visibleFor(u: Record<string, any>) {

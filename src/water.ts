@@ -8,7 +8,7 @@
 import { Color, MeshStandardNodeMaterial, Vector2 } from 'three/webgpu';
 import {
   abs, cameraNear, cameraFar, cameraPosition, clamp, cos, dot, exp, float, Fn, If, length, Loop, max, mix, mx_noise_vec3,
-  normalize, perspectiveDepthToViewZ, positionView, positionWorld, pow, screenUV, sin, smoothstep, time,
+  modelWorldMatrix, normalLocal, normalize, normalWorld, perspectiveDepthToViewZ, transformDirection, vertexStage, positionView, positionWorld, pow, screenUV, sin, smoothstep, time,
   transformNormalToView, uniform, vec2, vec3, viewportDepthTexture, viewportSharedTexture, select,
 } from 'three/tsl';
 import type { Atmosphere } from './atmosphere';
@@ -38,15 +38,20 @@ const OLD_PRESETS: Record<WaterKind, {
     detail: 0.05, detailScale: 1.4, detailSpeed: 0.3 },
 };
 
-type Preset = typeof OLD_PRESETS['pool'] & { glint?: number; caustic?: number };
+/** How much of the pool floor shows through (Round 8): a Mondo-blue body veils it, as in Cycles. ?veil=0 for the old clear water. */
+/** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
+const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
+const CANAL_REFLECT = Number(new URLSearchParams(location.search).get('creflect') ?? 0.8);
+const VEIL = Number(new URLSearchParams(location.search).get('veil') ?? 0.5);
+type Preset = typeof OLD_PRESETS['pool'] & { glint?: number; caustic?: number; veil?: number; body?: [number, number, number] };
 /** Round 7 water: a deeper Mondo teal pool and spa, and a calm, mirror-like canal. ?water0=1 for the old look. */
 const PRESETS: Record<WaterKind, Preset> = new URLSearchParams(location.search).has('water0') ? OLD_PRESETS : {
-  pool: { absorb: [1.05, 0.3, 0.17], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
+  pool: { absorb: [0.55, 0.16, 0.1], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
     waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
-    detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1 },
+    detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1, veil: VEIL, body: [0.09, 0.2, 0.32] },
   spa: { absorb: [1.05, 0.3, 0.17], scatter: [0.005, 0.034, 0.055], rough: 0.03, refract: 0.04,
     waves: [[0.9, 0.7, 0.0012, 2.0, 0], [2.7, 0.45, 0.0008, 2.6, 0], [4.6, 0.3, 0.0005, 3.2, 0]],
-    detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1 },
+    detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1, veil: VEIL, body: [0.09, 0.2, 0.32] },
   // a sheltered canal on a calm day: long, low swell in three directions (no repeating pattern), and a slow
   // broken noise on top; the sun's glitter is turned off so the far bank's reflection carries it
   canal: { absorb: [1.2, 0.6, 0.55], scatter: [0.012, 0.035, 0.034], rough: 0.09, refract: 0.02,
@@ -90,7 +95,7 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   // planar reflection, nudged by the ripples. It replaces the sky env reflection (added with Fresnel below),
   // so the lighting model only contributes the sun's glint.
   // how far the ripples push the reflection around: gentle on the pool and spa, choppier on the canal
-  const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.12, canal: P.glint === 0 ? 0.35 : 0.25 }[kind])) : null;
+  const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.12, canal: P.glint === 0 ? CANAL_WOBBLE : 0.25 }[kind])) : null;
   // until the mirror's shaders are ready (it's built after the first frame) the sky env map reflects instead;
   // mirror.on fades from one to the other, and the material's envMapIntensity follows it each frame
   if (reflection) m.userData.mirror = mirror;
@@ -118,8 +123,17 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     const body = scatter.mul(ambient).mul(float(1).sub(T));
     const NdV = max(dot(nWorld, V), 0);
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
-    const through = behind.mul(T).add(body).mul(float(1).sub(F));
-    return reflection ? through.add(reflection.mul(F).mul(mirror!.on)) : through;
+    let seen = behind.mul(T).add(body);
+    if (P.veil) {
+      // the water body itself: a deep Mondo blue lit by the sun and sky, which hides part of the shell, more so
+      // where the water is deep (as Cycles shows it: you mostly see the surface and its colour, not the floor)
+      const deep = float(1).sub(exp(thickness.mul(-0.9)));
+      seen = mix(seen, vec3(...P.body!).mul(ambient), deep.mul(P.veil));
+    }
+    const through = seen.mul(float(1).sub(F));
+    // the canal mirror's sky is a touch dimmer than the real one, as Cycles shows it (the far bank stays the brightest)
+    const r = reflection && kind === 'canal' ? reflection.mul(CANAL_REFLECT) : reflection;
+    return r ? through.add(r.mul(F).mul(mirror!.on)) : through;
   })();
   m.userData.waterKind = kind;
   return m;
@@ -154,7 +168,11 @@ export function causticsAlbedo(base: any, box: { minX: number; maxX: number; min
     .mul(smoothstep(level, level.sub(0.05), wp.y));
   const cst = caustic(wp.xz.mul(0.42)).add(caustic(wp.xz.mul(0.42).add(vec2(0.013, 0.008))).mul(0.6));
   // a high sun focuses crisp caustics; a low evening sun through calm water gives only a faint shimmer
-  const strength = smoothstep(0.1, 0.6, sunDir.y).mul(inside);
+  // floors and steps only: projected straight down, the net smeared into vertical streaks on the walls
+  // floors and steps only (projected straight down, the net smeared into streaks on the walls). The facing is
+  // taken in the vertex stage: normalWorld in a colour node broke the sun's shadow pass for every caustic material.
+  const up = vertexStage(transformDirection(normalLocal, modelWorldMatrix).y);
+  const strength = smoothstep(0.1, 0.6, sunDir.y).mul(inside).mul(smoothstep(0.5, 0.85, up));
   // Round 7: a sharper, brighter net like Cycles' (the old soft blotches with ?water0=1)
   const sharp = new URLSearchParams(location.search).has('water0') ? float(0.84).add(cst.mul(0.95)) : float(0.62).add(pow(cst, 1.6).mul(2.4));
   const gain = select(inside.greaterThan(0), mix(float(1), sharp, strength), float(1));

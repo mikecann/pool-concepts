@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 
 // The build writes index.html + assets/ into public/model/ next to the renders (img/) and model files (web/),
@@ -20,7 +21,19 @@ const modelFiles = (): Plugin => ({
   },
 });
 
+// A content hash of the exported model files, added to their URLs as ?v=… so public/_headers can let browsers
+// keep them for a week: a new export changes the hash on the next build, so nobody gets a stale model.
+const modelVersion = () => {
+  const h = createHash('sha1');
+  for (const f of ['pool-model.glb', 'lights.json', 'cameras.json']) {
+    const p = join('public/model/web', f);
+    if (existsSync(p)) h.update(readFileSync(p));
+  }
+  return h.digest('hex').slice(0, 10);
+};
+
 export default defineConfig({
+  define: { __MODEL_V__: JSON.stringify(modelVersion()) },
   base: '/model/',
   publicDir: false,
   plugins: [modelFiles()],

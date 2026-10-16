@@ -11,6 +11,10 @@ export const FAR_LAYER = 2;
 
 const _frustum = new Frustum(), _m = new Matrix4(), _box = new Box3();
 
+/** 1 while a mirror pass renders. The fog reads it: the canal's reflection of the far bank is only ~100 m of
+ * real distance, so fogging it again in the mirror (with the doubled path) turned it into grey cloud. */
+export const inMirror = uniform(0);
+
 export class Mirror {
   // 4x MSAA: thin things like fence pickets alias into dashed lines in a half-res reflection otherwise
   readonly target = new RenderTarget(2, 2, { type: HalfFloatType, samples: 4 });
@@ -85,7 +89,9 @@ export class Mirror {
     const rt = renderer.getRenderTarget(), mrt = renderer.getMRT();
     renderer.setMRT(null);
     renderer.setRenderTarget(this.target);
+    inMirror.value = 1;
     renderer.render(scene, c);
+    inMirror.value = 0;
     renderer.setRenderTarget(rt);
     renderer.setMRT(mrt);
     for (const m of this.meshes) m.visible = m.userData._v;

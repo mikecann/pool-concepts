@@ -1,12 +1,12 @@
 import * as THREE_NS from 'three/webgpu';
 import { AgXToneMapping, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
-import { fog, rangeFogFactor, uniform } from 'three/tsl';
+import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
 import { LIGHT_SWAP, Model, type CameraDef, type Gate, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
 import { Walker } from './walk';
-import { FAR_LAYER } from './mirror';
+import { FAR_LAYER, inMirror } from './mirror';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
 import { FENCE_CHOICES, KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
@@ -86,12 +86,12 @@ async function main() {
   pinRenderDepth(renderer, pinned);
   // distant haze: the far bank 70 to 200 m away softens a little, like the photos
   const fogColor = uniform(atm.fogColor);
-  scene.fogNode = fog(fogColor, params.has('haze0') ? rangeFogFactor(35, 1400) : rangeFogFactor(25, 900));
+  scene.fogNode = fog(fogColor, (params.has('haze0') ? rangeFogFactor(35, 1400) : rangeFogFactor(25, 900)).mul(params.has('mirrorfog') ? 1 : float(1).sub(inMirror)));
 
   const model = new Model(renderer, atm);
   model.people = settings.people ?? true;
   scene.add(model.root);
-  const camsP: Promise<CameraDef[]> = fetch(BASE + 'cameras.json').then(r => r.json()).catch(() => []);
+  const camsP: Promise<CameraDef[]> = fetch(BASE + 'cameras.json?v=' + __MODEL_V__).then(r => r.json()).catch(() => []);
   const data = await modelData;
   mark('glb');
   progress(0.64, 'Building the scene…');
@@ -521,15 +521,25 @@ async function main() {
     return mirrorsPreparing;
   }
 
+  let revealed = false;
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp);
+  }
+
   async function finishLoading() {
     const { target, mrt } = post.target;
     try {
-      setStatus('Adding soft shadows and reflections…');
+      progress(0.99, 'Adding soft shadows and reflections…');
       await settle();
       post.upgrade();               // the full chain warms up behind the boot image...
       await settle();
       post.commitUpgrade();         // ...and swaps in once its pipelines are ready
       booted = true; mark('upgraded');
+      // the first frame of the full chain builds its nodes on the main thread (~0.5 s): keep the loading cover
+      // up until it's done, so the first thing people can move in never freezes
+      reveal();
 
       const db = renderer.getDrawingBufferSize(new Vector2());
       if (QUALITY[S.quality].reflections) await prepareMirrors();
@@ -561,6 +571,7 @@ async function main() {
         lights.forEach(l => { l.visible = false; });
       }
     } catch (e) { console.warn('background compile', e); }
+    reveal();
     asyncPipes.active = false;
     mark('settled');
     setStatus(null);
@@ -620,7 +631,7 @@ async function main() {
       const n = perf.frames; perf.frames = 0;
       renderer.resolveTimestampsAsync('render').then((ms?: number) => { if (ms && n) { const f = ms / n; perf.gpu = perf.gpu ? perf.gpu * 0.8 + f * 0.2 : f; } perf.pending = false; });
     }
-    if (firstFrame) { firstFrame = false; $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp); finishLoading(); }
+    if (firstFrame) { firstFrame = false; finishLoading(); }
     frames++;
     if (now - fpsT > 500) { fpsEl.textContent = `${Math.round((frames * 1000) / (now - fpsT))} fps · ${S.quality} · ${(renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL 2'}`; frames = 0; fpsT = now; }
   });

@@ -9,7 +9,7 @@ const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['-
 const frames = (p, n) => p.evaluate(n => new Promise(r => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
 const track = p => { const urls = []; p.on('request', r => urls.push(r.url().replace(BASE, ''))); return urls; };
 const report = (name, urls) => {
-  const three = urls.filter(u => /assets\/walk-|three/.test(u)), glb = urls.filter(u => u.endsWith('.glb')), imgs = urls.filter(u => /img\//.test(u));
+  const three = urls.filter(u => /assets\/walk-|three/.test(u)), glb = urls.filter(u => /\.glb(\?|$)/.test(u)), imgs = urls.filter(u => /img\//.test(u));
   console.log(`${name.padEnd(9)} requests ${urls.length}, three.js bundle ${three.length ? 'YES' : 'no'}, GLB ${glb.length ? 'YES' : 'no'}, images ${imgs.length}: ${imgs.map(u => u.split('/').pop()).slice(0, 12).join(' ')}${imgs.length > 12 ? ' …' : ''}`);
 };
 

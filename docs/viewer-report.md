@@ -460,7 +460,85 @@ Iteration 7 is the dusk hitch Mike reported. Which lights are visible is part of
   - `image-check.txt`
   - `pages-check.txt`
 
+## Round 8
+
+**Goal:** work through the reviewer's r5 realism list (`review/r5/review.md`) in their ranked order, using the same loop: measure → one change → re-measure → compare against the Cycles stills → keep or revert.
+
+**Targets**
+- **Frame rate:** Medium and High hold 60 fps at DPR 1 and DPR 2.
+- **Dusk scrub:** no frame over 50 ms.
+- **Console:** stays clean.
+- **Load:** warm load under 8 s.
+- **Realism, in ranked order:**
+  1. night: solid flames, no shadows on glass, calmer bench LEDs, fire light below the rim
+  2. pool water opaque and reflective
+  3. timber albedo
+  4. haze limited to the horizon band
+  5. canal reflecting the far bank
+  6. darker paver joints
+  7. the first-frame stall, dusk windows and GLB caching
+
+### Round 8 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | Glass stops receiving shadows | Shadow-acne stripes on the balustrade glass → clean glass | Kept |
+| 2 | Opaque flames (no transparency), tapered and 1.15× taller, core→body→tip gradient | Dithered, see-through stripes under TRAA → solid orange-yellow flame with a hot core (`cmp/night*`, `flame_zoom*.png`) | Kept |
+| 3 | Bench LEDs ×2 area normalisation and warm colour (1.0, 0.66, 0.36) | White strip glare → warm, softer strip | Kept |
+| 4 | Fire light 12 cm lower and warmer | Lit the people's faces from above the rim → glow from inside the bowl | Kept |
+| 5 | Fire light no longer casts a 512 cube shadow | Square bright patch on the lounge floor → clean floor | Kept |
+| 6 | Pool: water-body veil (deep teal, rises with depth), paler absorption | Floor seen as if through clear glass → body colour hides part of the shell (`bis_vm.png`) | Kept |
+| 7 | Caustics only on up-facing surfaces | Caustic net on the pool walls → floor only | Kept, after a regression: `normalWorld` in the colorNode broke the sun's shadow pass for those materials and darkened the whole scene. A vertex-stage normal fixed it |
+| 8 | Flames hidden by day | Black cones in the bowl at noon → no flames by day | Kept |
+| 9 | Timber grade (`TIMBER` map in model.ts, `?timber0=1` for before): composite and lounge steps ×0.4 and desaturated, bench slats ×0.56, pavilion hardwood with a 0.8 roughness floor, table set toward honey | Orange-tan steps, blue-lilac pavilion deck (a sky sheen over a near-black red texture) → dark brown steps, dark red-brown deck, as Cycles shows them (`timber_AB.png`, `timber_deck.png`) | Kept |
+| 10 | Haze band `pow(1−y, 6)` instead of 2.5 (`?hazepow=2.5` for before) | Haze up to ~30° → blue above ~20° (`haze_AB.png`) | Kept: a small gain. Our sky is still a deeper, greyer blue than the Cycles sky |
+| 11 | No fog in mirror passes (`inMirror` uniform, `?mirrorfog=1` for before) | No visible difference: the grey wasn't fog | Kept (harmless, and correct) |
+| 12 | Canal reflection: ripple distortion 0.35 → 0.15, reflected light ×0.8 (`?wobble=`, `?creflect=`) | Cloud-white blotches → calm water where the far-bank trees read (`canal_AB.png`) | Kept |
+| 13 | Joints: 0.35× the stone's own colour (pulled 20% toward the grout), full strength, a minimum coverage of 0.55, ~20% wider (`?jointsold=1` for before) | Faint grey lines → clear recessed joints on the coping and pavers (`joints_zoom.png`) | Kept |
+| 14 | The loading cover stays up until the full post chain is committed | 467 ms freeze in the first second you can move → hidden behind the cover. The cover lifts at 1.6 s warm (was 0.95 s), interactive is unchanged at 2.6 s | Kept |
+| 15 | Dusk windows: emissive 0.018 → 0.28 | Windows nearly black at dusk → warm lit windows | Kept. The lit alfresco ceiling wasn't done |
+| 16 | Model files get `?v=<content hash>` from vite.config.ts. `public/_headers` gives `/model/assets/*` a one-year immutable cache and `/model/web/*` one week | Revalidated every visit → served from the browser cache on repeat visits. Cloudflare Workers static assets honour `_headers` | Kept |
+
+**Final numbers (local build, headless on Apple Metal):**
+
+| | Round 7 | Round 8 |
+|---|---|---|
+| Medium, DPR 1 and 2 (alfresco, lounge, pool edge, play) | 60 fps | 60 fps everywhere |
+| High, DPR 1 and 2 | 60 fps | 60 fps everywhere |
+| Ultra, DPR 2 | 38–48 fps | 44–50 fps (labelled "Ultra (slow)") |
+| Dusk scrub, 17:00↔21:00 ×6 | max 25 ms | max 23 ms, 0 frames over 50 ms |
+| Warm load: cover lifts / interactive | 0.95 s / 2.6 s, with a 467 ms freeze after the cover | 1.6 s / 2.6 s, no freeze after the cover |
+| Cold load: cover lifts / interactive | 1.4 s / 3.1 s | 2.1 s / 3.1 s |
+| Console (quality changes, dawn to night, camera jumps) | clean | clean |
+
+**Other checks:**
+- **Walk test:** gates, jump and the fence all pass.
+- **Images:** 165 checked, 0 missing.
+- **Settings:** they survive a reload. I fixed the test script: "Ultra (slow)" also matched "Low".
+- **Page checks:** only the walk page loads three.js and the GLB. I fixed the GLB detection in the script for the `?v=` query.
+
+**Still short of Cycles:**
+- **Pool caustics:** Cycles has a sharp caustic net on a paler floor.
+- **Dusk pool:** ours is a brighter blue than Cycles' dark pool.
+- **Night lounge light:** a touch cooler and whiter than Cycles.
+- **Daytime sky:** a deeper, greyer blue than Cycles' pale sky.
+
 ## Summary
+
+**Round 8:** the reviewer's realism list is done:
+- solid flames
+- glass without shadows
+- calmer warm bench LEDs
+- an opaque pool body
+- graded timber
+- a tighter haze band
+- a calm canal that reflects the far bank
+- clear paver joints
+- no freeze after the loading cover
+- brighter dusk windows
+- cached model files
+
+Medium and High still hold 60 fps at DPR 1 and 2, and the dusk scrub stays under 25 ms.
 
 **Round 7:**
 - **Fixes:** changing quality now keeps shadows with zero errors, the lawn and benchtops have UVs, phones start on Low, and Ultra is capped and labelled "Ultra (slow)".
