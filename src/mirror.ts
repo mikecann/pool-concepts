@@ -3,8 +3,11 @@
 // water material samples by projecting its world position with the mirror camera's matrices.
 // (three's ReflectorNode does the same, but its shared targets were being disposed mid-frame with our
 // MRT pipeline, so this keeps the lifetimes in our hands.)
-import { Box3, Frustum, HalfFloatType, Matrix4, PerspectiveCamera, Plane, RenderTarget, Vector3, Vector4, type Mesh, type Scene, type WebGPURenderer } from 'three/webgpu';
+import { Box3, Frustum, type Object3D, HalfFloatType, Matrix4, PerspectiveCamera, Plane, RenderTarget, Vector3, Vector4, type Mesh, type Scene, type WebGPURenderer } from 'three/webgpu';
 import { positionWorld, texture, uniform, vec2, vec4 } from 'three/tsl';
+
+/** Layer the far tree canopies live on (as well as being drawn by the main camera). */
+export const FAR_LAYER = 2;
 
 const _frustum = new Frustum(), _m = new Matrix4(), _box = new Box3();
 
@@ -19,6 +22,14 @@ export class Mirror {
   readonly on = uniform(0);
   ready = false;
   scale = 0.5;
+  /** Whether this mirror shows the far trees (the canal does; the pool's walls and fences hide them). */
+  farTrees = true;
+  /**
+   * Objects this mirror can skip, and when. The canal is only seen from the yard over the canal wall, looking
+   * south, where it reflects the far bank: the house, pool and garden behind you can't appear in it. So while the
+   * camera is in the yard the canal mirror leaves them out (from the jetty, the path or the drone it doesn't).
+   */
+  skip: { objects: Object3D[]; when: (camera: PerspectiveCamera) => boolean } | null = null;
 
   constructor(public level: number) {}
 
@@ -42,6 +53,7 @@ export class Mirror {
     if (this.target.width !== w || this.target.height !== h) this.target.setSize(w, h);
     const c = this.cam;
     c.copy(camera, false);
+    if (!this.farTrees) c.layers.disable(FAR_LAYER);
     // mirror the camera in y = level
     const p = camera.position, L = this.level;
     c.position.set(p.x, 2 * L - p.y, p.z);
@@ -67,6 +79,8 @@ export class Mirror {
     this.prepare(camera, width, height);
     const c = this.cam;
 
+    const hide = this.skip && this.skip.when(camera) ? this.skip.objects.filter(o => o.visible) : [];
+    for (const o of hide) o.visible = false;
     for (const m of this.meshes) m.userData._v = m.visible, m.visible = false;
     const rt = renderer.getRenderTarget(), mrt = renderer.getMRT();
     renderer.setMRT(null);
@@ -75,5 +89,6 @@ export class Mirror {
     renderer.setRenderTarget(rt);
     renderer.setMRT(mrt);
     for (const m of this.meshes) m.visible = m.userData._v;
+    for (const o of hide) o.visible = true;
   }
 }

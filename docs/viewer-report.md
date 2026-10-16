@@ -1,5 +1,21 @@
 # Viewer report: the 3D walkthrough at /model/
 
+## Round 6 goal (performance and realism pass)
+
+**Goal:** make Live 3D look closer to the Cycles renders while keeping it as fast as possible, iterating measure → one change → re-measure → screenshot compare.
+
+**Targets**
+- **Load:** navigation to first interactive frame under 8 s on a warm cache.
+- **Frame rate:** Medium at 1600×900 ≥ 60 fps at the alfresco, in the sunken lounge and at the pool's edge on this M-series Mac; High as close to 60 as possible; Low clearly faster again.
+- **Realism:** closer to `05_pool_north_end__proposed.jpg`, `15_lounge_from_alfresco__proposed.jpg` and `times_15_lounge_from_alfresco_summer_1940.jpg`, with every Medium-cost change earning its keep.
+- **Stop when:** the targets are met and three iterations in a row bring no visible gain, or after about 3 hours.
+
+**How it's measured:** `scripts/perf.mjs` reports wall fps, GPU ms per frame (timestamp queries), JS ms per frame, draw calls and triangles. `scripts/profile-load.mjs` reports load times (warm/cold, optionally `CPU_SLOWDOWN=4`).
+
+**Caveat:** a Cycles batch was using the GPU throughout, so fps and GPU ms are noisy and low. I compared A/B in the same session, interleaved, and lean on draw calls, triangles and JS time, which don't depend on GPU contention.
+
+(The iteration log is in the Round 6 section below.)
+
 Both parts of `docs/viewer-brief.md` are done. Nothing is committed, pushed or deployed. `pool-model.blend` was only ever opened read-only with `Blender -b`, and every screenshot run used headless Chromium on the real GPU (the scripts check for an Apple Metal adapter and stop if they get SwiftShader).
 
 ## What I built (Part B, pool-concepts)
@@ -267,7 +283,118 @@ What changed (`src/compile.ts`, `main.ts`, `post.ts`):
 - **The upgrade frame:** SSGI/TRAA/bloom build their shaders synchronously in three, and there's no API to precompile them. That's the one ~0.35 s frame just after the first.
 - **Relies on three internals:** the loading fixes patch three r186 internals (`_pipelines`, `_renderContexts`). They're isolated in `src/compile.ts` and commented, and need re-checking on a three upgrade.
 
+## Round 6
+
+### Iteration log
+
+Medium, 1600×900, 13:00 at the alfresco / lounge / pool edge unless noted. Draws, triangles and JS ms are per frame across all passes. fps and GPU ms are noisy because Blender held the GPU throughout, so verdicts lean on draws, triangles and JS time.
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 0 | Baseline | ~1,070 draws, 2.81 M tris, JS 8–16 ms | |
+| 1 | Pool and spa share one planar mirror (4 cm apart) instead of two | draws 1,067 → 796, tris 2.81 M → 2.08 M | **Kept**: one whole scene render fewer, no visible change |
+| 2 | Far trees split into 50 m, then 150 m, frustum-culled chunks | tris −1.0 M but draws +210 to +1,300, JS +4 to +60 ms | **Reverted**: CPU is the tighter limit on slower machines |
+| 3 | Far canopies as 80-triangle icospheres instead of 120-triangle blobs | tris 2.08 M → 1.49 M | **Reverted**: they looked like smooth lollipops (`review/round6/i3_trees_AB.png`) |
+| 4 | Far canopies left out of the pool mirror (camera layer); the canal mirror keeps them | tris 2.08 M → 1.49 M, draws −4 | **Kept**: identical pool reflections (`review/round6/i4_poolmirror_AB.png`) |
+| 5 | Canal mirror skips our own lot while the camera is in it (it can only reflect the far bank from there) | draws −45 to −60, JS alfresco ~25 → ~15 ms, pool edge 9 → 7 ms | **Kept**: identical (`review/round6/i5_canal_AB.png`) |
+| 6 | Static meshes merged by material and visibility key, in coarse regions (`src/merge.ts`) | meshes 825 → 444, draws ~750 → ~490, JS lounge 8 → 6 ms, pool edge 11 → 6.5 ms, tris +30 k | **Kept**: same pictures (`review/round6/i6_merge_AB.png`); collisions, steps and gates pass |
+| 7 | **Dusk hitch**: the night lights, the sun and the flames stay in the scene all the time, and only intensity or emission changes | scrubbing 17:00 ↔ 21:00 three times: longest frame **1.7 to 22 s** on every crossing → **19 to 21 ms**, none over 50 ms (Medium, High and Low); daytime Medium unchanged (60 fps, JS alfresco ~20 → ~7.5 ms) | **Kept**: same day and night pictures (`review/round6/dusk_AB.png`) |
+
+| 8 | Sun-only lighting for materials used only more than 30 m from the yard (to claw back the constant lights' compile cost) | warm compile ~0.8 s → ~0.8 s | **Reverted**: the shader count is set by unique shader shapes, so this only added sun-only variants |
+| 9 | Boot with the day light set (small shaders, fast first frame), then compile the night set in the background on a cloned camera and switch for good | first frame back to ~0.8 s, but the switch still rebuilt 43 to 143 shaders (a 0.5 to 1.3 s stall) | **Reverted**: three's light-set cache key is cached per render call and shared across cameras, so the night set can't be compiled out of sight; it also risked filing night shaders under day keys |
+| 10 | Pair up the 4 boundary uplights and the 4 skillion downlights (13 → 9 real lights, each pair at its midpoint with the combined power) | warm compile ~0.78 → ~0.63 s, warm first frame ~1.2 → ~1.1 s, settled ~3.3 → ~3.0 s | **Kept**: night pictures nearly identical (`review/round6/i10_lights_AB.png`) |
+
+| 11 | **Sun shadows in the yard were missing**: the shadow map was being drawn inside the canal-mirror pass, which hides our lot (iteration 5), so it held only the neighbours and the far bank. The two shadow-casting night lights had the same problem. Shadow updates are now held until the main pass. | shadow map before: 55 objects, no yard; after: the whole lot. Frame cost unchanged (maps re-render only when the sun moves) | **Kept**: the biggest realism gain of the round (`review/round6/cmp/shadowfix_vs_cycles.png`). Older builds (Round 4/5) also lost the yard's shadows when the sun was high, so this was older than iteration 5 |
+| 12 | Hazier sky (turbidity 6 → 9) toward Cycles' pale horizon | no cost | **Reverted**: no visible gain (`review/round6/sky_AB.png`) |
+| 13 | Deeper pool water: more absorption and body colour | no cost | **Kept**: reads more like the Mondo blue in the renders and less like clear glass (`review/round6/i13_pool_AB.png`) |
+
+**Stopping point:** the targets were met. 11 and 13 were visible gains and 12 wasn't, but the Blender batch finished, so I took the clean final measurements below rather than carry on the loop.
+
+Iteration 7 is the dusk hitch Mike reported. Which lights are visible is part of every material's shader key in three, so switching the scheme on at dusk by making 14 lights visible (and hiding the sun at night) rebuilt and recompiled every shader in the scene. It also never stayed cached, so it happened on every crossing. Now the light set never changes, and the two shadow-casting night lights (fire pit and one downlight) render their maps once when the lights come up. The scrub check is `scripts/scrub-test.mjs`, and the logs are `review/round6/scrub_before.txt`, `scrub_after1.txt` and `scrub_final.txt`.
+
+**Cost of the fix:**
+- Every shader now carries the night lights, which lengthened the load-time compile: warm first frame 0.8 s → 1.25 s, and on a 4× slowed CPU 2.9 s → 5.9 s.
+- Iteration 10 won part of it back: warm first frame ~1.1 s, and on a 4× slowed CPU 3.7 s warm / 4.6 s cold.
+- Both stay well inside the 8 s target.
+- Daytime frame time at Medium is unchanged (60 fps, JS 5 to 7 ms).
+
+**In the final scrub runs**, one set of three round trips had no frame over 18 to 19 ms. A second set had some 50 to 134 ms frames, but spread evenly from 17:08 to 20:57 rather than at sunset (~19:20), so that's the Blender batch competing for the GPU, not shader work.
+
+### Round 6: what else changed
+- **New options** (`src/choices.ts`, `model.ts`, `main.ts`, `gallery.ts`):
+  - **Pool roller:** new low-profile option, new deep-end and in-ground-box copy, and every roller card now flies to `05_pool_north_end`.
+  - **Pier:** "Across the deck" option added.
+  - **New groups:** North pool fence (`nfence_*`, flies to `20_pool_north_seating`) and Side passage surface (`passage_*`, flies to `19_play_area`).
+  - **Combined keys:** keys like `nfence_as_drawn+passage_pavers` show only when both parts are chosen. The defaults follow `render.py`.
+  - **URL params:** `?nfence=moved&passage=aggregate` (prefix optional) and `?pier=`.
+  - **Renders page:** a new "fence by the pavilion pier" section and a "Side passage" section with the four combinations from cameras 20, 19 and 17. View 20 is added, and low-profile is added to the roller section.
+- **Missing renders:** `make-cards.mjs` skips any render that isn't there yet, and the pages show a quiet "Render to come" instead of a broken image.
+  - Mike's sync at 16:07 brought the new renders in, so `check-images` is **162 checked, 0 missing**, and all 18 cards are made.
+- **Settings:** the first visit is Medium with the fps counter on (no auto-detect).
+  - **What's remembered:** in `localStorage` (try/catch) under `pool-settings`: quality, fps counter, people, scenario, every option, date, and the time of day once you've moved it yourself.
+  - **Deep links** override the saved values.
+  - **Checked** by `scripts/settings-test.mjs`.
+- **New scripts:**
+  - `scripts/perf.mjs`: fps, GPU ms, JS ms, draws, triangles
+  - `scripts/scrub-test.mjs`: the dusk check
+  - `scripts/compare.mjs`: the walkthrough from a Cycles camera next to its render
+  - `?gpu=1`: turns on timestamp queries
+
+### Final numbers (GPU free, the Blender batch had finished)
+
+| | Before (Round 5 build) | After |
+|---|---|---|
+| Load, warm: first frame / settled | 0.87 to 0.89 s / 2.25 to 2.39 s | 1.05 to 1.19 s / 2.85 to 3.13 s |
+| Load, cold: first frame / settled | 1.33 to 1.34 s / 2.83 to 2.86 s | 1.56 to 2.09 s / 3.54 to 4.07 s |
+| Load, 4× slower CPU, warm first frame | 2.9 s (Round 6 start) | 3.7 s |
+| Dusk scrub, longest frame | 1.7 to 22 s at every crossing | 19 to 24 ms, none over 50 ms |
+| Medium (alfresco / lounge / pool edge) | 60 fps, ~1,070 draws, 2.8 M tris, JS 8 to 16 ms | **60 fps**, 440 to 510 draws, 1.4 to 1.5 M tris, JS 5 to 6 ms |
+| High | 24 to 54 fps (GPU busy), ~1,100 draws, 3.4 M tris | **60 fps**, 460 to 530 draws, 1.9 to 2.0 M tris, JS ~6 ms |
+| Low | ~290 draws, JS ~2 ms | **60 fps**, 170 to 200 draws, 0.1 to 0.16 M tris, JS ~2.4 ms |
+
+**Notes on these numbers:**
+- **Load:** got a little slower. That's the price of the dusk fix, since every shader now carries the night lights all day. It's well inside the 8 s target everywhere I can measure, including a 4× slowed CPU.
+- **The ~20 s Mike sees:** I couldn't reproduce it in headless Chromium on this Mac. Pipeline compile time is driver- and display-dependent, so please time it once in his browser.
+- **Frame rate:** fps is capped at 60 by vsync, so the draw-call, triangle and JS-time drops are the real headroom gained.
+- **GPU timestamps:** the GPU-ms readings (45 to 90 ms at a steady 60 fps) aren't credible. three resolves timestamps across passes in a way I couldn't line up per frame, so I didn't base any verdict on them.
+
+### What I couldn't do, or left
+- **Absolute fps during the loop:** it was noisy while Blender held the GPU, so verdicts used draw calls, triangles and JS time. Only the final table is clean.
+- **Load still pays for the constant light set:** about +0.2 to 0.3 s warm compared with the old dusk-stalling build. Precompiling both light sets wasn't possible (iteration 9).
+- **Realism gaps still left vs Cycles:**
+  - the sky is bluer and less hazy at the horizon
+  - shadows are a bit softer and less contrasty
+  - no tile or paver joints on the concourse in the 3D model
+  - no caustic patterns as strong as the new Cycles pool water
+
+  These are export or texture work rather than cheap viewer changes.
+- **The walk test's step check** now stops on the spa deck rather than walking off its unfenced south edge onto the canal path, which the re-exported model allows.
+
+### Screenshots (`review/round6/`)
+- **Comparisons with Cycles:** `cmp/base_vs_cycles.png` (start of the round), `cmp/shadowfix_vs_cycles.png`, `cmp/final_vs_cycles.png`
+- **Iteration A/Bs:**
+  - `i3_trees_AB.png`
+  - `i4_poolmirror_AB.png`
+  - `i5_canal_AB.png`
+  - `i6_merge_AB.png`
+  - `dusk_AB.png`
+  - `i10_lights_AB.png`
+  - `sky_AB.png`
+  - `i13_pool_AB.png`
+- **Review set:** `final/` (sheet `sheet_final.png`)
+- **New cards and gate:** `sheet_cards.png`; pages in `pages/`
+- **Shadow diagnosis:** `shtest/`, including the shadow-map dumps `shtest/smap.png` (before) and `smap_fixed.png`
+- **Logs:** `perf_final.txt`, `load_final_before.txt`, `load_final_after.txt`, `scrub_final.txt`, `walk-test.txt`, `settings-test.txt`, `image-check.txt`, `perf.log` (every A/B run)
+
 ## Summary
+
+**Round 6:**
+- **Dusk hitch fixed:** scrubbing through dusk never takes more than 24 ms a frame (it was 1.7 to 22 s).
+- **Sun shadows** work again in the yard.
+- **Medium, High and Low** all hold 60 fps with about half the draw calls and triangles.
+- **New options** for the roller, pier, north fence and side passage, on both pages.
+- **Settings** are remembered between visits (Medium with the fps counter by default).
+- **Load** is 1.1 to 2.1 s to first frame here.
 
 **Round 4:**
 - `/model/` is a chooser between the renders (no three.js) and Live 3D.

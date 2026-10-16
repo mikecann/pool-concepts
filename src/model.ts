@@ -11,9 +11,10 @@ import { float, materialColor, mix, mx_noise_float, positionLocal, time, uniform
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTexturesLib.js';
-import { Mirror } from './mirror';
+import { FAR_LAYER, Mirror } from './mirror';
 import { Grass, lawnColor } from './grass';
 import { softenFarTrees } from './trees';
+import { mergeStatic } from './merge';
 import { causticsAlbedo, waterMaterial, type WaterKind } from './water';
 import type { Atmosphere } from './atmosphere';
 
@@ -28,7 +29,25 @@ export type Scenario = 'existing' | 'proposed';
 // and spots; area lights emit from one side, so W / (π · area) as radiance.
 type AnyLight = Light & { shadow?: any };
 const POINT_SCALE = 1 / (4 * Math.PI);
-const KEY_SHADOW_LIGHTS = ['led_firepit_light', 'alfresco_downlight_1'];
+const KEY_SHADOW_LIGHTS = ['led_firepit_light', 'alfresco_downlight_1', 'alfresco_downlight_0+1'];
+
+/** Merge lights of the given name prefixes two at a time (sorted by name): mean position and direction, summed power. */
+function pairUp(defs: LightDef[], prefixes: string[]) {
+  const out: LightDef[] = [];
+  for (const p of prefixes) {
+    const group = defs.filter(d => d.name.startsWith(p)).sort((a, b) => a.name.localeCompare(b.name));
+    for (let i = 0; i < group.length; i += 2) {
+      const a = group[i], b = group[i + 1];
+      if (!b) { out.push(a); continue; }
+      const mid = (x: number[], y: number[]) => x.map((v, k) => (v + y[k]) / 2);
+      out.push({ ...a, name: `${a.name}+${b.name.split('_').pop()}`, position: mid(a.position, b.position), direction: mid(a.direction, b.direction),
+        power: a.power + b.power, spotAngle: Math.max(a.spotAngle ?? 1, b.spotAngle ?? 1) * 1.15 });
+    }
+  }
+  return [...defs.filter(d => !prefixes.some(p => d.name.startsWith(p))), ...out];
+}
+/** ?lightswap=1: the old behaviour (night lights made visible at dusk), for A/B. */
+export const LIGHT_SWAP = new URLSearchParams(location.search).has('lightswap');
 
 const INHERIT = ['set', 'option', 'people', 'night', 'collide', 'lod', 'water', 'window'];
 
@@ -104,11 +123,18 @@ export class Model {
   kitchen = 'kitchen_split';
   /** The east fence beside the pavilion pier: as drawn, a 1.8 m section, or taken round the pier. */
   pier = 'pier_as_drawn';
+  /** The north pool fence across the side passage: as drawn, or moved 1.5 m north. */
+  nfence = 'nfence_as_drawn';
+  /** Side passage surface: existing pavers or new aggregate up to the play area. */
+  passage = 'passage_pavers';
   people = true;   // the figures are there to judge scale, so they start on
   showFar = true;
   farReady = false;
   materialCount = 0;
   readonly gates: Gate[] = [];
+  private wasOn = false;
+  /** The night lights are always in the scene (only their intensity changes), so dusk never changes a shader. */
+  lightsConstant = true;
   /** Pool fence infill: 'perforated' (the estimate) or 'glass' (SK02's frameless glass). */
   fence: 'perforated' | 'glass' = 'perforated';
   private fencePanels: { mesh: Mesh; perforated: Material }[] = [];
@@ -143,14 +169,38 @@ export class Model {
     this.setupFence();
     this.setupWater(reflections, reflectionScale);
     this.setupLights(lights);
+    if (!new URLSearchParams(location.search).has('merge0')) {
+      const keep = new Set<Object3D>([...this.waters, ...this.lawns, ...this.fencePanels.map(p => p.mesh)]);
+      if (this.flames) keep.add(this.flames);
+      this.mergeStats = mergeStatic(this.root, this.root.children[0], keep);
+    }
+    this.setupMirrorSkips();
     this.bounds.setFromObject(this.root);
     this.apply();
+  }
+
+  mergeStats = { before: 0, after: 0 };
+  /** The canal mirror leaves out our lot while the camera is in it (see Mirror.skip). Run after merging. */
+  private setupMirrorSkips() {
+    const canal = this.mirrors.find(m => m.meshes.some(w => w.userData.water === 'canal'));
+    if (!canal || new URLSearchParams(location.search).has('canalyard')) return;
+    // our lot north of the canal wall (z < 11): top-level nodes, so hiding them is a short loop
+    const yard: Object3D[] = [], b = new Box3(), c = new Vector3();
+    for (const o of this.root.children[0]?.children ?? []) {
+      if (/^(ctx_|nb_)/.test(o.name) || o.userData.lod === 'far' || o.userData.water) continue;
+      b.setFromObject(o); if (b.isEmpty()) continue;
+      b.getCenter(c);
+      if (c.z < 11 && b.max.z < 12.5 && c.x > -12 && c.x < 20) yard.push(o);
+    }
+    canal.skip = { objects: yard, when: cam => cam.position.z < 11 && cam.position.y < 8 };
   }
 
   /** Far trees are hidden for the first frame and softened afterwards (see trees.ts). */
   async finishFar() {
     if (this.farReady) return;
-    await softenFarTrees(this.farCanopies(), this.atm.sun);
+    const far = this.farCanopies();
+    await softenFarTrees(far, this.atm.farSun);
+    for (const m of far) m.layers.set(FAR_LAYER);   // so the pool mirror can skip them
     this.farReady = true;
     this.apply();
   }
@@ -330,7 +380,8 @@ export class Model {
     const levels: { y: number; kinds: WaterKind[] }[] = [];
     for (const [kind, meshes] of groups) {
       const y = new Box3().setFromObject(meshes[0]).max.y;
-      const l = levels.find(l => Math.abs(l.y - y) < 0.03);
+      // pool (2.22) and spa (2.26) share one mirror: 4 cm of plane offset is invisible, a whole scene render isn't
+      const l = levels.find(l => Math.abs(l.y - y) < (new URLSearchParams(location.search).has('mirror3') ? 0.03 : 0.06));
       if (l) l.kinds.push(kind); else levels.push({ y, kinds: [kind] });
     }
     for (const l of levels) {
@@ -338,6 +389,7 @@ export class Model {
       if (reflections) {
         mirror = new Mirror(l.y);
         mirror.scale = l.kinds.includes('canal') ? scale * 0.7 : scale;
+        mirror.farTrees = l.kinds.includes('canal') || new URLSearchParams(location.search).has('poolfar');
         this.mirrors.push(mirror);
       }
       for (const kind of l.kinds) {
@@ -368,6 +420,10 @@ export class Model {
   }
 
   private setupLights(defs: LightDef[]) {
+    // Every light in the scene is in every shader (they're kept on all day, see update()), so fewer is better:
+    // the four boundary uplights and the four skillion downlights become two of each, each pair a single light
+    // midway between the two with their combined power. The look barely changes; the shaders get 4 lights smaller.
+    if (!new URLSearchParams(location.search).has('lights13')) defs = pairUp(defs, ['led_uplight', 'alfresco_downlight']);
     for (const d of defs) {
       if (d.name.startsWith('int_light')) continue;   // interior lamps would shine through the walls; the windows glow instead
       const col = new Color(d.color[0], d.color[1], d.color[2]);
@@ -397,7 +453,7 @@ export class Model {
       light.name = d.name;
       light.userData.set = d.set ?? 'proposed';
       if (d.option) light.userData.option = d.option;
-      if (KEY_SHADOW_LIGHTS.includes(d.name) && light.shadow) {
+      if (KEY_SHADOW_LIGHTS.includes(d.name) && light.shadow && !new URLSearchParams(location.search).has('nightshadow0')) {
         light.castShadow = true;
         light.shadow.mapSize.set(512, 512);
         light.shadow.bias = -0.002;
@@ -415,22 +471,29 @@ export class Model {
     this.updateGates(dt);
     const flick = 0.82 + 0.1 * Math.sin(t * 13.1) + 0.06 * Math.sin(t * 23.7 + 1.3) + 0.05 * Math.sin(t * 7.3 + 0.4);
     this.fireFlicker.value = flick;
+    // The set of visible lights is part of every material's shader key, so switching the lighting scheme on at
+    // dusk by making lights visible rebuilt every shader in the scene (a 2 s stall, every time you crossed dusk).
+    // So the lights stay in the scene all day and only their intensity goes to 0; likewise the flames, whose
+    // emission is scaled by the night uniform. Their visibility only follows the scenario and options.
+    const swap = LIGHT_SWAP || !this.lightsConstant;
     const on = night > 0.004;
     for (const { light, base, def } of this.nightLights) {
-      const vis = on && this.visibleFor(light.userData);
+      const vis = (swap ? on : true) && this.visibleFor(light.userData);
       if (light.visible !== vis) { light.visible = vis; if (light.castShadow) light.shadow!.needsUpdate = true; }
       light.intensity = base * night * (def.name.startsWith('led_firepit') ? flick : 1);
     }
-    if (this.flames) this.flames.visible = on && this.visibleFor(this.flames.userData);
+    // shadow maps of the night lights: refresh while they're fading in, then they're static
+    if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
+    if (this.flames) this.flames.visible = (swap ? on : true) && this.visibleFor(this.flames.userData);
   }
 
-  private visibleFor(u: Record<string, any>) {
+  visibleFor(u: Record<string, any>) {
     if (u.set && u.set !== 'both' && u.set !== this.scenario) return false;
     if (u.option) {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage];
       if (!String(u.option).split('+').every(part => chosen.includes(part))) return false;
     }
     if (u.people && !this.people) return false;
@@ -455,6 +518,17 @@ export class Model {
 
   /** Render the planar reflections whose water is on screen. */
   renderMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number) {
+    // Shadow maps must not be drawn inside a mirror pass: the canal mirror hides our whole lot while it renders
+    // (Mirror.skip), and a shadow map drawn then had no yard in it, so the sun cast no shadows in the yard.
+    // Hold every pending shadow update until the main pass, which sees the whole scene.
+    const shadows = [this.atm.sun, ...this.shadowLights].map(l => (l as any).shadow).filter(Boolean);
+    const pending = shadows.map(sh => sh.needsUpdate);
+    for (const sh of shadows) sh.needsUpdate = false;
+    try { this.drawMirrors(renderer, scene, camera, w, h); }
+    finally { shadows.forEach((sh, i) => { if (pending[i]) sh.needsUpdate = true; }); }
+  }
+
+  private drawMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number) {
     for (const m of this.mirrors) {
       if (!m.ready) continue;
       m.on.value = Math.min(1, m.on.value + 0.08);

@@ -50,9 +50,9 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   await p.evaluate(() => { __viewer.setPanel(true); __viewer.setTime(15 * 60); });
   await frames(p, 30);
   await p.screenshot({ path: `${OUT}/walk_panel.png` });
-  for (const [box, value] of [['cards-roller', 'Deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-fence', 'Glass']]) {
+  for (const [box, value] of [['cards-roller', 'Low-profile, deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-fence', 'Glass'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'Aggregate to the play area']]) {
     const before = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
-    await p.locator(`#${box} .card`, { hasText: value }).click();
+    await p.locator(`#${box} .card`).filter({ has: p.locator('b', { hasText: new RegExp(`^${value.replace(/[.]/g, '\\.')}$`) }) }).click();
     await p.waitForTimeout(2200); await frames(p, 30);
     const after = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
     const pressed = await p.locator(`#${box} .card[aria-pressed="true"] b`).textContent();
@@ -62,6 +62,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   // the north pool gate: tooltip, then open
   await p.locator('#cards-fence .card', { hasText: 'Perforated' }).click();
   await p.locator('#cards-roller .card', { hasText: 'No roller' }).click();
+  await p.locator('#cards-nfence .card', { hasText: 'As drawn' }).click();
   await p.waitForTimeout(1500);
   await p.evaluate(() => { __viewer.setPanel(false); const g = __viewer.model.gates.find(g => g.leaf.name.startsWith('fence_pool_north')); const d = g.dir; const mx = g.hinge.x + d.x * g.width / 2, mz = g.hinge.z + d.z * g.width / 2; __viewer.place(mx + 0.2, 3, mz - 1.35, 182, -14); });
   await frames(p, 40);

@@ -3,8 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
+import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES } from './choices';
 
-export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string; fence?: 'perforated' | 'glass' };
+export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string; fence?: 'perforated' | 'glass';
+  pier?: string; nfence?: string; passage?: string };
 
 
 const SUN = {
@@ -20,10 +22,11 @@ const ROLLER = [
   ["roller_shallow", "Shallow end", `<b>Shallow end, by the north fence</b>
     <p>The easy fit. There's 1.66 m between the coping and the north fence, so the roller takes about 0.7 m and leaves about 1 m to walk past. It's in full view from the alfresco, and the east stand sits about 1 m in front of the north gate, so you step around it.</p>`],
   ["roller_deep", "Deep end", `<b>Deep end, by the canal</b>
-    <p>Out of sight from the house, but it doesn't really fit. The new terrace wall runs at an angle behind the deep end, so the strip between the coping and the wall narrows from about 1.4 m at the east corner to about 0.5 m at the west corner. A stand needs about 0.6 m, so the west stand ends up on the edge of the 1.3 m drop to the canal path.</p>
-    <p>It would need wall-mounted brackets, a smaller roller, or the pool moved north a little.</p>`],
-  ["roller_pit", "In-ground box", `<b>Blanket box under the concourse</b>
-    <p>A 4.5 m by 0.5 m box set into the concourse at the shallow end, with a flush lid you walk over (shown here with a stainless edge). Nothing to see or step around, but it has to be designed in before the concourse is poured: it needs depth, a drain, and a crank or a motor. Usually the dearest of the three, so worth asking Bob for a price.</p>`],
+    <p>Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.</p>`],
+  ["roller_pit", "In-ground box", `<b>Blanket box at the deep end</b>
+    <p>In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],
+  ["roller_lowpro", "Low-profile, deep end", `<b>Low-profile roller at the deep end</b>
+    <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`],
 ];
 const KITCHEN = [
   ["kitchen_split", "Split by the gate", `<b>Either side of SK02's gate</b>
@@ -54,6 +57,13 @@ const SEASON_DATE = { summer: "2027-01-16", winter: "2027-06-21" } as const;
 const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
 
 const ROLLER_VIEWS = [['17_pool_overview', 'From above'], ['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence']];
+const PIER = PIER_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const PIER_VIEWS = [['18_pier_fence', 'At the pier'], ['12_from_pavilion', 'From the pavilion']];
+// the side passage: north fence position x passage surface, as render.py names them (side_<fence>_<surface>)
+const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
+  `side_${f.value.replace('nfence_', '')}_${p.value.replace('passage_', '')}`, `${f.title}, ${p.title.toLowerCase()}`,
+  `<b>North fence ${f.title.toLowerCase()}</b><p>${f.note}</p><b>${p.title}</b><p>${p.note}</p>`, f.value, p.value]));
+const SIDE_VIEWS = [['20_pool_north_seating', 'From the spa deck'], ['19_play_area', 'Up the side passage'], ['17_pool_overview', 'From above']];
 const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner', 'North-west corner'], ['12_from_pavilion', 'From the pavilion']];
 
 /** Every image the panel can show (used to check nothing 404s after a sync). */
@@ -62,6 +72,8 @@ export function allImageUrls() {
     ...VIEWS.flatMap(([id]) => [`img/${id}__existing.jpg`, `img/${id}__proposed.jpg`, `img/thumb_${id}.jpg`]),
     ...ROLLER.flatMap(([o]) => ROLLER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...PIER.flatMap(([o]) => PIER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
     ...FV.flatMap(([id]) => [`img/${id}__proposed.jpg`, `img/${id}__glass.jpg`]),
@@ -118,6 +130,30 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Kitchen layout" id="k-opts"></div>
   <div class="chips" id="k-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="k-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>The fence by the pavilion pier</h2>
+  <p>WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
+</div>
+<section class="block" aria-label="Pier fence options">
+  <div class="fstage"><img id="p-img" alt=""><span class="tag l" id="p-tag"></span><button class="fly" id="p-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Pier fence" id="p-opts"></div>
+  <div class="chips" id="p-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="p-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Side passage</h2>
+  <p>Where the north pool fence crosses the side passage, and what the passage is paved with up to the play area.</p>
+</div>
+<section class="block" aria-label="Side passage options">
+  <div class="fstage"><img id="s-img" alt=""><span class="tag l" id="s-tag"></span><button class="fly" id="s-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="North fence and passage surface" id="s-opts"></div>
+  <div class="chips" id="s-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="s-note"></div>
 </section>
 
 <div class="section-head">
@@ -253,6 +289,9 @@ const HTML = /* html */ `
 export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase = 'img/') {
   const I = imgBase;
   root.innerHTML = HTML;
+  // option renders arrive in batches: a picture that isn't there yet shows a quiet placeholder, not a broken image
+  root.addEventListener('error', e => { const t = e.target as HTMLElement; if (t.tagName === 'IMG') t.classList.add('missing'); }, true);
+  root.addEventListener('load', e => { const t = e.target as HTMLElement; if (t.tagName === 'IMG') t.classList.remove('missing'); }, true);
   const $ = (id: string) => root.querySelector<HTMLElement>('#' + id)!;
   const img = (id: string) => $(id) as HTMLImageElement;
 
@@ -334,6 +373,12 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     views: ROLLER_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_split' }) });
+  picker({ opts: PIER, optBox: $('p-opts'), viewBox: $('p-views'), img: 'p-img', tag: 'p-tag', note: 'p-note', flyBtn: 'p-fly',
+    views: PIER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pier: o }) });
+  picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
+    views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v) => { const c = SIDE.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', nfence: c[3], passage: c[4] }); } });
   picker({ opts: KITCHEN, optBox: $('k-opts'), viewBox: $('k-views'), img: 'k-img', tag: 'k-tag', note: 'k-note', flyBtn: 'k-fly',
     views: KITCHEN_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,

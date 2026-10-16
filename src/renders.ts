@@ -11,6 +11,9 @@ const walkUrl = (f: Fly) => {
   if (f.roller) q.set('roller', f.roller);
   if (f.kitchen) q.set('kitchen', f.kitchen);
   if (f.fence) q.set('fence', f.fence);
+  if (f.pier) q.set('pier', f.pier);
+  if (f.nfence) q.set('nfence', f.nfence.replace('nfence_', ''));
+  if (f.passage) q.set('passage', f.passage.replace('passage_', ''));
   return '../walk/?' + q.toString();
 };
 buildGallery(document.getElementById('gallery')!, f => { location.href = walkUrl(f); }, '../img/');

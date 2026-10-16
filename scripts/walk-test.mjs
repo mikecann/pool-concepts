@@ -2,7 +2,7 @@
 import { chromium } from 'playwright';
 const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 1200, height: 700 } });
-await p.goto('http://localhost:4173/model/walk/?panel=0&q=Medium&nohelp');
+await p.goto('http://localhost:4173/model/walk/?panel=0&q=Medium&nohelp' + (process.env.EXTRA ? '&' + process.env.EXTRA : ''));
 await p.waitForFunction(() => document.getElementById('loading')?.classList.contains('done'), null, { timeout: 180000 });
 await p.focus('#canvas');
 if (process.argv[2] === 'nopeople') await p.evaluate(() => { __viewer.model.people = false; __viewer.model.apply(); __viewer.walker.rebuild(__viewer.model.root); });
@@ -17,7 +17,7 @@ const walk = async (name, pos, key, ms) => {
 };
 await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 60000 });   // background compiles done
 await walk('spa deck -> down into lounge', [0.1, 3, 10.9, 0, 0], 'KeyW', 3500);
-await walk('lounge -> up the steps', [0.5, 2.0, 6.5, 180, 0], 'KeyW', 3500);
+await walk('lounge -> up the steps', [0.5, 2.0, 6.5, 180, 0], 'KeyW', 1600);   // stops on the spa deck (it has no barrier at its south edge, so don't walk off it)
 await walk('coping -> into pool (west)', [-2.1, 3, 4.5, 90, 0], 'KeyW', 3000);
 await walk('alfresco -> house wall (N)', [1.3, 3, 2.6, 0, 0], 'KeyW', 4000);
 await walk('run along concourse (S)', [-1.5, 3, 1.0, 180, 0], 'ShiftLeft', 10);
@@ -59,8 +59,9 @@ const peak = await p.evaluate(() => window.__maxY), y1 = (await feet())[1];
 console.log('jump on the concourse          start y', y0, ' peak', peak.toFixed(2), `(+${(peak - y0).toFixed(2)} m)`, ' landed y', y1);
 // try to hop the 1.2 m pool fence: run at the east fence from outside (lawn side), jumping all the way
 const fence = await p.evaluate(() => { let b = null; __viewer.scene.traverse(o => { if (o.name === 'fence_pool_east_infill' && o.visible) { o.geometry.computeBoundingBox(); b = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); } }); return b && [b.min.x, b.max.x, b.min.z, b.max.z]; });
-if (fence) {
-  const fx = (fence[0] + fence[1]) / 2, fz = (fence[2] + fence[3]) / 2 + 1.6;
+{
+  // the east pool fence beside the lawn (named meshes are merged now, so use the known spot if the name's gone)
+  const fx = fence ? (fence[0] + fence[1]) / 2 : 3.44, fz = fence ? (fence[2] + fence[3]) / 2 + 1.6 : 7.37;
   await p.evaluate(([x, z]) => __viewer.place(x + 1.5, 3, z, 90, 0), [fx, fz]);   // east of the fence, facing west
   await p.waitForTimeout(400);
   const s0 = await feet();

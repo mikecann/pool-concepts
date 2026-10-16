@@ -1,0 +1,210 @@
+/* empty css              */import{a as e,i as t,r as n,s as r}from"./choices-Dh-ysiUe.js";var i={summer:[[`0900`,`9:00 am`,`Sun 88° (east), 43° up`,`The alfresco roof and the house shade the north half of the pool. The south half and the spa are in sun.`],[`1200`,`12:00 pm`,`Sun 28° (north-north-east), 76° up`,`Nearly overhead. Only the alfresco floor is shaded. The pool, spa and lounge are in full sun.`],[`1500`,`3:00 pm`,`Sun 281° (west), 54° up`,`From the west. The boundary wall and fence throw a strip of shade along the west edge, and most of the pool is still in sun.`],[`1800`,`6:00 pm`,`Sun 256° (west-south-west), 17° up`,`Low from the west-south-west. The neighbour's two-storey house shades the whole pool, the alfresco and the lounge.`]],winter:[[`0900`,`9:00 am`,`Sun 47° (north-east), 16° up`,`Low from the north-east. The house and the alfresco roof put the whole pool in shade.`],[`1200`,`12:00 pm`,`Sun 6° (north), 33° up`,`Midwinter noon. Most of the pool is in sun, with shade across the north end by the fence.`],[`1500`,`3:00 pm`,`Sun 321° (north-west), 21° up`,`From the north-west. The neighbour's house and the boundary wall shade the whole pool.`]]},a=[[`roller_shallow`,`Shallow end`,`<b>Shallow end, by the north fence</b>
+    <p>The easy fit. There's 1.66 m between the coping and the north fence, so the roller takes about 0.7 m and leaves about 1 m to walk past. It's in full view from the alfresco, and the east stand sits about 1 m in front of the north gate, so you step around it.</p>`],[`roller_deep`,`Deep end`,`<b>Deep end, by the canal</b>
+    <p>Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.</p>`],[`roller_pit`,`In-ground box`,`<b>Blanket box at the deep end</b>
+    <p>In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],[`roller_lowpro`,`Low-profile, deep end`,`<b>Low-profile roller at the deep end</b>
+    <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`]],o=[[`kitchen_split`,`Split by the gate`,`<b>Either side of SK02's gate</b>
+    <p>Keeps the gate where Bob drew it. North of the gate, a 2.4 m bench with the pizza oven at the house end and room to prep. South of the gate, a 0.9 m cabinet with the BBQ built in, close to the lounge steps.</p>`],[`kitchen_continuous`,`One long bench`,`<b>One long bench, gate moved south</b>
+    <p>Moves the gate about 1 m south, next to the lounge, so the cabinets run unbroken for 3.3 m: oven at the house end, BBQ towards the gate, bench space in between. The most workspace and the tidiest look. The gate then opens beside the lounge steps.</p>`],[`kitchen_freestanding`,`Freestanding`,`<b>Freestanding, no cabinetry</b>
+    <p>A BBQ on its own trolley south of the gate and the oven on a small stainless table by the house wall. The cheapest, and you can move things around before committing to built-ins. The least bench space.</p>`]],s={summer:[[`0730`,`7:30 am`,`Sun 100° (east), 24° up`,`Early sun comes in over the east boundary and lights both benches and most of the lounge floor. The steps and the pool side are still in shade.`],[`1000`,`10:00 am`,`Sun 78° (east-north-east), 55° up`,`The lounge and both benches are in full sun. The alfresco table is in the shade of the skillion.`],[`1300`,`1:00 pm`,`Sun 329° (north-north-west), 75° up`,`Nearly overhead. The whole lounge is in sun; the only shade is under the alfresco roof.`],[`1600`,`4:00 pm`,`Sun 271° (west), 42° up`,`Sun from the west. The pool-side wall shades the steps and about the western third of the floor, and both benches stay in sun.`],[`1830`,`6:30 pm`,`Sun 252° (west-south-west), 11° up`,`Low sun from the west-south-west. The neighbour's house and the walls put the whole lounge in shade, while the canal and the far bank still catch the light.`],[`1940`,`7:40 pm`,`Sun just set, 2° below the horizon`,`Twenty minutes after sunset with the lights on. The strips under the bench seats wash the floor, and the step lights and the fire pit do the rest.`],[`2100`,`9:00 pm`,`Night, lights on`,`Full dark with the same lights. The pool and spa lights show from the lounge.`]],winter:[[`1000`,`10:00 am`,`Sun 35° (north-east), 24° up`,`Low sun from the north-east. The house and the alfresco roof keep the lounge in shade.`],[`1300`,`1:00 pm`,`Sun 349° (north), 32° up`,`Around midday the sun clears the alfresco roof and lights most of the lounge. This is the warm window for sitting out in winter.`],[`1530`,`3:30 pm`,`Sun 315° (north-west), 17° up`,`Low in the north-west. The neighbour's house and the boundary wall put the lounge back in shade.`]]},c=[[`15_lounge_from_alfresco`,`Over the lounge`],[`06_sunken_lounge`,`In the lounge`],[`04_from_kitchen_door`,`Kitchen door`]],l=[[`03_lawn_to_terrace`,`Lawn steps`],[`12_from_pavilion`,`Pavilion`],[`04_from_kitchen_door`,`Kitchen door`],[`13_deep_end_to_house`,`Deep end`]],u=[[`13_deep_end_to_house`,`Deep end`],[`14_spa_to_canal`,`Spa deck`],[`16_outdoor_kitchen`,`Outdoor kitchen`],[`17_pool_overview`,`From above`],[`01_canal_view`,`From the canal`]],d={date:`2027-01-16`,minutes:885},f={summer:`2027-01-16`,winter:`2027-06-21`},p=e=>Number(e.slice(0,2))*60+Number(e.slice(2)),m=[[`17_pool_overview`,`From above`],[`13_deep_end_to_house`,`From the deep end`],[`05_pool_north_end`,`From the north fence`]],h=e.map(e=>[e.value,e.title,`<b>${e.title}</b><p>${e.note}</p>`]),g=[[`18_pier_fence`,`At the pier`],[`12_from_pavilion`,`From the pavilion`]],_=n.flatMap(e=>t.map(t=>[`side_${e.value.replace(`nfence_`,``)}_${t.value.replace(`passage_`,``)}`,`${e.title}, ${t.title.toLowerCase()}`,`<b>North fence ${e.title.toLowerCase()}</b><p>${e.note}</p><b>${t.title}</b><p>${t.note}</p>`,e.value,t.value])),v=[[`20_pool_north_seating`,`From the spa deck`],[`19_play_area`,`Up the side passage`],[`17_pool_overview`,`From above`]],y=[[`16_outdoor_kitchen`,`Kitchen`],[`10_alfresco_corner`,`North-west corner`],[`12_from_pavilion`,`From the pavilion`]],b=`
+<section class="block" aria-label="Views">
+  <div class="vhead">
+    <div class="vtitle">
+      <span class="label" id="vnum">View 01</span>
+      <span class="name" id="vname">From the canal</span>
+    </div>
+    <div class="modes" role="group" aria-label="What to show">
+      <button id="m-today" aria-pressed="false">Today</button>
+      <button id="m-compare" aria-pressed="true">Both</button>
+      <button id="m-proposed" aria-pressed="false">New</button>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <img id="img-today" alt="">
+    <img id="img-proposed" class="top" alt="">
+    <div class="handle" id="handle" aria-hidden="true"></div>
+    <span class="tag l" id="tag-l">Today</span>
+    <span class="tag r" id="tag-r">Proposed</span>
+    <button class="fly" id="v-fly" type="button">Open in 3D</button>
+  </div>
+  <span class="desc hint" id="vdesc"></span>
+  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm.</p>
+  <div class="strip" id="strip" role="list"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Where the pool roller goes</h2>
+  <p>A stand-mounted roller sized for this pool: 4.6 m long, the blanket rolls up to about 0.42 m across, and the tube sits about 0.5 m up, so the roll clears the coping by about a hand's width.</p>
+</div>
+<section class="block" aria-label="Pool roller options">
+  <div class="fstage"><img id="r-img" alt=""><span class="tag l" id="r-tag"></span><button class="fly" id="r-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Roller position" id="r-opts"></div>
+  <div class="chips" id="r-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="r-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>BBQ and pizza oven</h2>
+  <p>Along the alfresco's east fence, between the house wall and the lounge. Charcoal cabinets 900 mm high with a pale concrete top, a 900 mm built-in BBQ and a dome oven about 0.73 m wide.</p>
+</div>
+<section class="block" aria-label="Kitchen options">
+  <div class="fstage"><img id="k-img" alt=""><span class="tag l" id="k-tag"></span><button class="fly" id="k-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Kitchen layout" id="k-opts"></div>
+  <div class="chips" id="k-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="k-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>The fence by the pavilion pier</h2>
+  <p>WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
+</div>
+<section class="block" aria-label="Pier fence options">
+  <div class="fstage"><img id="p-img" alt=""><span class="tag l" id="p-tag"></span><button class="fly" id="p-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Pier fence" id="p-opts"></div>
+  <div class="chips" id="p-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="p-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Side passage</h2>
+  <p>Where the north pool fence crosses the side passage, and what the passage is paved with up to the play area.</p>
+</div>
+<section class="block" aria-label="Side passage options">
+  <div class="fstage"><img id="s-img" alt=""><span class="tag l" id="s-tag"></span><button class="fly" id="s-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="North fence and passage surface" id="s-opts"></div>
+  <div class="chips" id="s-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="s-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Where we sit</span>
+  <h2>The lounge through the day</h2>
+  <p>The same three views at different times, with the sun calculated for Geographe. After sunset the lighting is switched on.</p>
+</div>
+<section class="block" aria-label="Time of day">
+  <div class="fstage"><img id="d-img" alt=""><span class="tag l" id="d-tag"></span><button class="fly" id="d-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Season">
+    <button id="d-summer" aria-pressed="true">Summer · 16 Jan</button>
+    <button id="d-winter" aria-pressed="false">Winter · 21 Jun</button>
+  </div>
+  <div class="chips mono" id="d-times" role="group" aria-label="Time of day"></div>
+  <div class="chips" id="d-views" role="group" aria-label="Viewpoint"></div>
+  <div class="sunread">
+    <span class="big" id="d-time"></span>
+    <span class="mono" id="d-pos"></span>
+    <p id="d-note" class="hint"></p>
+  </div>
+</section>
+
+<div class="section-head">
+  <span class="label">Lighting</span>
+  <h2>After dark</h2>
+  <p>Mid-January, twenty minutes after sunset, with every light on. Warm white (about 2700 K) everywhere except the pool and spa. The lounge itself is in the day series above at 7:40 pm and 9:00 pm.</p>
+</div>
+<section class="block" aria-label="After dark">
+  <div class="fstage"><img id="n-img" alt=""><span class="tag l" id="n-tag">Dusk, 7:40 pm</span><button class="fly" id="n-fly" type="button">Open in 3D</button></div>
+  <div class="chips" id="n-views" role="group" aria-label="Viewpoint"></div>
+  <ul class="legend">
+    <li>LED strip tucked under the front of every bench seat, washing the lounge floor</li>
+    <li>LED strip under each step nosing, down into the lounge and up to the spa deck</li>
+    <li>Gas fire pit in a corten bowl, about 0.94 m across</li>
+    <li>Five flush marker lights in the concourse between the pool and the lounge</li>
+    <li>Small brick lights in the new limestone wall, facing the canal path</li>
+    <li>Four uplights washing the west boundary wall beside the pool</li>
+    <li>One light in the pool and one in the spa, and downlights in the skillion</li>
+  </ul>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Pool fence: perforated or glass</h2>
+  <p>The 7 Oct estimate prices charcoal perforated aluminium, 1.2 m high with two gates. SK02 and the scope notes still say frameless glass, which the 21 Sep estimate had at about $630 more.</p>
+</div>
+<section class="block" aria-label="Pool fence">
+  <div class="fstage"><img id="f-img" alt=""><span class="tag l" id="f-tag">Perforated aluminium</span><button class="fly" id="f-fly" type="button">Open in 3D</button></div>
+  <p class="hint">From the lawn and the pavilion, glass keeps the pool and spa in view. Perforated panels read as a dark screen with the shapes behind just showing through.</p>
+  <div class="chips" role="group" aria-label="Fence type">
+    <button id="f-perf" aria-pressed="true">Perforated</button>
+    <button id="f-glass" aria-pressed="false">Glass</button>
+  </div>
+  <div class="chips" id="f-views" role="group" aria-label="Viewpoint"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Sun study</span>
+  <h2>Where the sun lands</h2>
+  <p>Plan view of the proposed design, north up, with shadows from the house, the neighbours, the new skillion and the fences. The neighbour's house is a simplified shape, so treat the late-afternoon shade edge as approximate.</p>
+</div>
+<section class="block" aria-label="Sun plan">
+  <div class="plan"><img id="plan-img" alt="Plan view of the backyard showing shadows"><span class="north">N ↑</span></div>
+  <div class="chips" role="group" aria-label="Season">
+    <button id="s-summer" aria-pressed="true">Summer · 16 Jan</button>
+    <button id="s-winter" aria-pressed="false">Winter · 21 Jun</button>
+  </div>
+  <div class="chips mono" id="times" role="group" aria-label="Time of day"></div>
+  <div class="sunread">
+    <span class="big" id="sun-time">3:00 pm</span>
+    <span class="mono" id="sun-pos"></span>
+    <p id="sun-note" class="hint"></p>
+  </div>
+  <button class="linkbtn" id="sun-sync" type="button">Open in 3D at this time</button>
+</section>
+
+<div class="section-head">
+  <span class="label">Notes</span>
+  <h2>How accurate it is</h2>
+  <p>The backyard as it is today, and with Bob Bruce's SK02 pool, spa, sunken lounge and alfresco built in. Levels come from the Denada feature survey, the design from SK02, finishes from Naturaliste's estimate QU-597.</p>
+</div>
+<section class="block" aria-label="Accuracy">
+  <dl class="facts mono">
+    <dt>Survey</dt><dd>Denada 25475, 20 Jul 2026</dd>
+    <dt>Design</dt><dd>Bob Bruce SK02, 30 Jul 2026</dd>
+    <dt>Finishes</dt><dd>Estimate QU-597, 7 Oct 2026</dd>
+  </dl>
+  <table>
+    <thead><tr><th>Part</th><th>From</th><th>Accuracy</th></tr></thead>
+    <tbody>
+      <tr><td>Boundaries, walls, steps, paving, jetty, canal wall, levels</td><td>Denada survey DWG, 3D lines and spot heights</td><td>A few cm</td></tr>
+      <tr><td>Pool, spa, lounge, deck, new walls, fence, skillion outline</td><td>SK02, lined up on the survey using the 99 survey points still in Bob's drawing</td><td>0 mm offset, as good as SK02</td></tr>
+      <tr><td>House walls, doors, eaves, roof</td><td>Plunkett Homes plans, 2005</td><td>Within 2 cm of the surveyed pavilion piers</td></tr>
+      <tr><td>Boundary walls and fences, planters</td><td>Survey wall tops plus the Dec 2025 LiDAR scan</td><td>Scan fits the survey to 4 cm</td></tr>
+      <tr><td>Neighbours</td><td>Drone photo matched to the survey, simple shapes</td><td>Placed to about 0.3 m</td></tr>
+      <tr><td>The canal, the far bank and the houses around it</td><td>Overture building outlines lined up on the Landgate cadastre, the canal edge traced from 2025 aerial imagery, colours and roof types from your photos</td><td>Outlines to about 0.5 m, heights estimated from storeys</td></tr>
+    </tbody>
+  </table>
+  <div class="levels">
+    <span class="mono">2.47</span><span>House floor (AHD)</span>
+    <span class="mono">2.37</span><span>Pool deck, alfresco, spa deck: Bob's RL 0.00</span>
+    <span class="mono">1.78</span><span>Lawn today</span>
+    <span class="mono">1.67</span><span>Sunken lounge floor (RL −0.70)</span>
+    <span class="mono">1.27</span><span>Pump-shed floor (RL −1.10)</span>
+    <span class="mono">1.08</span><span>Canal-side paving</span>
+    <span class="mono">0.21</span><span>Water level on survey day</span>
+  </div>
+</section>
+
+<section class="block" aria-label="Assumptions">
+  <h2>Assumed where the documents are silent</h2>
+  <ul class="assume">
+    <li>Bob's RL 0.00 is taken as AHD 2.37, the current rear paving. No drawing states the conversion.</li>
+    <li>The spa rim sits flush with the deck, as Mike asked Bob on 30 Jul. The estimate's wording (a −1100 platform versus a solid deck) still conflicts.</li>
+    <li>The shallow end is at the north, by the alfresco. The corner steps go on the bench side, along the boundary.</li>
+    <li>The pool fence is charcoal perforated aluminium, per the 7 Oct estimate. SK02 and the scope notes still say glass.</li>
+    <li>The skillion matches the existing roof's pale grey and has a flat white ceiling. The concept renders showed charcoal.</li>
+    <li>Finishes: <span class="swatch" style="background:#EFEDE8"></span>light exposed aggregate, <span class="swatch" style="background:#99AFC9"></span>Mondo Grey Sparkle shell, <span class="swatch" style="background:#C99A70"></span>warm composite decking, <span class="swatch" style="background:#EEE3CC"></span>cream limestone facebrick, white crushed limestone in the lounge.</li>
+    <li>The only new planting is a raised planter in the lawn corner beside the spa deck: limestone to match the walls, 450 mm high and about 1 m wide, with low grasses and shrubs. There's no planting plan yet.</li>
+    <li>The east fence gate sits where SK02 has it, beside the pavilion column. The "one long bench" kitchen moves it about 1 m south.</li>
+    <li>Bench backs lean back about 20° with a deeper seat (900 mm overall) and cushions. SK02 doesn't detail them.</li>
+    <li>The figures are 1.73 m adults and a 1.2 m child, so you can judge the sizes.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>Model files and the scripts that rebuild it are in the-pool repo under <span class="mono">model/</span>. Change a level or a dimension in <span class="mono">compile_site.py</span>, rebuild, and every view renders again.</span>
+  <span>The houses around the canal are in the right places with the right roof colours, but they are simple shapes. The tree line behind the far bank is generic. Aerial imagery: Esri, Vantor, Earthstar Geographics.</span>
+  <span class="theme-row"><span>Sheet colours</span><span class="chips" id="theme" role="group" aria-label="Panel colours">
+    <button data-theme="auto">Auto</button><button data-theme="light">Light</button><button data-theme="dark">Dark</button></span></span>
+</footer>`;function x(e,t,n=`img/`){let x=n;e.innerHTML=b,e.addEventListener(`error`,e=>{let t=e.target;t.tagName===`IMG`&&t.classList.add(`missing`)},!0),e.addEventListener(`load`,e=>{let t=e.target;t.tagName===`IMG`&&t.classList.remove(`missing`)},!0);let S=t=>e.querySelector(`#`+t),C=e=>S(e),w=new Set,T=e=>e.forEach(e=>{if(w.has(e))return;w.add(e);let t=new Image;t.decoding=`async`,t.src=e}),E=e.closest(`.panel-scroll`),D=(e,t)=>{let n=new IntersectionObserver(e=>{e.some(e=>e.isIntersecting)&&(T(t),n.disconnect())},{root:E,rootMargin:`700px 0px`});n.observe(e)},O=(e,t,n,r)=>{e.innerHTML=``,t.forEach((t,i)=>{let a=document.createElement(`button`);a.type=`button`,a.textContent=t[1],a.setAttribute(`aria-pressed`,String(i===n)),a.onclick=()=>r(i),e.appendChild(a)})},k=0,A=`compare`,j=50,M=(e,t=!0)=>{S(`stage`).style.setProperty(`--split`,e+`%`),t&&(j=e)},N=()=>{[`today`,`compare`,`proposed`].forEach(e=>S(`m-`+e).setAttribute(`aria-pressed`,String(e===A)));let e=S(`img-proposed`);e.hidden=A===`today`,S(`handle`).hidden=A!==`compare`,S(`tag-l`).hidden=A===`proposed`,S(`tag-r`).hidden=A===`today`,M(A===`proposed`?0:j,!1)},P=t=>{k=t;let[n,i,a]=r[t];C(`img-today`).src=`${x}${n}__existing.jpg`,C(`img-today`).alt=`${i}, today`,C(`img-proposed`).src=`${x}${n}__proposed.jpg`,C(`img-proposed`).alt=`${i}, with the proposed pool and alfresco`,S(`vnum`).textContent=`View `+n.slice(0,2),S(`vname`).textContent=i,S(`vdesc`).textContent=a,e.querySelectorAll(`.thumb`).forEach((e,n)=>e.setAttribute(`aria-current`,String(n===t)))};r.forEach(([e,t],n)=>{let r=document.createElement(`button`);r.className=`thumb`,r.type=`button`,r.setAttribute(`role`,`listitem`),r.innerHTML=`<img src="${x}thumb_${e}.jpg" alt="" loading="lazy"><span><b>${e.slice(0,2)}</b>${t}</span>`,r.onclick=()=>P(n),S(`strip`).appendChild(r)});let F=S(`stage`),I=!1,L=e=>{let t=F.getBoundingClientRect();return Math.max(0,Math.min(100,(e.clientX-t.left)/t.width*100))};F.addEventListener(`pointerdown`,e=>{A!==`compare`||e.target.closest(`.fly`)||(I=!0,F.setPointerCapture(e.pointerId),M(L(e)))}),F.addEventListener(`pointermove`,e=>{I&&M(L(e))}),[`pointerup`,`pointercancel`].forEach(e=>F.addEventListener(e,()=>I=!1)),S(`m-today`).onclick=()=>{A=`today`,N()},S(`m-compare`).onclick=()=>{A=`compare`,N()},S(`m-proposed`).onclick=()=>{A=`proposed`,N()},S(`v-fly`).onclick=()=>t({cam:r[k][0],scenario:A===`today`?`existing`:`proposed`,...d,roller:`none`,kitchen:`kitchen_split`});let R=e=>{let t={o:0,v:0},n=()=>{e.optBox&&O(e.optBox,e.opts,t.o,e=>{t.o=e,n()}),O(e.viewBox,e.views,t.v,e=>{t.v=e,n()});let r=e.opts[t.o],i=e.views[t.v];C(e.img).src=e.src(r[0],i[0]),C(e.img).alt=`${i[1]}: ${r[1]}`,S(e.tag).textContent=r[1],e.note&&(S(e.note).innerHTML=r[2])};S(e.flyBtn).onclick=()=>e.onFly(e.opts[t.o][0],e.views[t.v][0]),n(),D(S(e.img),e.opts.flatMap(t=>e.views.map(n=>e.src(t[0],n[0]))))};R({opts:a,optBox:S(`r-opts`),viewBox:S(`r-views`),img:`r-img`,tag:`r-tag`,note:`r-note`,flyBtn:`r-fly`,views:m,src:(e,t)=>`${x}options_${t}_${e}.jpg`,onFly:(e,n)=>t({cam:n,scenario:`proposed`,...d,roller:e,kitchen:`kitchen_split`})}),R({opts:h,optBox:S(`p-opts`),viewBox:S(`p-views`),img:`p-img`,tag:`p-tag`,note:`p-note`,flyBtn:`p-fly`,views:g,src:(e,t)=>`${x}options_${t}_${e}.jpg`,onFly:(e,n)=>t({cam:n,scenario:`proposed`,...d,roller:`none`,kitchen:`kitchen_split`,pier:e})}),R({opts:_,optBox:S(`s-opts`),viewBox:S(`s-views`),img:`s-img`,tag:`s-tag`,note:`s-note`,flyBtn:`s-fly`,views:v,src:(e,t)=>`${x}options_${t}_${e}.jpg`,onFly:(e,n)=>{let r=_.find(t=>t[0]===e);t({cam:n,scenario:`proposed`,...d,roller:`none`,kitchen:`kitchen_split`,nfence:r[3],passage:r[4]})}}),R({opts:o,optBox:S(`k-opts`),viewBox:S(`k-views`),img:`k-img`,tag:`k-tag`,note:`k-note`,flyBtn:`k-fly`,views:y,src:(e,t)=>`${x}options_${t}_${e}.jpg`,onFly:(e,n)=>t({cam:n,scenario:`proposed`,...d,roller:`none`,kitchen:e})}),R({opts:[[`dusk`,`Dusk, 7:40 pm`]],viewBox:S(`n-views`),img:`n-img`,tag:`n-tag`,flyBtn:`n-fly`,views:u,src:(e,t)=>`${x}night_${t}_${e}.jpg`,onFly:(e,n)=>t({cam:n,scenario:`proposed`,date:`2027-01-16`,minutes:1180,roller:`none`,kitchen:`kitchen_split`})});let z={season:`summer`,t:2,v:0},B=()=>{[`summer`,`winter`].forEach(e=>S(`d-`+e).setAttribute(`aria-pressed`,String(e===z.season)));let e=s[z.season];z.t>=e.length&&(z.t=e.length-1),O(S(`d-times`),e,z.t,e=>{z.t=e,B()}),O(S(`d-views`),c,z.v,e=>{z.v=e,B()});let[t,n,r,i]=e[z.t];C(`d-img`).src=`${x}times_${c[z.v][0]}_${z.season}_${t}.jpg`,C(`d-img`).alt=`${c[z.v][1]}, ${z.season} at ${n}`,S(`d-tag`).textContent=(z.season===`summer`?`16 Jan, `:`21 Jun, `)+n,S(`d-time`).textContent=n,S(`d-pos`).textContent=r,S(`d-note`).textContent=i};S(`d-summer`).onclick=()=>{z.season=`summer`,B()},S(`d-winter`).onclick=()=>{z.season=`winter`,B()},S(`d-fly`).onclick=()=>t({cam:c[z.v][0],scenario:`proposed`,date:f[z.season],minutes:p(s[z.season][z.t][0]),roller:`none`,kitchen:`kitchen_split`}),B(),D(S(`d-img`),Object.entries(s).flatMap(([e,t])=>t.flatMap(([t])=>c.map(([n])=>`${x}times_${n}_${e}_${t}.jpg`))));let V=`perf`,H=0,U=()=>{S(`f-perf`).setAttribute(`aria-pressed`,String(V===`perf`)),S(`f-glass`).setAttribute(`aria-pressed`,String(V===`glass`)),O(S(`f-views`),l,H,e=>{H=e,U()});let e=l[H][0];C(`f-img`).src=`${x}${e}__${V===`perf`?`proposed`:`glass`}.jpg`,C(`f-img`).alt=`${l[H][1]} view with a ${V===`perf`?`perforated aluminium`:`frameless glass`} pool fence`,S(`f-tag`).textContent=V===`perf`?`Perforated aluminium`:`Frameless glass`};S(`f-perf`).onclick=()=>{V=`perf`,U()},S(`f-fly`).onclick=()=>t({cam:l[H][0],scenario:`proposed`,...d,roller:`none`,kitchen:`kitchen_split`,fence:V===`perf`?`perforated`:`glass`}),S(`f-glass`).onclick=()=>{V=`glass`,U()},U(),D(S(`f-img`),l.flatMap(([e])=>[`${x}${e}__proposed.jpg`,`${x}${e}__glass.jpg`]));let W=`summer`,G=2,K=()=>{[`summer`,`winter`].forEach(e=>S(`s-`+e).setAttribute(`aria-pressed`,String(e===W)));let e=i[W];G>=e.length&&(G=e.length-1),O(S(`times`),e,G,e=>{G=e,K()});let[t,n,r,a]=e[G];C(`plan-img`).src=`${x}sun_${W}_${t}.jpg`,C(`plan-img`).alt=`Plan view, ${W} at ${n}`,S(`sun-time`).textContent=n,S(`sun-pos`).textContent=r,S(`sun-note`).textContent=a};S(`s-summer`).onclick=()=>{W=`summer`,K()},S(`s-winter`).onclick=()=>{W=`winter`,K()},S(`sun-sync`).onclick=()=>t({cam:``,date:f[W],minutes:p(i[W][G][0])}),K(),D(S(`plan-img`),Object.entries(i).flatMap(([e,t])=>t.map(([t])=>`${x}sun_${e}_${t}.jpg`)));let q=[...e.querySelectorAll(`#theme button`)],J=e=>{e===`auto`?delete document.documentElement.dataset.theme:document.documentElement.dataset.theme=e,q.forEach(t=>t.setAttribute(`aria-pressed`,String(t.dataset.theme===e)));try{localStorage.setItem(`pool-theme`,e)}catch{}};q.forEach(e=>e.onclick=()=>J(e.dataset.theme));let Y=`auto`;try{Y=localStorage.getItem(`pool-theme`)||`auto`}catch{}J(Y),P(0),N(),(window.requestIdleCallback??(e=>setTimeout(e,2500)))(()=>T(r.flatMap(([e])=>[`${x}${e}__proposed.jpg`,`${x}${e}__existing.jpg`])))}var S=e=>{let t=new URLSearchParams;return e.cam&&t.set(`cam`,e.cam),e.scenario&&t.set(`scenario`,e.scenario),e.date&&t.set(`date`,e.date),e.minutes!==void 0&&t.set(`t`,String(e.minutes)),e.roller&&t.set(`roller`,e.roller),e.kitchen&&t.set(`kitchen`,e.kitchen),e.fence&&t.set(`fence`,e.fence),e.pier&&t.set(`pier`,e.pier),e.nfence&&t.set(`nfence`,e.nfence.replace(`nfence_`,``)),e.passage&&t.set(`passage`,e.passage.replace(`passage_`,``)),`../walk/?`+t.toString()};x(document.getElementById(`gallery`),e=>{location.href=S(e)},`../img/`);

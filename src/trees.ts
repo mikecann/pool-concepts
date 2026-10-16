@@ -92,3 +92,4 @@ export async function softenFarTrees(meshes: InstancedMesh[], sun: Light | null 
   }
   return n;
 }
+

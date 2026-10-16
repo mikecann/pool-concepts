@@ -1,0 +1,36 @@
+// Side-by-side: the walkthrough from a Cycles camera (same position, lens and time) next to its render.
+//   node scripts/compare.mjs [--q Medium] [--out review/round6/cmp] [--extra "x=1"] [--label now]
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+import sharp from 'sharp';
+const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
+const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round6/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
+mkdirSync(OUT, { recursive: true });
+// [camera, minutes, the Cycles render it should look like]
+const ONLY = arg('only', '');
+const ALL = [
+  ['05_pool_north_end', 14 * 60 + 45, '05_pool_north_end__proposed.jpg'],
+  ['15_lounge_from_alfresco', 14 * 60 + 45, '15_lounge_from_alfresco__proposed.jpg'],
+  ['15_lounge_from_alfresco', 7 * 60 + 30, 'times_15_lounge_from_alfresco_summer_0730.jpg'],
+  ['15_lounge_from_alfresco', 18 * 60 + 30, 'times_15_lounge_from_alfresco_summer_1830.jpg'],
+  ['15_lounge_from_alfresco', 19 * 60 + 40, 'times_15_lounge_from_alfresco_summer_1940.jpg'],
+];
+const SHOTS = ONLY ? ALL.filter((_, i) => ONLY.split(',').map(Number).includes(i)) : ALL;
+const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const p = await b.newPage({ viewport: { width: 1600, height: 900 } });
+await p.goto(`http://localhost:4173/model/walk/?q=${Q}&panel=0&nohelp&date=2027-01-16${EXTRA ? '&' + EXTRA : ''}`);
+await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 180000 });
+await p.addStyleTag({ content: '.hud,.hint-pill,.welcome,.status-pill,.gate-tip,.fps,.crosshair{display:none!important}' });
+const tiles = [];
+for (const [cam, t, ref] of SHOTS) {
+  await p.evaluate(([cam, t]) => { __viewer.setTime(t); __viewer.goToCam(cam, true); }, [cam, t]);
+  await p.waitForTimeout(2200);   // fov ease + TRAA settle
+  const file = `${OUT}/${LABEL}_${cam}_${t}.png`;
+  await p.locator('#canvas').screenshot({ path: file });
+  const a = await sharp(file).resize(800, 450).toBuffer(), r = await sharp(`public/model/img/${ref}`).resize(800, 450).toBuffer();
+  tiles.push(a, r);
+}
+await sharp({ create: { width: 1600, height: 450 * SHOTS.length, channels: 3, background: '#000' } })
+  .composite(tiles.map((input, i) => ({ input, left: (i % 2) * 800, top: Math.floor(i / 2) * 450 }))).png().toFile(`${OUT}/${LABEL}_vs_cycles.png`);
+console.log('saved', `${OUT}/${LABEL}_vs_cycles.png`);
+await b.close();

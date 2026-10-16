@@ -116,3 +116,11 @@ ul.assume li::marker { color: var(--accent); }
   .renders .stage { max-height: 76vh; }
 }
 .hint { color: var(--muted); font-size: 13.5px; }
+
+/* a render that isn't made yet (they arrive in batches): quiet placeholder instead of a broken image */
+img.missing { visibility: hidden; }
+.fstage:has(img.missing)::after, .stage:has(img.missing:not([hidden]))::after, .thumb:has(img.missing)::after {
+  content: "Render to come"; position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); }
+.thumb { position: relative; }
+.thumb:has(img.missing)::after { bottom: auto; aspect-ratio: 16 / 9; font-size: 11px; border: 1px solid var(--rule); }

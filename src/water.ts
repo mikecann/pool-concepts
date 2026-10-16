@@ -21,9 +21,13 @@ const PRESETS: Record<WaterKind, {
   waves: [number, number, number, number, number][]; detail: number; detailScale: number; detailSpeed: number;
 }> = {
   // absorption per metre (r, g, b): red goes first, which is what makes a pale shell read aqua
-  pool: { absorb: [0.36, 0.1, 0.08], scatter: [0.004, 0.016, 0.024], rough: 0.02, refract: 0.03,
+  pool: new URLSearchParams(location.search).has('pool0') ? { absorb: [0.36, 0.1, 0.08], scatter: [0.004, 0.016, 0.024], rough: 0.02, refract: 0.03,
     // [dir angle, wavelength m, amplitude m, speed rad/s, unused]
     // a calm residential pool: a few millimetres of slow swell, so reflections wobble gently instead of striping
+    waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
+    detail: 0.003, detailScale: 2.2, detailSpeed: 0.35 } : {
+    // a deeper Mondo blue: more red and green absorbed per metre, more light scattered back out of the body
+    absorb: [0.62, 0.17, 0.11], scatter: [0.006, 0.024, 0.04], rough: 0.02, refract: 0.03,
     waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
     detail: 0.003, detailScale: 2.2, detailSpeed: 0.35 },
   spa: { absorb: [0.30, 0.085, 0.07], scatter: [0.005, 0.018, 0.026], rough: 0.04, refract: 0.05,

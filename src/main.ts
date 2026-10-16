@@ -1,13 +1,15 @@
-import { AgXToneMapping, PCFShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
+import * as THREE_NS from 'three/webgpu';
+import { AgXToneMapping, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
 import { fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
-import { Model, type CameraDef, type Gate, type Scenario } from './model';
+import { LIGHT_SWAP, Model, type CameraDef, type Gate, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
 import { Walker } from './walk';
+import { FAR_LAYER } from './mirror';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { FENCE_CHOICES, KITCHEN_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { FENCE_CHOICES, KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -17,10 +19,22 @@ if (isTouch) document.documentElement.classList.add('touch');
 const params = new URLSearchParams(location.search);
 const store = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } } };
 
+// ---------- remembered settings ----------
+// One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
+// once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
+type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number;
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage', string>> };
+const SETTINGS_KEY = 'pool-settings';
+const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
+const remember = (patch: Settings) => {
+  Object.assign(settings, patch);
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* private mode: just don't remember */ }
+};
+
 // ---------- state ----------
 const S = {
-  date: params.get('date') ?? '2027-01-16',
-  minutes: params.has('t') ? Number(params.get('t')) : 13 * 60,
+  date: params.get('date') ?? settings.date ?? '2027-01-16',
+  minutes: params.has('t') ? Number(params.get('t')) : settings.minutes ?? 13 * 60,
   playing: false,
   scenario: 'proposed' as Scenario,
   quality: 'High' as Quality,
@@ -37,28 +51,28 @@ const loadText = $('load-text'), loadFill = $('load-fill');
 const progress = (f: number, text?: string) => { loadFill.style.width = `${Math.round(f * 100)}%`; if (text) loadText.textContent = text; };
 $('loading').style.backgroundImage = 'url(../img/15_lounge_from_alfresco__proposed.jpg)';
 
-function autoQuality(webgpu: boolean): Quality {
-  const saved = store.get('pool-quality') as Quality | null;
-  if (params.get('q') && params.get('q')! in QUALITY) return params.get('q') as Quality;
-  if (saved && saved in QUALITY) return saved;
-  if (isTouch) return 'Low';
-  if (!webgpu) return 'Medium';
-  return 'High';
+function startQuality(): Quality {
+  const q = params.get('q');
+  if (q && q in QUALITY) return q as Quality;
+  if (settings.quality && settings.quality in QUALITY) return settings.quality;
+  return 'Medium';
 }
 
 async function main() {
   // the download doesn't need the GPU, so start it straight away and bring WebGPU up alongside
   progress(0.02, 'Loading the model…');
   const modelData = Model.fetch(BASE, f => progress(0.02 + f * 0.6, `Loading the model… ${Math.round(f * 100)}%`));
-  const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  // ?gpu=1 turns on GPU timestamp queries for scripts/perf.mjs (they cost a little, so they're off normally)
+  const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance', trackTimestamp: params.has('gpu') });
   await renderer.init();
   mark('renderer');
-  S.quality = autoQuality((renderer.backend as any).isWebGPUBackend === true);
+  S.quality = startQuality();
   renderer.toneMapping = AgXToneMapping;
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = PCFShadowMap;
+  renderer.shadowMap.type = params.get('smt') === 'basic' ? BasicShadowMap : params.get('smt') === 'vsm' ? VSMShadowMap : PCFShadowMap;
   const scene = new Scene();
   const camera = new PerspectiveCamera(isTouch ? 70 : 62, 1, 0.08, 9000);
+  camera.layers.enable(FAR_LAYER);   // the far tree canopies
   const atm = new Atmosphere(renderer, scene);
   const asyncPipes = new AsyncPipelines(renderer);
   const pinned = new Map<any, number>();
@@ -68,6 +82,7 @@ async function main() {
   scene.fogNode = fog(fogColor, rangeFogFactor(35, 1400));
 
   const model = new Model(renderer, atm);
+  model.people = settings.people ?? true;
   scene.add(model.root);
   const camsP: Promise<CameraDef[]> = fetch(BASE + 'cameras.json').then(r => r.json()).catch(() => []);
   const data = await modelData;
@@ -141,20 +156,22 @@ async function main() {
   };
   const setDate = (d: string) => {
     S.date = d;
+    remember({ date: d });
     $<HTMLInputElement>('date').value = d;
     document.querySelectorAll('[data-date]').forEach(b => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.date === d)));
     drawTicks();
     setTime(S.minutes, true);
   };
-  timeInput.addEventListener('input', () => setTime(Number(timeInput.value)));
+  timeInput.addEventListener('input', () => { setTime(Number(timeInput.value)); remember({ minutes: S.minutes }); });
   document.querySelectorAll<HTMLElement>('[data-date]').forEach(b => (b.onclick = () => setDate(b.dataset.date!)));
   $<HTMLInputElement>('date').addEventListener('change', e => { const v = (e.target as HTMLInputElement).value; if (v) setDate(v); });
   const play = $('play');
-  play.onclick = () => { S.playing = !S.playing; play.setAttribute('aria-pressed', String(S.playing)); play.setAttribute('aria-label', S.playing ? 'Pause' : 'Play the day'); };
+  play.onclick = () => { S.playing = !S.playing; if (!S.playing) remember({ minutes: Math.round(S.minutes) }); play.setAttribute('aria-pressed', String(S.playing)); play.setAttribute('aria-label', S.playing ? 'Pause' : 'Play the day'); };
 
   // ---------- scenario, options ----------
   const setScenario = (s: Scenario) => {
     S.scenario = s; model.scenario = s; model.apply(); walker.rebuild(model.root); shadowDirty = true;
+    remember({ scenario: s });
     $('sc-existing').setAttribute('aria-pressed', String(s === 'existing'));
     $('sc-proposed').setAttribute('aria-pressed', String(s === 'proposed'));
     renderScenarioChips?.();
@@ -175,7 +192,10 @@ async function main() {
     render();
     return render;
   };
-  const optChanged = () => { model.apply(); walker.rebuild(model.root); shadowDirty = true; };
+  const optChanged = () => {
+    model.apply(); walker.rebuild(model.root); shadowDirty = true;
+    remember({ options: { roller: model.roller, kitchen: model.kitchen, fence: model.fence, pier: model.pier, nfence: model.nfence, passage: model.passage } });
+  };
   renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
 
   // design choices as cards: each changes the world and moves you to where the change shows
@@ -185,6 +205,7 @@ async function main() {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'card';
       b.innerHTML = `<img src="../img/${c.img}" alt="" loading="lazy" width="104" height="65"><b>${c.title}</b><span>${c.note}</span>`;
+      const pic = b.querySelector('img')!; pic.addEventListener('error', () => pic.classList.add('missing'));   // render not made yet
       b.onclick = () => { pick(c.value); cardGroups.forEach(r => r()); if (mobile.matches) setPanel(false); };
       box.appendChild(b);
       return b;
@@ -198,7 +219,7 @@ async function main() {
   cards($('cards-roller'), ROLLER_CHOICES, () => model.roller, v => {
     ensureProposed(); model.roller = v; optChanged();
     // look down the pool from the opposite end, as the option renders do
-    goToCam(v === 'roller_deep' ? '05_pool_north_end' : '13_deep_end_to_house');
+    goToCam('05_pool_north_end');   // looks down the pool to the deep end, where most of the options are
   });
   cards($('cards-kitchen'), KITCHEN_CHOICES, () => model.kitchen, v => {
     ensureProposed(); model.kitchen = v; optChanged(); goToCam('16_outdoor_kitchen');
@@ -209,14 +230,25 @@ async function main() {
   cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
     ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
   });
+  cards($('cards-nfence'), NFENCE_CHOICES, () => model.nfence, v => {
+    ensureProposed(); model.nfence = v; optChanged(); goToCam('20_pool_north_seating');
+  });
+  cards($('cards-passage'), PASSAGE_CHOICES, () => model.passage, v => {
+    ensureProposed(); model.passage = v; optChanged(); goToCam('19_play_area');
+  });
   const renderRoller = () => cardGroups.forEach(r => r()), renderKitchen = renderRoller;
   void renderKitchen;
 
-  $<HTMLInputElement>('opt-people').onchange = e => { model.people = (e.target as HTMLInputElement).checked; optChanged(); };
+  const peopleBox = $<HTMLInputElement>('opt-people');
+  peopleBox.checked = model.people;
+  peopleBox.onchange = () => { model.people = peopleBox.checked; optChanged(); remember({ people: model.people }); };
   chipRow($('opt-quality'), (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q] as [string, string]), () => S.quality,
-    v => { store.set('pool-quality', v); setQuality(v as Quality); });
+    v => { remember({ quality: v as Quality }); setQuality(v as Quality); });
   const fpsEl = $('fps');
-  $<HTMLInputElement>('opt-fps').onchange = e => { fpsEl.hidden = !(e.target as HTMLInputElement).checked; };
+  const fpsBox = $<HTMLInputElement>('opt-fps');
+  fpsBox.checked = settings.fps ?? true;   // on by default
+  fpsEl.hidden = !fpsBox.checked;
+  fpsBox.onchange = () => { fpsEl.hidden = !fpsBox.checked; remember({ fps: fpsBox.checked }); };
 
   // ---------- camera modes ----------
   const DEFAULT_FOV = camera.fov;
@@ -355,13 +387,27 @@ async function main() {
   mark('collider');
   // on the alfresco, looking past the lounge to the pool and the canal
   walker.place(1.3, 3.0, 2.6, (156 * Math.PI) / 180, -0.08);
+  // last visit's choices first; deep links from the renders page then override them
+  const o = settings.options ?? {};
+  const valid = (v: string | undefined, list: Choice[]) => (v && list.some(c => c.value === v) ? v : undefined);
+  model.roller = valid(o.roller, ROLLER_CHOICES) ?? model.roller;
+  model.kitchen = valid(o.kitchen, KITCHEN_CHOICES) ?? model.kitchen;
+  model.fence = (valid(o.fence, FENCE_CHOICES) as 'perforated' | 'glass' | undefined) ?? model.fence;
+  model.pier = valid(o.pier, PIER_CHOICES) ?? model.pier;
+  model.nfence = valid(o.nfence, NFENCE_CHOICES) ?? model.nfence;
+  model.passage = valid(o.passage, PASSAGE_CHOICES) ?? model.passage;
+  if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
+  model.apply(); renderRoller();
   // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&fence=glass&scenario=existing
   if (params.get('scenario') === 'existing') setScenario('existing');
   if (params.get('roller')) model.roller = params.get('roller')!;
   if (params.get('kitchen')) model.kitchen = params.get('kitchen')!;
   if (params.get('fence') === 'glass') model.fence = 'glass';
   if (params.get('pier')) model.pier = params.get('pier')!;
-  if (params.has('roller') || params.has('kitchen') || params.has('fence') || params.has('pier')) { optChanged(); renderRoller(); }
+  // ?nfence=moved&passage=aggregate (the prefix is optional)
+  if (params.get('nfence')) model.nfence = params.get('nfence')!.replace(/^(nfence_)?/, 'nfence_');
+  if (params.get('passage')) model.passage = params.get('passage')!.replace(/^(passage_)?/, 'passage_');
+  if (['roller', 'kitchen', 'fence', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
@@ -379,7 +425,7 @@ async function main() {
   }
   // anything still missing (the sun's shadow casters, odd variants) compiles in the background, not mid-frame
   mark('compiled');
-  asyncPipes.active = true;
+  asyncPipes.active = !params.has('noasync');
   progress(0.97, 'Drawing the first frame…');
 
   // ---------- first visit: how to walk (shown once, after the first frame, remembered) ----------
@@ -482,8 +528,8 @@ async function main() {
         await compileFor(renderer, scene, c, target, mrt);
       }
       for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); }
-      if (atm.state.night < 0.004) {
-        // the night lights change every material's lighting, so compile that variant too (lights at zero)
+      if (LIGHT_SWAP && atm.state.night < 0.004) {
+        // (old behaviour only) the night lights change every material's lighting, so compile that variant too
         const lights = model.nightLights.map(l => l.light);
         lights.forEach(l => { l.visible = true; l.intensity = 0; });
         await compileFor(renderer, scene, camera, target, mrt);
@@ -495,6 +541,9 @@ async function main() {
     setStatus(null);
   }
 
+  const gpuTiming = params.has('gpu') && (renderer.backend as any).trackTimestamp === true;
+  const perf = { draws: 0, tris: 0, gpu: 0, cpu: 0, pending: false, frames: 0 };
+
   // ---------- loop ----------
   let last = performance.now(), frames = 0, fpsT = last, firstFrame = true;
   const shadowFocus = new Vector3(), lastFocus = new Vector3(1e9, 0, 0);
@@ -502,6 +551,7 @@ async function main() {
     if (world.clientWidth < 1 || world.clientHeight < 1) return;   // nothing to draw into while hidden
     const now = performance.now();
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const cpu0 = performance.now();
     if (S.playing) {
       // a day in about two minutes, slowing down through the evening so dusk lasts
       const el = atm.state.el;
@@ -534,6 +584,17 @@ async function main() {
     if (firstFrame) mark('frame-start');
     renderClean(renderer, () => { model.renderMirrors(renderer, scene, camera, db.x, db.y); post.render(); });
     if (firstFrame) mark('first-frame');
+    // per-frame counters for scripts/perf.mjs: draw calls, triangles and (with ?gpu=1) GPU time per frame
+    const inf = renderer.info.render;
+    perf.draws = perf.draws * 0.9 + inf.drawCalls * 0.1; perf.tris = perf.tris * 0.9 + inf.triangles * 0.1;
+    perf.frames++;
+    perf.cpu = perf.cpu * 0.9 + (performance.now() - cpu0) * 0.1;
+    if (gpuTiming && !perf.pending) {
+      // a resolve returns the GPU time of every pass since the last one, so divide by the frames it covers
+      perf.pending = true;
+      const n = perf.frames; perf.frames = 0;
+      renderer.resolveTimestampsAsync('render').then((ms?: number) => { if (ms && n) { const f = ms / n; perf.gpu = perf.gpu ? perf.gpu * 0.8 + f * 0.2 : f; } perf.pending = false; });
+    }
     if (firstFrame) { firstFrame = false; $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp); finishLoading(); }
     frames++;
     if (now - fpsT > 500) { fpsEl.textContent = `${Math.round((frames * 1000) / (now - fpsT))} fps · ${S.quality} · ${(renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL 2'}`; frames = 0; fpsT = now; }
@@ -541,10 +602,10 @@ async function main() {
 
   // hooks for the review script
   (window as any).__viewer = {
-    setTime: (m: number) => setTime(m, true), setDate, goToCam: (n: string) => goToCam(n), setScenario, setQuality, setMode,
+    setTime: (m: number) => setTime(m, true), setDate, goToCam: (n: string, instant = false) => goToCam(n, true, instant), setScenario, setQuality, setMode,
     place: (x: number, y: number, z: number, yawDeg: number, pitchDeg = 0) => { setMode('walk'); walker.place(x, y, z, (yawDeg * Math.PI) / 180, (pitchDeg * Math.PI) / 180); shadowDirty = true; },
     state: () => ({ ...S, feet: walker.feet.toArray(), yaw: walker.yaw, pitch: walker.pitch, sun: atm.state, exposure: renderer.toneMappingExposure }),
-    atm, model, renderer, camera, scene, walker,
+    atm, model, renderer, camera, scene, walker, perf, THREE: THREE_NS, gpuTiming: () => gpuTiming,
     get post() { return post; },
     setPanel,
   };

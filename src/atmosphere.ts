@@ -10,6 +10,7 @@ import { cameraPosition, Fn, fract, max, mix, normalize, positionWorld, pow, smo
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { sunDirection, sunPosition } from './sun';
 
+const LIGHT_SWAP_ATM = new URLSearchParams(location.search).has('lightswap');
 const TOTAL_RAYLEIGH = [5.804542996261093e-6, 1.3562911419845635e-5, 3.0265902468824876e-5];
 const MIE_CONST = [1.8399918514433978e14, 2.7798023919660528e14, 4.0790479543861094e14];
 // a little hazier than a textbook clear sky: coastal air pales the blue towards the horizon, as in the renders
@@ -34,6 +35,12 @@ export type SunState = { az: number; el: number; dir: Vector3; day: number; nigh
 export class Atmosphere {
   readonly sky = new SkyMesh();
   readonly sun = new DirectionalLight(0xffffff, 6.5);
+  /**
+   * A shadowless twin of the sun for materials with their own lights node (the far trees). Giving them the real
+   * sun made three create a second shadow node for it, which took the shared needsUpdate flag first, so the
+   * scene's own sun shadow map was never drawn. This copy is never added to the scene; set() keeps it in step.
+   */
+  readonly farSun = new DirectionalLight(0xffffff, 6.5);
   readonly state: SunState = { az: 0, el: 0, dir: new Vector3(0, 1, 0), day: 1, night: 0, dusk: 0 };
   /** 0 by day, 1 when it's properly dark: drives the lighting scheme, window glow and exposure. */
   readonly nightU = uniform(0);
@@ -130,8 +137,13 @@ export class Atmosphere {
     this.sunColorU.value.setRGB(col[0] / m, col[1] / m, col[2] / m);
     const strength = 6.5 * (lum(ext) / lum(ZENITH)) * smooth(-0.8, 2.5, el);
     this.sun.color.copy(this.sunColorU.value);
+    this.farSun.color.copy(this.sunColorU.value);
+    this.farSun.intensity = strength;
+    this.farSun.position.copy(st.dir).multiplyScalar(100);
+    this.farSun.updateMatrixWorld(); this.farSun.target.updateMatrixWorld();
     this.sun.intensity = strength;
-    this.sun.visible = strength > 0.001;
+    // the sun stays in the scene at night with zero intensity: hiding it changes every shader's light set
+    this.sun.visible = LIGHT_SWAP_ATM ? strength > 0.001 : true;   // never toggles
     this.sunIntensityU.value = strength;
     this.sunDirU.value.copy(st.dir);
     this.nightU.value = st.night;

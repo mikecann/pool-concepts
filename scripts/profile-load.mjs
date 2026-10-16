@@ -6,6 +6,8 @@ const URL = process.argv[2] ?? 'http://localhost:4173/model/walk/?panel=0&nohelp
 const RUNS = Number(process.argv[3] ?? 2);
 // optional: THROTTLE_MBPS=50 node scripts/profile-load.mjs … emulates a home connection (cold runs only)
 const MBPS = Number(process.env.THROTTLE_MBPS ?? 0);
+// optional: CPU_SLOWDOWN=4 emulates a slower machine (Chrome's CPU throttling; the GPU isn't slowed)
+const CPU = Number(process.env.CPU_SLOWDOWN ?? 0);
 const ARGS = ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'];
 
 // recorded in the page from navigation start: progress text changes, first frame (loading screen hidden),
@@ -47,6 +49,7 @@ for (let i = 0; i < RUNS; i++) {
   const ctx = await b.newContext({ viewport: { width: 1600, height: 900 } });
   await ctx.addInitScript(probe);
   const p = await ctx.newPage();
+  if (CPU) { const cdp = await ctx.newCDPSession(p); await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU }); }
   if (MBPS) { const cdp = await ctx.newCDPSession(p); await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: 25, downloadThroughput: MBPS * 125000, uploadThroughput: 10 * 125000 }); }
   await p.goto(URL);
   show('cold', await measure(p));

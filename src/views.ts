@@ -14,6 +14,7 @@ export const VIEWS = [
   ["12_from_pavilion", "From the pavilion", "On the existing timber deck under the pavilion, looking west."],
   ["18_pier_fence", "Pavilion pier and fence", "On the pavilion deck, looking at the pier beside the east pool fence and gate."],
   ["19_play_area", "Side passage play area", "At the pool's north gate, looking up the side passage at the trampoline and the climbing frame."],
+  ["20_pool_north_seating", "Pool from the spa deck, looking north", "From the spa deck, looking up the pool to the north fence and the side passage beyond it."],
   ["09_promenade_west", "Along the canal path", "Walking west on the canal-side paving beside the new wall."],
   ["17_pool_overview", "Pool from above", "Drone height above the house, looking down the length of the pool."],
   ["07_aerial_southwest", "Aerial, south-west", "Drone height over the canal, looking north-east."],
