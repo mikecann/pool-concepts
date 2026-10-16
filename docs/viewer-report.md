@@ -793,7 +793,27 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 - `low_bench.png`, `low_canal.png`, `far_trees.png`, `flames_ceiling.png`, `flames_gain.png`
 - `pages/`, `phone/`
 
+## Round 14
+
+| # | Change | Result | Verdict |
+|---|---|---|---|
+| 1 | Moonlight: after dusk the sun light (no new light, so the light set stays fixed) becomes a dim, cool moon (0.1, from high in the north-east) with soft moon shadows; the shadow camera follows `atm.lightDir` (`?moon=0` for none) | Today at 21:00 reads as a dim moonlit yard instead of black; Proposed is barely changed, as its own lights carry it (`review/round14/moon_AB.jpg`: moon 0 / 0.06 / 0.12, plus the Cycles 21:00 still) | Kept |
+| 2 | A one-line note under the time bar in Today after dusk: "Today's yard has no garden lighting." | Shows on desktop and phone (`review/round14/phone/portrait.png`) | Kept |
+| 3 | Drone → Walk landing (`landingAt` in main.ts): inside the lot (x −9.2…16.8, z −33.2…10.9, floor ≥ 1.5 m) and on a floor material (paving, deck, lawn, steps, bark, sand…) as the first visible surface down. Anything else falls back to where you last stood, or the start spot | Start → back at the start spot (was the canal path). 21 → the passage floor at 2.38 (not the climbing frame). The aerials and 01 → the last spot stood | Kept |
+| 4 | Low canal sky reflection 0.45 → 0.35 | Low canal (172,184,192) → about Medium's (156,166,172) | Kept |
+
+**Checks:**
+- **switch-test:** PASS.
+- **Frame rate:** Low, Medium and High hold 60 fps at DPR 1 and 2.
+- **Dusk scrub:** max 21 ms.
+- **Other checks:** the walk test, settings, images (165, 0 missing), page checks and phone layouts all pass.
+
 ## Summary
+
+**Round 14:**
+- **Night:** moonlight via the sun light, plus a Today-at-night note.
+- **Drone → Walk:** lands only on real floors inside the lot.
+- **Low:** the canal is closer to Medium.
 
 **Round 13:**
 - **Today → Proposed shadows:** fixed at the root: the light set is now constant across scenarios.

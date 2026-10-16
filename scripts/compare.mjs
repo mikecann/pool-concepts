@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 import sharp from 'sharp';
 const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
 const EVAL = arg('eval', '');
-const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round12/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
+const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round14/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
 mkdirSync(OUT, { recursive: true });
 // [camera, minutes, the Cycles render it should look like]
 const ONLY = arg('only', '');

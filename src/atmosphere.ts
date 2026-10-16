@@ -37,6 +37,8 @@ export type SunState = { az: number; el: number; dir: Vector3; day: number; nigh
 const DUSK_MIE = Number(new URLSearchParams(location.search).get('duskmie') ?? 0.3);
 const DUSK_ENV = Number(new URLSearchParams(location.search).get('duskenv') ?? 0.4);
 const DUSK_FOG = Number(new URLSearchParams(location.search).get('duskfog') ?? 0.2);
+const MOON = Number(new URLSearchParams(location.search).get('moon') ?? 0.1);
+const MOON_DIR = new Vector3(0.45, 0.78, -0.43).normalize();
 const CLOUDS = new URLSearchParams(location.search).has('clouds');
 /** Round 10 day sky radiance multiplier (see set()). */
 const SKY_X = Number(new URLSearchParams(location.search).get('skyx') ?? 4);
@@ -54,6 +56,8 @@ export class Atmosphere {
    * scene's own sun shadow map was never drawn. This copy is never added to the scene; set() keeps it in step.
    */
   readonly farSun = new DirectionalLight(0xffffff, 6.5);
+  /** Where the scene's key light comes from: the sun by day, the moon at night (Round 14). */
+  readonly lightDir = new Vector3(0, 1, 0);
   readonly state: SunState = { az: 0, el: 0, dir: new Vector3(0, 1, 0), day: 1, night: 0, dusk: 0 };
   /** 0 by day, 1 when it's properly dark: drives the lighting scheme, window glow and exposure. */
   readonly nightU = uniform(0);
@@ -185,7 +189,13 @@ export class Atmosphere {
     this.farSun.intensity = strength;
     this.farSun.position.copy(st.dir).multiplyScalar(100);
     this.farSun.updateMatrixWorld(); this.farSun.target.updateMatrixWorld();
-    this.sun.intensity = strength;
+    // Round 14: moonlight. After dusk the same light (no new light: the light set stays fixed) becomes a dim, cool
+    // moon high in the north-east, so the yard reads as dim shapes with soft moon shadows rather than near black
+    // (Today has no garden lights at all). ?moon=0 for none.
+    const moonK = MOON * smooth(-4, -10, el);
+    this.lightDir.copy(el < -3 ? MOON_DIR : st.dir);
+    this.sun.intensity = strength + moonK;
+    if (moonK > 0 && strength < 0.001) this.sun.color.setRGB(0.72, 0.82, 1.0);
     // the sun stays in the scene at night with zero intensity: hiding it changes every shader's light set
     this.sun.visible = LIGHT_SWAP_ATM ? strength > 0.001 : true;   // never toggles
     this.sunIntensityU.value = strength;
@@ -234,7 +244,7 @@ export class Atmosphere {
     }
     const texel = (2 * halfSize) / s.shadow.mapSize.x;
     // snap in light space
-    const dir = this.state.dir.clone().normalize();
+    const dir = this.lightDir.clone().normalize();
     const up = Math.abs(dir.y) > 0.99 ? new Vector3(0, 0, 1) : new Vector3(0, 1, 0);
     const right = new Vector3().crossVectors(up, dir).normalize();
     const up2 = new Vector3().crossVectors(dir, right);

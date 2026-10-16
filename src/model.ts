@@ -156,7 +156,7 @@ const BENCH_LOW = Number(new URLSearchParams(location.search).get('benchlow') ??
  * murky water reflects a dimmer sky (Cycles: mid blue-grey), where the full sky env made it white (Round 13).
  */
 const envBase = (w: Mesh) => (w.userData.water === 'canal' ? CANAL_ENV : 1);
-const CANAL_ENV = Number(new URLSearchParams(location.search).get('canalenv') ?? 0.45);
+const CANAL_ENV = Number(new URLSearchParams(location.search).get('canalenv') ?? 0.35);
 const SCEN_SWAP = new URLSearchParams(location.search).has('lightswap');
 const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
 const FLAME10 = new URLSearchParams(location.search).has('flame10');

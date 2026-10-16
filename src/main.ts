@@ -1,5 +1,5 @@
 import * as THREE_NS from 'three/webgpu';
-import { AgXToneMapping, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
+import { AgXToneMapping, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
 import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
@@ -166,6 +166,8 @@ async function main() {
 
   // ---------- time ----------
   const timeInput = $<HTMLInputElement>('time'), clock = $('clock'), sunread = $('sunread');
+  const todayNote = $('today-note');
+  const updateTodayNote = () => { todayNote.hidden = !(S.scenario === 'existing' && atm.state.el < -2); };
   const fmt = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
   // shadowHold: frames to keep redrawing the sun's shadow map after a rebuild (quality, scenario, options). Pipelines
   // recompile over the next frames, and a shadow map drawn while its casters weren't ready yet stayed empty: no sun
@@ -183,12 +185,13 @@ async function main() {
     clock.textContent = fmt(S.minutes);
     renderClean(renderer, () => atm.set(S.date, S.minutes, force));   // the sky env map renders too
     const { az, el } = atm.state;
+    updateTodayNote();
     sunread.textContent = el > -0.8 ? `sun ${Math.round(az)}° ${compass(az)}, ${Math.round(el)}° up` : el > -6 ? 'after sunset' : el > -12 ? 'twilight' : 'night';
     fogColor.value.copy(atm.fogColor);
     renderer.toneMappingExposure = atm.exposure;
     if (post) post.exposureU.value = atm.exposure;
     post?.setNight(atm.state.night);
-    if (lastSunDir.angleTo(atm.state.dir) > 0.0015) { shadowDirty = true; lastSunDir.copy(atm.state.dir); }
+    if (lastSunDir.angleTo(atm.lightDir) > 0.0015) { shadowDirty = true; lastSunDir.copy(atm.lightDir); }
   };
   const setDate = (d: string) => {
     S.date = d;
@@ -207,6 +210,7 @@ async function main() {
   // ---------- scenario, options ----------
   const setScenario = (s: Scenario) => {
     S.scenario = s; model.scenario = s; model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
+    updateTodayNote();
     if (skyBaked) void rebakeSky();   // Round 13: the scenario changes what covers what (the alfresco roof)
     remember({ scenario: s });
     $('sc-existing').setAttribute('aria-pressed', String(s === 'existing'));
@@ -291,6 +295,24 @@ async function main() {
   // ---------- camera modes ----------
   const DEFAULT_FOV = camera.fov;
   let targetFov = DEFAULT_FOV;
+  /**
+   * Round 14: where Drone -> Walk may land you: inside our lot (not the canal path or the neighbours), on a real floor
+   * (paving, deck, lawn, steps, bark...: the top of the climbing frame, a table or a roof doesn't count), and walkable
+   * (not water). Returns the floor height, or null to fall back to where you last stood.
+   */
+  const FLOORS = /^(aggregate|bark_chips|composite_deck|concrete_drive|coping|crushed_limestone|deck_hardwood|interior_floor|lawn|limestone_steps|pavers_existing|pit_lid|sandpit_sand)$/;
+  const landRay = new Raycaster(), down = new Vector3(0, -1, 0);
+  const landingAt = (x: number, z: number) => {
+    if (x < -9.2 || x > 16.8 || z < -33.2 || z > 10.9) return null;
+    landRay.set(new Vector3(x, 12, z), down);
+    const hit = landRay.intersectObject(model.root, true).find(h => {
+      let o: any = h.object; while (o) { if (!o.visible) return false; o = o.parent; }
+      const m = h.object as any;
+      return m.isMesh && !m.userData.water && !m.userData.people && m.userData.lod !== 'far' && m.userData.collide !== false;
+    });
+    if (!hit || !FLOORS.test((hit.object as any).material?.name ?? '') || hit.point.y < 1.5) return null;
+    return walker.walkableAt(x, z, hit.point.y + 0.3) !== null ? hit.point.y : null;
+  };
   const setMode = (m: 'walk' | 'drone') => {
     walker.mode = m;
     world.classList.toggle('drone', m === 'drone');
@@ -312,7 +334,7 @@ async function main() {
       // start spot (Round 13: from the lounge or spa views the drone looks over the canal, and you fell into the void)
       const fwd = new Vector3(); camera.getWorldDirection(fwd);
       const yaw = Math.atan2(-fwd.x, -fwd.z);
-      const t = orbit.target, g = walker.walkableAt(t.x, t.z);
+      const t = orbit.target, g = landingAt(t.x, t.z);
       const spot = g !== null ? new Vector3(t.x, g, t.z)
         : walker.walkableAt(walker.lastStood.x, walker.lastStood.z, walker.lastStood.y + 1.5) !== null ? walker.lastStood.clone() : new Vector3(1.3, 2.37, 2.6);
       walker.place(spot.x, spot.y + 0.4, spot.z, yaw, 0);
