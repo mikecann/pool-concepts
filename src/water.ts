@@ -7,9 +7,9 @@
 // plus light scattered back out of the water body.
 import { Color, MeshStandardNodeMaterial, Vector2 } from 'three/webgpu';
 import {
-  abs, cameraNear, cameraFar, cameraPosition, clamp, cos, dot, exp, float, Fn, If, length, Loop, max, mix, mx_noise_vec3,
+  abs, cameraNear, cameraFar, cameraPosition, clamp, cos, dot, exp, float, Fn, If, length, Loop, max, mix, mx_noise_vec3, mx_worley_noise_vec2,
   modelWorldMatrix, normalLocal, normalize, normalWorld, perspectiveDepthToViewZ, transformDirection, vertexStage, positionView, positionWorld, pow, screenUV, sin, smoothstep, time,
-  transformNormalToView, uniform, vec2, vec3, viewportDepthTexture, viewportSharedTexture, select,
+  transformNormalToView, uniform, specularColor, specularColorBlended, specularF90, diffuseColor, metalness, vec2, vec3, viewportDepthTexture, viewportSharedTexture, select,
 } from 'three/tsl';
 import type { Atmosphere } from './atmosphere';
 import type { Mirror } from './mirror';
@@ -42,14 +42,29 @@ const OLD_PRESETS: Record<WaterKind, {
 /** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
 const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
 const CANAL_REFLECT = Number(new URLSearchParams(location.search).get('creflect') ?? 0.8);
+/** Round 9 underwater lighting (see causticsAlbedo). ?uw0=1 turns it off; ?uwwall= sets how dim the walls are. */
+const NO_UNDERWATER = new URLSearchParams(location.search).has('uw0');
+const UW_WALL = Number(new URLSearchParams(location.search).get('uwwall') ?? 0.3);
+const UW_ABSORB: [number, number, number] = [0.27, 0.12, 0.105];
+/** Round 9: the pool's water as Cycles has it (clear, light absorption, no body colour). ?water8=1 for Round 8. */
+const CYCLES = !new URLSearchParams(location.search).has('water8');
+/** Round 9 caustic net (Cycles' construction); ?net0=1 for Round 8's. Sun through the surface: lines / cells. */
+const NET = !new URLSearchParams(location.search).has('net0');
+const NET_HI = Number(new URLSearchParams(location.search).get('nethi') ?? 1.15), NET_LO = Number(new URLSearchParams(location.search).get('netlo') ?? 0.75);
 const VEIL = Number(new URLSearchParams(location.search).get('veil') ?? 0.5);
 type Preset = typeof OLD_PRESETS['pool'] & { glint?: number; caustic?: number; veil?: number; body?: [number, number, number] };
 /** Round 7 water: a deeper Mondo teal pool and spa, and a calm, mirror-like canal. ?water0=1 for the old look. */
 const PRESETS: Record<WaterKind, Preset> = new URLSearchParams(location.search).has('water0') ? OLD_PRESETS : {
-  pool: { absorb: [0.55, 0.16, 0.1], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
+  pool: CYCLES ? { absorb: [0.27, 0.12, 0.105], scatter: [0.001, 0.004, 0.006], rough: 0.015, refract: 0.03,
+    waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
+    detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1 } :
+  { absorb: [0.55, 0.16, 0.1], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
     waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
     detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1, veil: VEIL, body: [0.09, 0.2, 0.32] },
-  spa: { absorb: [1.05, 0.3, 0.17], scatter: [0.005, 0.034, 0.055], rough: 0.03, refract: 0.04,
+  spa: CYCLES ? { absorb: [0.315, 0.14, 0.12], scatter: [0.001, 0.004, 0.006], rough: 0.03, refract: 0.04,
+    waves: [[0.9, 0.7, 0.0012, 2.0, 0], [2.7, 0.45, 0.0008, 2.6, 0], [4.6, 0.3, 0.0005, 3.2, 0]],
+    detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1 } :
+  { absorb: [1.05, 0.3, 0.17], scatter: [0.005, 0.034, 0.055], rough: 0.03, refract: 0.04,
     waves: [[0.9, 0.7, 0.0012, 2.0, 0], [2.7, 0.45, 0.0008, 2.6, 0], [4.6, 0.3, 0.0005, 3.2, 0]],
     detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1, veil: VEIL, body: [0.09, 0.2, 0.32] },
   // a sheltered canal on a calm day: long, low swell in three directions (no repeating pattern), and a slow
@@ -115,11 +130,12 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     const thickness = clamp(surfaceZ.sub(sceneZ), 0, 60);
     // the light also travels down to the floor, roughly the vertical depth again
     const V = normalize(cameraPosition.sub(positionWorld));
-    const path = thickness.mul(float(1).add(abs(V.y)));
+    // the light's way down to the floor is in the floor's own lighting (causticsAlbedo) from Round 9
+    const path = CYCLES && kind !== 'canal' ? thickness : thickness.mul(float(1).add(abs(V.y)));
     const T = exp(absorb.mul(path).negate());
     const behind = viewportSharedTexture(uvR).rgb;
     // in-scattered light from the sun and sky, plus whatever the pool light puts in at night
-    const ambient = atm.sunIntensityU.mul(max(atm.sunDirU.y, 0)).mul(0.11).add(atm.skyGain.mul(0.16)).add(atm.nightU.mul(kind === 'canal' ? 0.004 : 0.03));
+    const ambient = atm.sunIntensityU.mul(max(atm.sunDirU.y, 0)).mul(0.11).add(atm.skyGain.mul(0.16)).add(atm.nightU.mul(kind === 'canal' ? 0.004 : CYCLES ? 0 : 0.03));   // Round 9: no night glow in the water itself
     const body = scatter.mul(ambient).mul(float(1).sub(T));
     const NdV = max(dot(nWorld, V), 0);
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
@@ -174,9 +190,49 @@ export function causticsAlbedo(base: any, box: { minX: number; maxX: number; min
   const up = vertexStage(transformDirection(normalLocal, modelWorldMatrix).y);
   const strength = smoothstep(0.1, 0.6, sunDir.y).mul(inside).mul(smoothstep(0.5, 0.85, up));
   // Round 7: a sharper, brighter net like Cycles' (the old soft blotches with ?water0=1)
-  const sharp = new URLSearchParams(location.search).has('water0') ? float(0.84).add(cst.mul(0.95)) : float(0.62).add(pow(cst, 1.6).mul(2.4));
+  let sharp = new URLSearchParams(location.search).has('water0') ? float(0.84).add(cst.mul(0.95)) : float(0.62).add(pow(cst, 1.6).mul(2.4));
+  if (NET) {
+    // Round 9: Cycles' net (mats.py pool_water): Voronoi distance-to-edge at scale 4.2, warped by a noise at 1.4,
+    // as the sun's colour through the surface: 1.0 on the lines easing to 0.75 in the cells. Ours drifts slowly.
+    const q = vec3(wp.x, wp.z, time.mul(0.08));
+    const warp = mx_noise_vec3(q.mul(1.4)).mul(0.6 * 0.5);
+    const f = mx_worley_noise_vec2(vec3(wp.x, wp.z, time.mul(0.05)).add(warp).mul(4.2));
+    const edge = f.y.sub(f.x).mul(0.5);
+    sharp = mix(float(NET_HI), float(NET_LO), smoothstep(0.0, 0.11, edge));
+  }
   const gain = select(inside.greaterThan(0), mix(float(1), sharp, strength), float(1));
-  return base.mul(gain);
+  if (NO_UNDERWATER) return base.mul(gain);
+  // Round 9: light under water. Sun and sky only get in through the surface, bent to within ~49° of straight
+  // down, so walls catch them at a grazing angle (dark navy in Cycles) while the floor gets nearly all of it;
+  // and on the way down it's absorbed like the view ray is (Cycles' pool_water: density 0.32, #6FCFD6).
+  const depth = clamp(level.sub(wp.y), 0, 3);
+  const down = exp(vec3(...UW_ABSORB).mul(depth).negate());
+  const facing = mix(float(UW_WALL), float(1), smoothstep(0.2, 0.9, up));
+  const around = underwaterMask(box);
+  const uw = mix(vec3(1), down.mul(facing), around);
+  return base.mul(gain).mul(uw);
+}
+
+/** 1 for a surface under this pool's water (walls included: they stand on the water's box, so it reaches 15 cm past it). */
+export function underwaterMask(box: { minX: number; maxX: number; minZ: number; maxZ: number; level: number }) {
+  const wp = positionWorld, m = 0.15;
+  return smoothstep(box.minX - m, box.minX - m + 0.03, wp.x).mul(smoothstep(box.maxX + m, box.maxX + m - 0.03, wp.x))
+    .mul(smoothstep(box.minZ - m, box.minZ - m + 0.03, wp.z)).mul(smoothstep(box.maxZ + m, box.maxZ + m - 0.03, wp.z))
+    .mul(smoothstep(box.level, box.level - 0.03, wp.y));
+}
+
+/**
+ * Under water a surface has next to no specular (gelcoat against water is index 1.5 against 1.33, F0 ~0.004
+ * instead of 0.04), so the shell stops mirroring the bright sky: that sheen was what kept the walls pale.
+ */
+export function quietUnderwater(n: MeshStandardNodeMaterial, mask: any) {
+  if (NO_UNDERWATER) return;
+  (n as any).setupSpecular = () => {
+    const k = float(1).sub(mask.mul(0.9));
+    specularColor.assign(vec3(0.04).mul(k));
+    specularColorBlended.assign(mix(vec3(0.04), diffuseColor.rgb, metalness).mul(k));
+    specularF90.assign(k);
+  };
 }
 
 export const WATER_TINT = new Color(0x2c7e8b);

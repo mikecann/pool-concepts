@@ -15,7 +15,7 @@ import { FAR_LAYER, Mirror } from './mirror';
 import { Grass, lawnColor } from './grass';
 import { softenFarTrees } from './trees';
 import { mergeStatic } from './merge';
-import { causticsAlbedo, waterMaterial, type WaterKind } from './water';
+import { causticsAlbedo, quietUnderwater, underwaterMask, waterMaterial, type WaterKind } from './water';
 import type { Atmosphere } from './atmosphere';
 
 export type LightDef = {
@@ -130,6 +130,14 @@ const TIMBER: Record<string, { sat: number; mul: [number, number, number]; rough
   outdoor_table_chair_set_01_table: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
   outdoor_table_chair_set_01_chair: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
 };
+/** Round 9 basin glow strength (?glow=0 turns it off). */
+const GLOW = Number(new URLSearchParams(location.search).get('glow') ?? 0.1);
+/** Round 9: warmer lounge lighting at night, as Cycles' amber (?warm0=1 for Round 8's). */
+const WARM = !new URLSearchParams(location.search).has('warm0');
+const LOUNGE_GAIN = Number(new URLSearchParams(location.search).get('lounge') ?? (WARM ? 0.7 : 1));
+const WET_LIGHTS = !new URLSearchParams(location.search).has('wet0');
+const WET_PATH = Number(new URLSearchParams(location.search).get('wetpath') ?? 3);
+const WET_GAIN = Number(new URLSearchParams(location.search).get('wetgain') ?? 3);
 const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
 const DUSK0 = new URLSearchParams(location.search).has('dusk0');
 const NO_JOINTS = new URLSearchParams(location.search).has('joints0');
@@ -163,6 +171,17 @@ export class Model {
   private ledMats: { mat: MeshStandardNodeMaterial; level: number }[] = [];
   readonly mirrors: Mirror[] = [];
   private fireFlicker = uniform(1);
+  /** How strongly the pool and spa lights' bounce lights their basins (0 by day or with the light off). */
+  private poolGlow = uniform(0);
+  private spaGlow = uniform(0);
+  private poolLight: AnyLight | null = null;
+  private spaLight: AnyLight | null = null;
+  private glowColor(kind: WaterKind) {
+    // the light's colour after a few metres of water, as for the lights themselves (see setupLights)
+    const a = kind === 'spa' ? [0.315, 0.14, 0.12] : [0.27, 0.12, 0.105], path = kind === 'spa' ? 2 : 7;
+    const col = kind === 'spa' ? [0.75, 0.9, 1.0] : [0.55, 0.85, 1.0];
+    return vec3(...col.map((v, i) => v * Math.exp(-a[i] * path)) as [number, number, number]);
+  }
   private shadowLights: AnyLight[] = [];
   bounds = new Box3();
   scenario: Scenario = 'proposed';
@@ -472,7 +491,7 @@ export class Model {
     // caustics on whatever sits under the pool and spa water
     const boxes = [...(groups.get('pool') ?? []), ...(groups.get('spa') ?? [])].map(w => {
       const b = new Box3().setFromObject(w);
-      return { minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z, level: b.max.y };
+      return { minX: b.min.x, maxX: b.max.x, minZ: b.min.z, maxZ: b.max.z, level: b.max.y, kind: w.userData.water as WaterKind };
     });
     if (!boxes.length) return;
     const done = new Set<Material>();
@@ -484,8 +503,18 @@ export class Model {
       if (!hit.length || (m.material as any).isNodeMaterial && done.has(m.material as Material)) return;
       const n = (m.material as any).isNodeMaterial ? (m.material as MeshStandardNodeMaterial) : this.toNode(m.material as Material);
       let c: any = materialColor;
-      for (const x of hit) c = causticsAlbedo(c, x, this.atm.sunDirU);
+      let under: any = float(0), glow: any = vec3(0);
+      for (const x of hit) {
+        c = causticsAlbedo(c, x, this.atm.sunDirU);
+        const u = underwaterMask(x);
+        under = max(under, u);
+        glow = glow.add(this.glowColor(x.kind).mul(x.kind === 'spa' ? this.spaGlow : this.poolGlow).mul(u));
+      }
       n.colorNode = c;
+      quietUnderwater(n, under);
+      // the pool light bouncing round the basin through the water: Cycles' pool glows evenly teal at night, where
+      // a single light with inverse-square falloff only lights the shell near it. Follows the light's own level.
+      if (GLOW) n.emissiveNode = c.mul(glow);
       m.material = n;
       done.add(n);
     });
@@ -525,7 +554,7 @@ export class Model {
         // three's LTC area lights come out darker than Cycles' for a thin strip a few cm off the floor: x4 matches the
         // floor wash in the 19:40 and 21:00 renders
         base = d.power / (Math.PI * w * h) * 2;
-        if (d.name.startsWith('led_bench')) r.color.setRGB(1.0, 0.66, 0.36);   // ~2700 K, as the strips are specified
+        if (d.name.startsWith('led_bench')) { if (WARM) r.color.setRGB(1.0, 0.56, 0.26); else r.color.setRGB(1.0, 0.66, 0.36); }   // ~2700 K, as the strips are specified
         light = r;
       } else {
         const p = new PointLight(col, 0, d.name.includes('pool') ? 9 : 14, 2);
@@ -533,11 +562,23 @@ export class Model {
         if (d.name.startsWith('led_firepit')) {
           // just below the bowl's rim: it lights the bowl and the floor round it, and the rim casts the dark ring
           p.position.y -= 0.12;
-          p.color.setRGB(1.0, 0.55, 0.22);
+          if (WARM) p.color.setRGB(1.0, 0.46, 0.15); else p.color.setRGB(1.0, 0.55, 0.22);
         }
         base = d.power * POINT_SCALE;
+        if (WET_LIGHTS && (d.name === 'pool_light' || d.name === 'led_spa_light')) {
+          // Round 9: these sit under water, so everything they light is seen through metres of it. Cycles soaks up
+          // the red on the way (pool_water: 0.27, 0.12, 0.105 per m), which is why its pool glows teal at night;
+          // ours doesn't absorb light, so the colour carries a typical path's worth (4.5 m in the pool, 1.2 m in the spa)
+          const path = (d.name === 'pool_light' ? 4.5 : 1.2) * WET_PATH, a = d.name === 'pool_light' ? [0.27, 0.12, 0.105] : [0.315, 0.14, 0.12];
+          p.color.setRGB(col.r * Math.exp(-a[0] * path), col.g * Math.exp(-a[1] * path), col.b * Math.exp(-a[2] * path));
+          base *= WET_GAIN;
+        }
         light = p;
+        if (d.name === 'pool_light') this.poolLight = p;
+        if (d.name === 'led_spa_light') this.spaLight = p;
       }
+      // Round 9: the lounge floor (pale limestone) burned to white at night where Cycles has it amber
+      if (d.name.startsWith('led_bench') || d.name.startsWith('led_firepit')) base *= LOUNGE_GAIN;
       light.name = d.name;
       light.userData.set = d.set ?? 'proposed';
       if (d.option) light.userData.option = d.option;
@@ -570,6 +611,8 @@ export class Model {
       if (light.visible !== vis) { light.visible = vis; if (light.castShadow) light.shadow!.needsUpdate = true; }
       light.intensity = base * night * (def.name.startsWith('led_firepit') ? flick : 1);
     }
+    this.poolGlow.value = this.poolLight?.visible ? night * GLOW : 0;
+    this.spaGlow.value = this.spaLight?.visible ? night * GLOW : 0;
     // shadow maps of the night lights: refresh while they're fading in, then they're static
     if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
     // (hiding a mesh doesn't change any shader, unlike the lights: the flames simply go away by day)

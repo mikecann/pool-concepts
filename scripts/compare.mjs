@@ -5,11 +5,21 @@ import { mkdirSync } from 'node:fs';
 import sharp from 'sharp';
 const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
 const EVAL = arg('eval', '');
-const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round8/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
+const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round9/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
 mkdirSync(OUT, { recursive: true });
 // [camera, minutes, the Cycles render it should look like]
 const ONLY = arg('only', '');
-const ALL = [
+// --set pool: the Round 9 pool views, by day and at dusk/night
+const POOL = [
+  ['05_pool_north_end', 14 * 60 + 45, '05_pool_north_end__proposed.jpg'],
+  ['13_deep_end_to_house', 14 * 60 + 45, '13_deep_end_to_house__proposed.jpg'],
+  ['14_spa_to_canal', 14 * 60 + 45, '14_spa_to_canal__proposed.jpg'],
+  ['13_deep_end_to_house', 19 * 60 + 40, 'night_13_deep_end_to_house_dusk.jpg'],
+  ['14_spa_to_canal', 19 * 60 + 40, 'night_14_spa_to_canal_dusk.jpg'],
+  ['17_pool_overview', 19 * 60 + 40, 'night_17_pool_overview_dusk.jpg'],
+  ['15_lounge_from_alfresco', 21 * 60, 'times_15_lounge_from_alfresco_summer_2100.jpg'],
+];
+const ALL = arg('set', '') === 'pool' ? POOL : [
   ['05_pool_north_end', 14 * 60 + 45, '05_pool_north_end__proposed.jpg'],
   ['15_lounge_from_alfresco', 14 * 60 + 45, '15_lounge_from_alfresco__proposed.jpg'],
   ['15_lounge_from_alfresco', 7 * 60 + 30, 'times_15_lounge_from_alfresco_summer_0730.jpg'],

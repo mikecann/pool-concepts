@@ -33,6 +33,9 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export type SunState = { az: number; el: number; dir: Vector3; day: number; night: number; dusk: number };
 
 /** How tightly the haze hugs the horizon: 6 keeps the sky blue above ~20° (Cycles), 2.5 was the old overcast look. */
+/** Round 9 day sky: how far toward a pale blue (0 = Round 8's sky) and how much brighter. ?skypale= / ?skylift= */
+const SKY_PALE = Number(new URLSearchParams(location.search).get('skypale') ?? 0);
+const SKY_LIFT = Number(new URLSearchParams(location.search).get('skylift') ?? 1.3);
 const HAZE_POW = Number(new URLSearchParams(location.search).get('hazepow') ?? 6);
 
 export class Atmosphere {
@@ -83,7 +86,11 @@ export class Atmosphere {
       const band = pow(float(1).sub(max(dirY, 0)), HAZE_POW).mul(this.hazeU);
       const lum = dot(sky, vec3(0.2126, 0.7152, 0.0722));
       const hazed = mix(sky, vec3(lum).mul(vec3(1.06, 1.09, 1.14)).mul(1.4), band);
-      s.material.colorNode = vec4(hazed.add(this.nightSky(s === this.sky)), 1);
+      // Round 9: Cycles' day sky is a pale, milky blue right up to the zenith (ours was a deep Preetham blue,
+      // which also tinted the pool's reflection and every shadow). Scaled with the haze so dusk keeps its colour.
+      const lum2 = dot(hazed, vec3(0.2126, 0.7152, 0.0722));
+      const pale = mix(hazed, vec3(lum2).mul(vec3(0.74, 0.9, 1.22)).mul(SKY_LIFT), this.hazeU.mul(SKY_PALE / 0.95));
+      s.material.colorNode = vec4(pale.add(this.nightSky(s === this.sky)), 1);
       s.frustumCulled = false;
     }
     this.envSky.showSunDisc.value = 0;   // the directional light is the sun; a disc in the env map would light everything twice

@@ -523,7 +523,72 @@ Iteration 7 is the dusk hitch Mike reported. Which lights are visible is part of
 - **Night lounge light:** a touch cooler and whiter than Cycles.
 - **Daytime sky:** a deeper, greyer blue than Cycles' pale sky.
 
+## Round 9
+
+**Goal:** close the biggest gap left, the pool (and the spa), against the Cycles materials in the-pool's `mats.py`. Then, if there's time, the day sky and the night lounge light. Same loop: measure, make one change, compare with Cycles at 05, 13 and 14 by day and at dusk/night (`node scripts/compare.mjs --set pool`), then keep or revert.
+
+**Targets:**
+- Medium and High hold 60 fps at DPR 1 and 2.
+- The dusk scrub never has a frame over 50 ms.
+- The console stays clean.
+
+**What Cycles actually does (mats.py, read only):**
+- **Water:** a clear surface (IOR 1.333, roughness 0.015) over a volume with absorption density 0.32 in #6FCFD6. That's about (0.27, 0.12, 0.105) per metre, with no scattering and no body colour.
+- **Shell:** #99AFC9, roughness 0.18. That's already what our GLB has.
+- **Caustics:** shadow rays pass through the surface tinted by a warped Voronoi distance-to-edge at scale 4.2, so the floor gets 1.0 of the sun on the lines and 0.75 in the cells.
+
+**Why ours read so differently:** the material wasn't the problem, the lighting was.
+- **Specular:** our shell kept its open-air specular (F0 0.04 at roughness 0.2), so under water it mirrored the bright sky, and that sheen is what made the walls pale.
+- **Lighting:** every surface was lit as if no water sat above it, where walls under water only catch light at a grazing angle.
+- **Water:** on top of that, the water added a teal "veil" body colour, a scatter term and a constant night ambient term.
+- **Night:** the pool light wasn't absorbed by the water, so it lit the basin grey-white rather than teal.
+
+### Round 9 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | Underwater lighting on the shell: walls 0.3× (light only reaches them at a grazing angle through the surface), with Cycles' absorption on the way down by depth. `?uw0=1` turns it off | Cyan glass box → slate-blue basin | Kept |
+| 2 | Pool water as Cycles has it: absorption (0.27, 0.12, 0.105), no veil body colour, near-zero scatter, absorption only along the view ray (the way down is in #1). `?water8=1` for Round 8 | Blue veil over everything → clear water over a pale floor | Kept |
+| 3 | Caustic net built Cycles' way: warped Worley distance-to-edge at scale 4.2, 1.15 on the lines and 0.75 in the cells, drifting slowly. `?net0=1` for Round 8's | Soft blobs → the same crisp net as Cycles | Kept |
+| 4 | Underwater mask widened 15 cm past the water's box | No visible change: the walls stand on the box edge, but this wasn't why they stayed pale | Kept (needed for #5) |
+| 5 | Specular under water cut to 10% (the shell's `setupSpecular` scaled by the underwater mask). Diagnosed by zeroing the shell's environment light, which turned the walls navy | Pale sky-mirroring walls → dark navy walls and steps, like Cycles | Kept: the biggest single gain |
+| 6 | Day sky mixed toward a pale blue (`?skypale=`, `?skylift=`) | The tone mapper turned it into a grey, overcast sky, not Cycles' pale blue | Reverted (default 0) |
+| 7 | Spa water the same as #2: 0.4 × (1 − #7FD3DA) = (0.315, 0.14, 0.12) | Close already (the spa is in shade); now slightly bluer | Kept |
+| 8 | No night ambient term in the pool and spa water | Removed the constant glow | Kept |
+| 9 | Pool and spa lights coloured by the water they shine through (pool 13.5 m, spa 3.6 m of absorption), ×3 brightness to compensate. `?wet0=1`, `?wetpath=`, `?wetgain=` | Grey-white pool at night → teal-blue | Kept |
+| 10 | The basin's bounce glow: an emissive on underwater surfaces = albedo × the pool light colour after 7 m of water × 0.1 × the light's own night level. It's 0 by day, in the existing scenario, or whenever that light is hidden. `?glow=` | Only the lamp's corner lit, the rest grey → the whole basin glows teal at dusk, as in Cycles | Kept at 0.1 (0.12 was brighter than Cycles at the deep end) |
+| 11 | Lounge at night: bench strips (1.0, 0.56, 0.26) and fire light (1.0, 0.46, 0.15), both 0.7× (`?warm0=1` for Round 8, `?lounge=` for the brightness) | Floor burned to white → a little warmer and less white | Kept (a small gain; Cycles is still more amber) |
+
+**Numbers (headless, Apple Metal):**
+
+| | Round 8 | Round 9 |
+|---|---|---|
+| Medium, DPR 1 and 2 (alfresco, lounge, pool edge, play) | 60 fps | 60 fps everywhere |
+| High, DPR 1 and 2 | 60 fps | 60 fps everywhere |
+| Dusk scrub, 17:00↔21:00 ×6 | max 23 ms, 0 over 50 ms | max 20 ms, 0 over 50 ms |
+| Console (qualities, dawn to night, pool cameras, both scenarios) | clean | clean |
+
+The settings test and walk test pass.
+
+**Screenshots (`review/round9/`):**
+- `pool_before_after_cycles.jpg`: Round 8 | Round 9 | Cycles, for 05, 13 and 14 by day, 13, 14 and 17 at dusk, and the lounge at 21:00
+- `cmp/*_vs_cycles.png`: each iteration
+- `cmp/refl_diag.png`, `diag/diag.png`: the reflection and specular diagnostics
+- `cmp/glow_AB.png`, `cmp/wet_AB.png`, `cmp/warm_AB.png`: the night A/Bs
+
+**Still short of Cycles:**
+- **Far half of the pool by day:** Cycles' looks lighter and glassier. It's the Fresnel reflection of Cycles' pale sky, while ours reflects a deep-blue zenith. It's tied to the day sky, which I couldn't brighten without it going grey.
+- **Night lounge:** less amber than Cycles.
+- **Flames:** look paler in the dusk views than Cycles' orange.
+
 ## Summary
+
+**Round 9:** the pool now reads like Cycles':
+- a pale floor with Cycles' caustic net
+- dark navy walls and steps by day
+- a teal glow from the pool light at dusk
+
+The causes were the shell mirroring the sky under water, lighting that ignored the water above, and a veil and night ambient term in the water. The spa matches too. 60 fps and the scrub targets hold.
 
 **Round 8:** the reviewer's realism list is done:
 - solid flames
