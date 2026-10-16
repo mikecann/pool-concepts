@@ -4,7 +4,7 @@
 //   Low:          scene pass -> bloom (phones)
 // Tone mapping (AgX) and exposure are applied by the pipeline's output transform.
 import { RenderPipeline, UnsignedByteType, type PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
-import { diffuseColor, packNormalToRGB, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
+import { diffuseColor, float, max, packNormalToRGB, pow, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
 import { ssgi } from 'three/addons/tsl/display/SSGINode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -21,7 +21,21 @@ export const QUALITY: Record<Quality, { pixelRatio: number; shadowMap: number; s
   Ultra: { pixelRatio: 1.5, shadowMap: 4096, shadowHalf: 32, ssgi: [3, 16], taa: true, reflections: true, reflectionScale: 0.75, far: true, plants: true, grass: 150, grassRadius: 18 },
 };
 
+/**
+ * Blender's 'AgX - Medium High Contrast' look, which the Cycles renders use: about 1.2x contrast in log space around
+ * mid grey, before AgX's curve. In linear terms that's a power around 0.18 (after exposure). ?look=1 for plain AgX.
+ */
+const LOOK = Number(new URLSearchParams(location.search).get('look') ?? 1.2);
+
 export class Post {
+  /** The tone-mapping exposure, so the look pivots on mid grey as displayed (set with renderer.toneMappingExposure). */
+  readonly exposureU = uniform(1);
+  private look(c: any) {
+    if (LOOK === 1) return c;
+    const e = this.exposureU;
+    return vec4(pow(max(c.rgb.mul(e).div(0.18), float(1e-6)), float(LOOK)).mul(0.18).div(e), c.a);
+  }
+
   pipeline: RenderPipeline;
   readonly bloomStrength = uniform(0.12);
   readonly bloomThreshold = uniform(6);
@@ -52,7 +66,7 @@ export class Post {
       this.scenePass.getTexture('diffuseColor').type = UnsignedByteType;
       this.scenePass.getTexture('normal').type = UnsignedByteType;
     }
-    this.pipeline.outputNode = this.scenePass.getTextureNode('output');
+    this.pipeline.outputNode = this.look(this.scenePass.getTextureNode('output'));
   }
 
   get isUpgraded() { return this.upgraded; }
@@ -94,7 +108,7 @@ export class Post {
     this.bloomNode.strength = this.bloomStrength;
     this.bloomNode.threshold = this.bloomThreshold;
     this.full = new RenderPipeline(this.renderer);
-    this.full.outputNode = beauty.add(this.bloomNode);
+    this.full.outputNode = this.look(beauty.add(this.bloomNode));
   }
 
   /** The full chain, while it warms up (rendered every frame before the boot output covers it). */

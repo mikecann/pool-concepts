@@ -41,10 +41,10 @@ const OLD_PRESETS: Record<WaterKind, {
 /** How much of the pool floor shows through (Round 8): a Mondo-blue body veils it, as in Cycles. ?veil=0 for the old clear water. */
 /** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
 const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
-const CANAL_REFLECT = Number(new URLSearchParams(location.search).get('creflect') ?? 0.8);
+const CANAL_REFLECT = Number(new URLSearchParams(location.search).get('creflect') ?? 0.6);
 /** Round 9 underwater lighting (see causticsAlbedo). ?uw0=1 turns it off; ?uwwall= sets how dim the walls are. */
 const NO_UNDERWATER = new URLSearchParams(location.search).has('uw0');
-const UW_WALL = Number(new URLSearchParams(location.search).get('uwwall') ?? 0.3);
+const UW_WALL = Number(new URLSearchParams(location.search).get('uwwall') ?? 0.15);
 const UW_ABSORB: [number, number, number] = [0.27, 0.12, 0.105];
 /** Round 9: the pool's water as Cycles has it (clear, light absorption, no body colour). ?water8=1 for Round 8. */
 const CYCLES = !new URLSearchParams(location.search).has('water8');

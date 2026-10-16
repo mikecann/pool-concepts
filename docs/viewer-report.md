@@ -581,7 +581,84 @@ The settings test and walk test pass.
 - **Night lounge:** less amber than Cycles.
 - **Flames:** look paler in the dusk views than Cycles' orange.
 
+## Round 10
+
+**Goal:**
+- The day sky: match Cycles' pale blue as displayed, not just its radiance, and keep the sky's light on the scene sensible.
+- Then, if there's time: the dusk horizon glow, the flames and the spa.
+
+**Rules and targets:**
+- **Loop:** measure, make one change, compare against the Cycles stills, then keep or revert.
+- **Frame rate:** Medium and High hold 60 fps at DPR 1 and 2.
+- **Dusk scrub:** never over 50 ms.
+- **Console:** stays clean.
+
+**Cycles world (build.py / build_time.py, read only):**
+- **Sky:** Nishita multiple scattering at strength 0.12–0.18.
+- **Sun:** 6.5 × min(1, 3 sin el).
+- **Tone mapping:** AgX with the 'Medium High Contrast' look.
+
+**Measuring:** two new scripts.
+- `scripts/sky-sample.mjs` takes the median sky pixel at set heights.
+- `scripts/patch-sample.mjs` takes the mean of named rectangles.
+
+Both compare our frame with the Cycles still from the same camera.
+
+**What the measurements showed:**
+- **Sky:** our displayed zenith was ~(100, 130, 160) against Cycles' (202, 217, 233).
+- **The rest of the scene:** our soffit, sunlit coping, shaded bench and shaded wall were all darker and less blue than Cycles'.
+
+So our sky was too dim as light, not only as a backdrop, and raising its radiance is the physically right fix.
+
+### Round 10 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | Day sky radiance ×2–5 (sky dome and environment light together) | Sky top at 05: 99,129,158 → 176,199,219 at ×5 (Cycles 202,217,233); shade and sunlit patches move toward Cycles together; but the picture goes flat | Kept at ×4 with #2 |
+| 2 | Blender's 'AgX - Medium High Contrast' look: contrast 1.2 in log space around mid grey, i.e. 0.18·(x·e/0.18)^1.2 / e before AgX (`?look=1` for plain AgX) | With ×4: sky top 175,202,226; soffit 186,201,213 (Cycles 183,195,205); sunlit coping 131,146,162 (Cycles 130,148,163). No longer flat | Kept |
+| 3 | The ×4 fades out as the sun goes down (full above 12°, none at the horizon) (`?skyx=1` for Round 9) | Dusk and night keep their level; 07:30 shade turns blue like Cycles | Kept |
+| 4 | Underwater wall factor 0.3 → 0.15 | The brighter sky lifted the pool and spa walls; back toward navy | Kept (small) |
+| 5 | No clouds in the sky (Cycles has none; `?clouds=1` keeps them) and canal reflection 0.8 → 0.6 | Canal a little less white; the pale smears turned out to be the far trees' reflection, not clouds | Kept (small) |
+| 6 | Dusk: Preetham's forward (Mie) scattering fades to 30% once the sun is down; dusk fog colour 0.55 → 0.2 | Glowing halo where the sun set → gone, leaving a band | Kept |
+| 7 | Dusk: the environment light at 0.4 between 3° and −11° | Far bank's white houses and the house walls lit like late afternoon at 19:40 → darker, closer to Cycles' silhouettes | Kept |
+| 8 | Flames dimmer (0.4 / 0.2) | Dimmer turned them brown, not orange | Reverted |
+| 9 | Flames: the exported geometry without the Round 8 taper, white-yellow → orange gradient | The flame mesh is crossed flat cards (Cycles cuts tongue shapes out of them), so opaque they looked like paper; the new gradient went grey-blue at the base | Reverted (flames are exactly Round 9) |
+
+**Numbers (headless, Apple Metal):**
+
+| | Round 9 | Round 10 |
+|---|---|---|
+| Medium, DPR 1 and 2 (alfresco, lounge, pool edge, play) | 60 fps | 60 fps everywhere |
+| High, DPR 1 and 2 | 60 fps | 60 fps everywhere |
+| Dusk scrub, 17:00↔21:00 ×6 | max 20 ms | max 22 ms, 0 over 50 ms |
+| Console (qualities, dawn to night, pool cameras, both scenarios) | clean | clean |
+
+**Other checks:**
+- The page checks pass: only the walk page loads three.js and the GLB, every card moves the camera, and the phone gate button works.
+- The settings and walk tests pass.
+- 165 images checked, 0 missing.
+
+**Screenshots (`review/round10/`):**
+- `round10_before_after_cycles.jpg`: Round 9 (rendered with every Round 10 change switched off by its flag) | Round 10 | Cycles. Covers 05, 13 and 14 by day, the lounge at 07:30 and 18:30, 13, 14 and 17 at 19:40, and the lounge at 21:00.
+- `cmp/`: every step. The ones worth a look:
+  - `skyx_AB.png`
+  - `L4_sheet.png`
+  - `times_sheet.png`
+  - `dusk_sheet.png`
+  - `duskenv_sheet.png`
+  - `flame_sheet*.png`
+- `pages/`: the page-check screenshots
+
+**Still short of Cycles:**
+- **Flames:** they need tongue-shaped cut-outs on their cards (an alpha-tested procedural mask, so TRAA doesn't dither them) to look like Cycles' separate orange tongues.
+- **Spa by day:** a little lighter than Cycles. Its interior is in shade in both, and the white rim band is the same geometry; Cycles' water just reads darker.
+- **Canal:** the far trees reflect as pale smears rather than dark streaks.
+- **Dusk sky:** our upper sky at 19:40 is a little browner than Cycles' blue-purple.
+- **19:40 overview and deep end:** a touch darker than Cycles, since the dimmed environment light also pulls down roofs and the basin.
+
 ## Summary
+
+**Round 10:** the day sky is Cycles' pale blue, and the scene in shade matches Cycles within a few levels. The fix was the sky at Cycles' radiance plus Blender's Medium High Contrast look. Dusk lost its halo and its lit-up far bank. The flame and dimmer-flame experiments were reverted. 60 fps and the scrub targets hold.
 
 **Round 9:** the pool now reads like Cycles':
 - a pale floor with Cycles' caustic net

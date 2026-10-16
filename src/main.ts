@@ -126,7 +126,7 @@ async function main() {
     model.apply();
     if (rebuild) {
       post?.dispose();
-      post = new Post(renderer, scene, camera, params.get('post') === '0' ? 'Low' : q);
+      post = new Post(renderer, scene, camera, params.get('post') === '0' ? 'Low' : q); post.exposureU.value = atm.exposure;
       pinned.set(post.target.target, 1);
       if (booted) post.upgrade();
       post.setNight(atm.state.night);
@@ -162,6 +162,7 @@ async function main() {
     sunread.textContent = el > -0.8 ? `sun ${Math.round(az)}° ${compass(az)}, ${Math.round(el)}° up` : el > -6 ? 'after sunset' : el > -12 ? 'twilight' : 'night';
     fogColor.value.copy(atm.fogColor);
     renderer.toneMappingExposure = atm.exposure;
+    if (post) post.exposureU.value = atm.exposure;
     post?.setNight(atm.state.night);
     if (lastSunDir.angleTo(atm.state.dir) > 0.0015) { shadowDirty = true; lastSunDir.copy(atm.state.dir); }
   };

@@ -33,6 +33,13 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export type SunState = { az: number; el: number; dir: Vector3; day: number; night: number; dusk: number };
 
 /** How tightly the haze hugs the horizon: 6 keeps the sky blue above ~20° (Cycles), 2.5 was the old overcast look. */
+/** Round 10 dusk: how much of the forward-scattering glow is left once the sun is down, and the dusk fog level. */
+const DUSK_MIE = Number(new URLSearchParams(location.search).get('duskmie') ?? 0.3);
+const DUSK_ENV = Number(new URLSearchParams(location.search).get('duskenv') ?? 0.4);
+const DUSK_FOG = Number(new URLSearchParams(location.search).get('duskfog') ?? 0.2);
+const CLOUDS = new URLSearchParams(location.search).has('clouds');
+/** Round 10 day sky radiance multiplier (see set()). */
+const SKY_X = Number(new URLSearchParams(location.search).get('skyx') ?? 4);
 /** Round 9 day sky: how far toward a pale blue (0 = Round 8's sky) and how much brighter. ?skypale= / ?skylift= */
 const SKY_PALE = Number(new URLSearchParams(location.search).get('skypale') ?? 0);
 const SKY_LIFT = Number(new URLSearchParams(location.search).get('skylift') ?? 1.3);
@@ -77,7 +84,7 @@ export class Atmosphere {
       s.scale.setScalar(4000);
       s.turbidity.value = SKY.turbidity; s.rayleigh.value = SKY.rayleigh;
       s.mieCoefficient.value = SKY.mieCoefficient; s.mieDirectionalG.value = SKY.mieDirectionalG;
-      s.cloudCoverage.value = 0.18; s.cloudDensity.value = 0.35; s.cloudScale.value = 0.00018; s.cloudElevation.value = 0.55;
+      s.cloudCoverage.value = CLOUDS ? 0.18 : 0;   // Round 10: none, as in the Cycles sky (they smeared white across the canal) s.cloudDensity.value = 0.35; s.cloudScale.value = 0.00018; s.cloudElevation.value = 0.55;
       const base = s.material.colorNode as any;
       // horizon haze: towards the horizon the sky desaturates and lightens (coastal air), as in the Cycles stills;
       // the env map sky gets the same, so the IBL lighting desaturates with it
@@ -155,7 +162,16 @@ export class Atmosphere {
     this.envSky.sunPosition.value.copy(sd);
     // fade the whole sky towards night as the sun sinks past -2.5
     const twilight = Math.pow(smooth(-12, 1, el), 1.6);
-    this.skyGain.value = this.skyBase * Math.max(0.012, twilight);
+    // Round 10: the day sky at Cycles' level. Measured on the stills, its sky and everything it lights in shade sat
+    // at ~4x ours; the extra fades out as the sun goes down so dusk keeps its level (?skyx=1 for Round 9's sky)
+    const day = 1 + (SKY_X - 1) * smooth(0, 12, el);
+    this.skyGain.value = this.skyBase * Math.max(0.012, twilight) * day;
+    // Round 10: Cycles' dusk has a thin warm band, not a glowing halo where the sun went down; Preetham's forward
+    // (Mie) scattering with the sun held just under the horizon made that halo, so it fades out through dusk
+    // and the sky light on the scene through dusk: Preetham's sky with the sun held at -1.2 deg still lit the far bank's
+    // white walls like late afternoon at 19:40, where Cycles' multiple-scattering sky has them as dark silhouettes
+    this.scene.environmentIntensity = lerp(1, DUSK_ENV, smooth(3, -2, el) * (1 - smooth(-7, -11, el)));
+    for (const sk of [this.sky, this.envSky]) sk.mieCoefficient.value = SKY.mieCoefficient * lerp(DUSK_MIE, 1, smooth(-2, 4, el));
 
     // the sun: Preetham extinction for colour and strength, normalised so the noon sun is white at 6.5
     const ext = extinction(Math.max(el, 0.5));
@@ -181,7 +197,7 @@ export class Atmosphere {
 
     // haze colour for distant fog and the env ground
     const dayFog = new Color(0.62, 0.7, 0.8).multiplyScalar(0.62 * (this.skyGain.value / this.skyBase));
-    const duskTint = new Color(0.95, 0.62, 0.45).multiplyScalar(0.55 * (this.skyGain.value / this.skyBase));
+    const duskTint = new Color(0.95, 0.62, 0.45).multiplyScalar(DUSK_FOG * (this.skyGain.value / this.skyBase));
     this.fogColor.copy(dayFog).lerp(duskTint, st.dusk * 0.6).lerp(new Color(0.008, 0.011, 0.02), st.night);
     const sunOnGround = strength * Math.max(0, st.dir.y) / Math.PI;
     const skyOnGround = 0.55 * (this.skyGain.value / this.skyBase);
