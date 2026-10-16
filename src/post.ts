@@ -4,7 +4,7 @@
 //   Low:          scene pass -> bloom (phones)
 // Tone mapping (AgX) and exposure are applied by the pipeline's output transform.
 import { RenderPipeline, UnsignedByteType, type PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
-import { diffuseColor, float, max, packNormalToRGB, pow, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
+import { diffuseColor, float, max, mix, step, packNormalToRGB, pow, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
 import { ssgi } from 'three/addons/tsl/display/SSGINode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -98,7 +98,7 @@ export class Post {
         gi.thickness.value = 0.6;
         this.gi = gi;
         const mode = dbg.get('gimode');
-        composite = mode === 'ao' ? vec4(color.rgb.mul(gi.a), color.a) : mode === 'none' ? color : mode === 'gi' ? vec4(gi.rgb, 1) : vec4(color.rgb.mul(gi.a).add(diffuse.rgb.mul(gi.rgb).mul(this.giMix)), color.a);
+        composite = mode === 'ao' ? vec4(color.rgb.mul(gi.a), color.a) : mode === 'none' ? color : mode === 'gi' ? vec4(gi.rgb, 1) : vec4(color.rgb.mul(mix(float(1), gi.a, step(0.01, diffuse.a))).add(diffuse.rgb.mul(gi.rgb).mul(this.giMix)), color.a);
       }
       beauty = cfg.taa ? traa(composite, depth, vel, camera) : composite;
     } else {

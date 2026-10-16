@@ -7,7 +7,7 @@ import {
   AdditiveBlending, Box3, Matrix4, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
   type Light, type Material, type Texture, type WebGPURenderer, RectAreaLightNode,
 } from 'three/webgpu';
-import { abs, clamp, dot, max, materialRoughness, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
+import { abs, attribute, mrt, positionWorld, vec4, select, clamp, dot, max, materialRoughness, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTexturesLib.js';
@@ -137,8 +137,14 @@ const WARM = !new URLSearchParams(location.search).has('warm0');
 const LOUNGE_GAIN = Number(new URLSearchParams(location.search).get('lounge') ?? (WARM ? 0.7 : 1));
 const WET_LIGHTS = !new URLSearchParams(location.search).has('wet0');
 const WET_PATH = Number(new URLSearchParams(location.search).get('wetpath') ?? 3);
+const SPA_GAIN = Number(new URLSearchParams(location.search).get('spagain') ?? 2);
 const WET_GAIN = Number(new URLSearchParams(location.search).get('wetgain') ?? 3);
+const GLITTER = new URLSearchParams(location.search).has('glitter');
+const CEIL = Number(new URLSearchParams(location.search).get('ceil') ?? 0.2);
+const NO_BARK = new URLSearchParams(location.search).has('bark0');
 const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
+const FLAME10 = new URLSearchParams(location.search).has('flame10');
+const FLAME_GAIN = Number(new URLSearchParams(location.search).get('flamegain') ?? 0.65);
 const DUSK0 = new URLSearchParams(location.search).has('dusk0');
 const NO_JOINTS = new URLSearchParams(location.search).has('joints0');
 function tileJoints(base: any, j: { tile: number; width: number; grout: [number, number, number] }) {
@@ -362,6 +368,9 @@ export class Model {
           const t = m[key] as Texture | null;
           if (t) t.anisotropy = Math.min(8, maxAniso);
         }
+        // Round 11: the aggregate and coping normal maps made every grain a tiny mirror, which glittered blue with
+        // the night sky (the reviewer's "stars on the coping"); a quarter of the bump keeps the texture without it
+        if (/^(aggregate|coping)$/.test(m.name) && m.normalScale && !GLITTER) m.normalScale.set(0.25, 0.25);
       }
       const kind = mats[0]?.userData?.kind ?? mats[0]?.userData?.web_kind;
       mesh.receiveShadow = true;
@@ -397,6 +406,22 @@ export class Model {
         mesh.castShadow = false;
         this.ledMats.push({ mat: n, level });
         if (o.name.startsWith('firepit_flames')) this.flames = mesh;
+      }
+      if (mats[0]?.name === 'bark_chips' && !NO_BARK) {
+        // Round 11: Cycles' bark is Voronoi chips (scale 28, ~3.5 cm), each a colour between #3E2B1E and #9C7552;
+        // the export flattened it to one brown, which read as rubber matting. Chips by world XZ, plus 30 cm patches.
+        const n = conv(mats[0]);
+        if (!n.colorNode) {
+          const p = positionWorld.xz.mul(40);
+          const jitter = vec2(mx_noise_float(vec3(p.x.mul(0.37), p.y.mul(0.37), 1.3)), mx_noise_float(vec3(p.x.mul(0.37), p.y.mul(0.37), 7.1))).mul(0.6);
+          const cell = floor(p.add(jitter));
+          const r = fract(sin(dot(cell, vec2(12.9898, 78.233))).mul(43758.5453));
+          const patch = mx_noise_float(vec3(positionWorld.x.mul(3.3), 0.7, positionWorld.z.mul(3.3))).mul(0.5).add(0.5);
+          // sRGB #3E2B1E and #9C7552 in linear
+          n.colorNode = mix(vec3(0.07, 0.038, 0.021), vec3(0.28, 0.15, 0.075), r).mul(mix(float(0.8), float(1.15), patch));
+          n.roughness = 0.95;
+        }
+        mesh.material = n;
       }
       const grade = TIMBER[mats[0]?.name as string];
       if (grade && !NO_TIMBER) {
@@ -437,18 +462,50 @@ export class Model {
       const bb = mesh.geometry.boundingBox!;
       const t = positionLocal.y.sub(bb.min.y).div(Math.max(0.01, bb.max.y - bb.min.y)).clamp(0, 1);
       const wob = mx_noise_float(vec3(positionLocal.x.mul(6), positionLocal.y.mul(4).sub(time.mul(3.1)), positionLocal.z.mul(6))).mul(0.045).mul(t);
-      // taller than the Blender cones (the Cycles flames stand well above the rim): stretch up from the base
-      const c = bb.getCenter(new Vector3());
-      // taper each tongue to a point towards the top, with a little height added
-      const taper = float(1).sub(t.pow(1.3).mul(0.75));
-      const stretch = DUSK0 ? positionLocal : vec3(positionLocal.x.sub(c.x).mul(taper).add(c.x), positionLocal.y.sub(bb.min.y).mul(1.15).add(bb.min.y), positionLocal.z.sub(c.z).mul(taper).add(c.z));
-      fm.positionNode = stretch.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
-      // solid emissive cones like Cycles': a yellow-white core at the base, orange body, deep orange tips.
-      // Opaque (transparent flames turned into screen-door stripes under TRAA); hidden by day by model.update().
-      const core = vec3(1.0, 0.62, 0.2), body = vec3(1.0, 0.36, 0.05), tip = vec3(0.8, 0.14, 0.01);
-      const grad = mix(mix(core, body, smoothstep(0.0, 0.35, t)), tip, smoothstep(0.45, 1.0, t));
-      fm.colorNode = grad.mul(float(0.85).mul(this.fireFlicker)).mul(this.atm.nightU);
-      fm.side = DoubleSide;
+      const g = mesh.geometry, pos = g.getAttribute('position');
+      if (!FLAME10 && pos.count % 4 === 0) {
+        // Round 11: Cycles cuts tongue shapes out of the crossed cards; ours had no UVs, so the cards were drawn whole
+        // (tapered into one pleated cone). Each card is a quad, vertices 0 and 3 on one side, 1 and 2 on the other.
+        const uvs = new Float32Array(pos.count * 2), ids = new Float32Array(pos.count);
+        for (let i = 0; i < pos.count; i++) {
+          const q = i % 4;
+          uvs[i * 2] = q === 1 || q === 2 ? 1 : 0;
+          uvs[i * 2 + 1] = (pos.getY(i) - bb.min.y) / Math.max(0.01, bb.max.y - bb.min.y);
+          ids[i] = Math.floor(i / 4);
+        }
+        g.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+        g.setAttribute('card', new Float32BufferAttribute(ids, 1));
+        const id = attribute('card', 'float'), u = uv().x, v = uv().y;
+        const across = abs(u.sub(0.5)).mul(2);   // 0 in the middle of the card, 1 at its edges
+        // a tongue: full width low down, rounding to a point, with a licking edge that rises with time
+        const lick = mx_noise_float(vec3(u.mul(3).add(id.mul(7.3)), v.mul(2.2).sub(time.mul(1.6)), id)).mul(0.32).mul(v.add(0.15));
+        const width = float(1).sub(v).pow(1.15).mul(0.8).add(lick.mul(0.7)).mul(smoothstep(0.0, 0.06, v).mul(0.4).add(0.6));
+        fm.opacityNode = select(across.lessThan(width), float(1), float(0));
+        fm.alphaTest = 0.5;
+        // emissive: no AO or bounce from SSGI (post.ts skips pixels whose diffuse alpha is 0); its AO noise stippled them
+        // only while an MRT pass is building: with no MRT (Low, the mirrors) three would use it as the whole output
+        const flameMRT = mrt({ diffuseColor: vec4(0, 0, 0, 0) }), renderer = this.renderer;
+        Object.defineProperty(fm, 'mrtNode', { get: () => (renderer.getMRT() ? flameMRT : null), set: () => {}, configurable: true });
+        fm.positionNode = positionLocal.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
+        // hot white-yellow core low and in the middle, orange towards the edges and up the tongue
+        const edge = across.div(width.max(0.05)).max(v.mul(0.9)).clamp(0, 1);
+        const col = mix(mix(vec3(1.0, 0.66, 0.3), vec3(1.0, 0.42, 0.08), smoothstep(0.1, 0.55, edge)), vec3(1.0, 0.26, 0.03), smoothstep(0.55, 1.0, edge));
+        fm.colorNode = col.mul(float(FLAME_GAIN).mul(this.fireFlicker)).mul(this.atm.nightU);
+        fm.side = DoubleSide;
+      } else {
+        // taller than the Blender cones (the Cycles flames stand well above the rim): stretch up from the base
+        const c = bb.getCenter(new Vector3());
+        // taper each tongue to a point towards the top, with a little height added
+        const taper = float(1).sub(t.pow(1.3).mul(0.75));
+        const stretch = DUSK0 ? positionLocal : vec3(positionLocal.x.sub(c.x).mul(taper).add(c.x), positionLocal.y.sub(bb.min.y).mul(1.15).add(bb.min.y), positionLocal.z.sub(c.z).mul(taper).add(c.z));
+        fm.positionNode = stretch.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
+        // solid emissive cones like Cycles': a yellow-white core at the base, orange body, deep orange tips.
+        // Opaque (transparent flames turned into screen-door stripes under TRAA); hidden by day by model.update().
+        const core = vec3(1.0, 0.62, 0.2), body = vec3(1.0, 0.36, 0.05), tip = vec3(0.8, 0.14, 0.01);
+        const grad = mix(mix(core, body, smoothstep(0.0, 0.35, t)), tip, smoothstep(0.45, 1.0, t));
+        fm.colorNode = grad.mul(float(0.85).mul(this.fireFlicker)).mul(this.atm.nightU);
+        fm.side = DoubleSide;
+      }
     }
   }
 
@@ -520,10 +577,31 @@ export class Model {
     });
   }
 
+  /**
+   * Round 11: the alfresco ceiling at dusk and night. In Cycles it glows warm from the downlights' light coming back
+   * off the floor, which is what makes its dusk frames feel lit; here it stayed dark grey. A soft pool of light
+   * round each downlight plus a faint wash, on the ceiling's own colour, scaled by the night level. ?ceil=0 off.
+   */
+  private glowCeiling(downlights: LightDef[]) {
+    if (!downlights.length || CEIL <= 0) return;
+    let mat: any = null;
+    this.root.traverse(o => { if (!mat && (o as Mesh).isMesh && (o as Mesh).name === 'alfresco_ceiling') mat = (o as Mesh).material; });
+    if (!mat) return;
+    const n = mat.isNodeMaterial ? mat : this.toNode(mat);
+    let pool: any = float(0);
+    for (const d of downlights) {
+      const dx = positionWorld.x.sub(d.position[0]), dz = positionWorld.z.sub(d.position[2]);
+      pool = pool.add(dx.mul(dx).add(dz.mul(dz)).negate().div(1.1).exp());
+    }
+    n.emissiveNode = materialColor.mul(vec3(1.0, 0.74, 0.48)).mul(pool.add(0.25).mul(CEIL)).mul(this.atm.nightU);
+    this.root.traverse(o => { if ((o as Mesh).isMesh && (o as Mesh).material === mat) (o as Mesh).material = n; });
+  }
+
   private setupLights(defs: LightDef[]) {
     // Every light in the scene is in every shader (they're kept on all day, see update()), so fewer is better:
     // the four boundary uplights and the four skillion downlights become two of each, each pair a single light
     // midway between the two with their combined power. The look barely changes; the shaders get 4 lights smaller.
+    this.glowCeiling(defs.filter(d => d.name.startsWith('alfresco_downlight')));
     if (!new URLSearchParams(location.search).has('lights13')) defs = pairUp(defs, ['led_uplight', 'alfresco_downlight']);
     for (const d of defs) {
       if (d.name.startsWith('int_light')) continue;   // interior lamps would shine through the walls; the windows glow instead
@@ -571,7 +649,7 @@ export class Model {
           // ours doesn't absorb light, so the colour carries a typical path's worth (4.5 m in the pool, 1.2 m in the spa)
           const path = (d.name === 'pool_light' ? 4.5 : 1.2) * WET_PATH, a = d.name === 'pool_light' ? [0.27, 0.12, 0.105] : [0.315, 0.14, 0.12];
           p.color.setRGB(col.r * Math.exp(-a[0] * path), col.g * Math.exp(-a[1] * path), col.b * Math.exp(-a[2] * path));
-          base *= WET_GAIN;
+          base *= WET_GAIN * (d.name === "led_spa_light" ? SPA_GAIN : 1);   // Round 11: the spa glows bright cyan at dusk in Cycles
         }
         light = p;
         if (d.name === 'pool_light') this.poolLight = p;
@@ -612,7 +690,7 @@ export class Model {
       light.intensity = base * night * (def.name.startsWith('led_firepit') ? flick : 1);
     }
     this.poolGlow.value = this.poolLight?.visible ? night * GLOW : 0;
-    this.spaGlow.value = this.spaLight?.visible ? night * GLOW : 0;
+    this.spaGlow.value = this.spaLight?.visible ? night * GLOW * SPA_GAIN : 0;
     // shadow maps of the night lights: refresh while they're fading in, then they're static
     if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
     // (hiding a mesh doesn't change any shader, unlike the lights: the flames simply go away by day)

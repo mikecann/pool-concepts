@@ -41,6 +41,11 @@ const OLD_PRESETS: Record<WaterKind, {
 /** How much of the pool floor shows through (Round 8): a Mondo-blue body veils it, as in Cycles. ?veil=0 for the old clear water. */
 /** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
 const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
+const MURK = Number(new URLSearchParams(location.search).get('murk') ?? 0.8);
+const STREAK_LEN = Number(new URLSearchParams(location.search).get('streaklen') ?? 0.012);
+const STREAK0 = new URLSearchParams(location.search).has('streak0');
+const STREAK = Number(new URLSearchParams(location.search).get('streak') ?? 3);
+const CANAL_TINT: [number, number, number] | null = new URLSearchParams(location.search).has('canaltint0') ? null : [0.9, 0.97, 1.0];
 const CANAL_REFLECT = Number(new URLSearchParams(location.search).get('creflect') ?? 0.6);
 /** Round 9 underwater lighting (see causticsAlbedo). ?uw0=1 turns it off; ?uwwall= sets how dim the walls are. */
 const NO_UNDERWATER = new URLSearchParams(location.search).has('uw0');
@@ -110,7 +115,14 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   // planar reflection, nudged by the ripples. It replaces the sky env reflection (added with Fresnel below),
   // so the lighting model only contributes the sun's glint.
   // how far the ripples push the reflection around: gentle on the pool and spa, choppier on the canal
-  const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.12, canal: P.glint === 0 ? CANAL_WOBBLE : 0.25 }[kind])) : null;
+  // the canal's swell smears the reflection along the view (vertical streaks, as Cycles and real water show), much
+  // less across it (Round 11; ?streak0=1 for the old even wobble)
+  const wobble = kind === 'canal' && !STREAK0 ? g.mul(vec2(CANAL_WOBBLE * 0.3, CANAL_WOBBLE * STREAK)) : g.mul({ pool: 0.05, spa: 0.12, canal: P.glint === 0 ? CANAL_WOBBLE : 0.25 }[kind]);
+  // Round 11: on the canal the light in the reflection is also drawn out into vertical streaks (lit windows and
+  // wall lights at night), so it's sampled at five heights along the view and averaged (?streak0=1 for one tap)
+  const reflection = !mirror ? null : kind === 'canal' && !STREAK0
+    ? [-2, -1, 0, 1, 2].map(k => mirror.sample(wobble.add(vec2(0, k * STREAK_LEN)))).reduce((a: any, b: any) => a.add(b)).div(5)
+    : mirror.sample(wobble);
   // until the mirror's shaders are ready (it's built after the first frame) the sky env map reflects instead;
   // mirror.on fades from one to the other, and the material's envMapIntensity follows it each frame
   if (reflection) m.userData.mirror = mirror;
@@ -140,6 +152,8 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     const NdV = max(dot(nWorld, V), 0);
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
     let seen = behind.mul(T).add(body);
+    // Round 11: the canal is murky (silt), so the near water shows a lit grey-green body, not the dark bed
+    if (kind === 'canal' && MURK > 0) seen = mix(seen, vec3(0.13, 0.17, 0.18).mul(ambient), float(MURK));
     if (P.veil) {
       // the water body itself: a deep Mondo blue lit by the sun and sky, which hides part of the shell, more so
       // where the water is deep (as Cycles shows it: you mostly see the surface and its colour, not the floor)
@@ -148,7 +162,10 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     }
     const through = seen.mul(float(1).sub(F));
     // the canal mirror's sky is a touch dimmer than the real one, as Cycles shows it (the far bank stays the brightest)
-    const r = reflection && kind === 'canal' ? reflection.mul(CANAL_REFLECT) : reflection;
+    // Round 11: murky canal water tints what it reflects (Cycles' canal_water absorbs into #17463F), rather than
+    // just dimming it: the far bank's trees come back dark and the sky mid-blue, not near-white
+    const canalR = reflection && CANAL_TINT ? mix(reflection, vec3(dot(reflection, vec3(0.2126, 0.7152, 0.0722))), 0.35).mul(vec3(...CANAL_TINT)) : reflection;
+    const r = reflection && kind === 'canal' ? (CANAL_TINT ? canalR : reflection.mul(CANAL_REFLECT)) : reflection;
     return r ? through.add(r.mul(F).mul(mirror!.on)) : through;
   })();
   m.userData.waterKind = kind;

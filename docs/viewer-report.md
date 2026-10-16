@@ -656,7 +656,75 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 - **Dusk sky:** our upper sky at 19:40 is a little browner than Cycles' blue-purple.
 - **19:40 overview and deep end:** a touch darker than Cycles, since the dimmed environment light also pulls down roofs and the basin.
 
+## Round 11
+
+**Goal:** the reviewer's top 8 from `review/r6/review.md`, in their order, plus loading in hidden pages. Same loop and targets as before. The comparison set is `node scripts/compare.mjs --set r11`.
+
+### Round 11 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | Canal: the reviewer's murky tint (0.55, 0.65, 0.72) and distance haze from 60 m instead of 25 m (`?fog25=1` for before) | No measurable change: the canal stayed (212, 220, 225) against Cycles' (167, 183, 195) | Kept the haze. The tint turned out not to be applied, see #2 |
+| 2 | **Root cause:** a red-canal debug test showed the canal shader output was reaching the screen, yet changing the mirror term did nothing. The water had no `envMap` of its own, so three ignored the per-frame `envMapIntensity` fade and used the scene's environment intensity. The water reflected the sky twice, once from the environment map and once from the mirror. Fix: the water gets `envMap = scene.environment` (`?doubleenv=1` for before) | Milky near-white canal → the far bank's trees reflect dark and crisp. The pool gets slightly deeper too, and still matches Cycles | Kept: the biggest gain this round |
+| 3 | Canal retuned for #2: tint (0.9, 0.97, 1.0) on a 35%-desaturated reflection, plus a lit grey-green body (`?murk=`, `?canaltint0=1`) | Canal band (138→146, 155, 158) against Cycles (167, 183, 195); a little darker than Cycles but no longer white | Kept |
+| 4 | Canal reflection smeared along the view: anisotropic ripple offset (0.3× across, 3× along) and a 5-tap vertical blur (`?streak0=1`, `?streaklen=`) | Lit windows and wall lights now reflect as vertical streaks at night; day tree reflections slightly softer | Kept |
+| 5 | Camera 01 (from a boat on the canal) is now placed in drone mode. In walk mode it fell to the canal bed and showed the underside of the model | The night canal view works | Kept (a bug fix) |
+| 6 | Flames: the mesh had no UVs, so UVs are generated per card, and each card gets an alpha-tested tongue mask with a noise edge that licks upward. The Round 8 taper is gone, and the colour runs from a hot core to orange edges. The flames are excluded from SSGI AO, which made the stipple, via a material MRT that's only used in MRT passes (otherwise Low threw a WGSL error). `?flame10=1` for before; `?flamegain=` sets brightness | Pleated paper cone → separate tongues, no stipple. Still paler and more yellow-white than Cycles' orange at the 21:00 exposure | Kept |
+| 7 | Sky visibility (`src/skyvis.ts`): a 0.35 m height map of the lot, ray-cast against the walk collider. A horizon search in 16 directions bakes the share of sky each cell sees, and surfaces under a roof count as covered (0.3). Only the environment light is scaled; the sun and its shadows are untouched. The bake takes ~170 ms in chunks after the far trees load (`?skyvis0=1` for before) | Shaded passage wall 77 → 49 (Cycles 50); the play area and side passage read enclosed; the pavilion deck loses its violet cast | Kept |
+| 8 | Phone landscape: the phone layout now also applies at `max-height: 500px`, and in landscape the drawer stops below the HUD rows | 844×390: Walk/Drone/Go to/Options all present, the panel starts closed, no overflow (`review/round11/phone/`) | Kept |
+| 9 | Bark: procedural chips (world-space cells about 2.5 cm, colours between Cycles' #3E2B1E and #9C7552, plus 30 cm patches) (`?bark0=1` for before) | Flat brown matting → chips. The first try at 3.5 cm was too coarse and contrasty | Kept |
+| 10 | Alfresco ceiling at dusk and night: an emissive pool of light round each downlight plus a faint wash, warm-tinted, × night (`?ceil=`) | Dark grey → a warm lit soffit. 0.5 was flat white; kept at 0.2 | Kept |
+| 11 | Coping and aggregate normal maps at 0.25. The blue "stars" were each grain's normal-map facet reflecting the night sky. The stars were never in the environment map, and the pool light wasn't the cause either (tested with it off) (`?glitter=1` for before) | Glitter gone | Kept |
+| 12 | Spa light wet gain ×2 (`?spagain=`) | No visible change in 14 at dusk: the bright cyan in Cycles' frame is the pool; the spa is dark in both | Kept (harmless) |
+| 13 | Roller cards cut from the 17_pool_overview roller renders, cropped to the end that changes (`crop` in `src/choices.ts`, applied by `scripts/make-cards.mjs`) | Five near-identical thumbnails → none / shallow / deep / pit / low-profile tell apart at a glance (`review/round11/roller_cards.png`) | Kept |
+| 14 | Loading in hidden pages: CPU steps yield through a MessageChannel while `document.hidden`. While visible they wait a frame, falling back to a 100 ms timeout so a throttled rAF can't stall them. Added a `painted` mark | Simulated hidden load (`scripts/hidden-load.mjs`): compiled at 1.4 s while hidden, first frame 47 ms after being shown. Before, it stalled at `glb` until shown | Kept |
+
+**Your Electron 'model' step (3.1 s):** in headless Chromium `glb` → `model` is 35–40 ms (`painted` → `model` is about 35 ms of real work). So that gap was the requestAnimationFrame wait: rAF was throttled or paused in that pane, which #14 fixes. Not reproduced in Electron itself (headless only).
+
+**Not done:**
+- **Passage pavers warm cream (item 5b):** ran out of time.
+- **Night canal window reflections:** still weaker than Cycles' (we get the wall lights, not the house windows).
+- **Doubled jetty reflection:** not investigated.
+
+**Numbers (headless, Apple Metal):**
+
+| | Round 10 | Round 11 |
+|---|---|---|
+| Medium, DPR 1 and 2 (alfresco, lounge, pool edge, play) | 60 fps | 60 fps everywhere |
+| High, DPR 1 and 2 | 60 fps | 60 fps everywhere |
+| Dusk scrub, 17:00↔21:00 ×6 | max 22 ms | max 21 ms, 0 over 50 ms |
+| Warm load: cover lifts / settled | 1.57 s / 2.5 s | 1.63 s / 2.8 s (the sky bake adds ~0.2 s after the cover) |
+| Console (qualities incl. Low at night, dawn to night, 7 cameras, both scenarios) | clean | clean |
+
+**Other checks:**
+- Page checks pass.
+- Settings and walk tests pass.
+- 165 images, 0 missing.
+- Phone portrait and landscape: no overflow, no errors.
+
+**Screenshots (`review/round11/`):**
+- `round11_before_after_cycles.jpg`: Round 10 | Round 11 | Cycles across 9 views. The before for 01 is the old underground camera.
+- `cmp/`: every step. The ones worth a look:
+  - `env_sheet.png`
+  - `streak2.png`
+  - `skyvis_sheet.png`
+  - `bark_sheet.png`
+  - `ceil_sheet2.png`
+  - `flame11*.png`
+  - `glitter*.png`
+- `phone/`, `roller_cards.png`, `pages/`
+
 ## Summary
+
+**Round 11:**
+- **Canal:** the milky look was the water reflecting the sky twice (environment map plus mirror). It now shows dark, crisp tree reflections, and at night vertical light streaks.
+- **Flames:** cut-out tongues.
+- **Enclosed shade:** a sky-visibility bake darkens it.
+- **Phone landscape:** uses the phone layout.
+- **Small fixes:** bark texture, lit alfresco ceiling, no glitter on the coping, readable roller cards.
+- **Loading:** no longer stalls in hidden pages.
+
+All targets hold.
 
 **Round 10:** the day sky is Cycles' pale blue, and the scene in shade matches Cycles within a few levels. The fix was the sky at Cycles' radiance plus Blender's Medium High Contrast look. Dusk lost its halo and its lit-up far bank. The flame and dimmer-flame experiments were reverted. 60 fps and the scrub targets hold.
 

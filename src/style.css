@@ -186,7 +186,7 @@ ul.assume li::marker { color: var(--accent); }
 .linkbtn { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font-size: 13px; }
 
 /* ---------- phones: the panel becomes a bottom drawer ---------- */
-@media (max-width: 820px) {
+@media (max-width: 820px), (max-height: 500px) {
   .app, .app.panel-closed { grid-template-columns: 1fr; }
   .panel { position: fixed; left: 0; right: 0; bottom: 0; height: min(78vh, 680px); border-left: 0; border-top: 1px solid var(--rule);
     transform: translateY(calc(100% - var(--peek, 0px))); transition: transform .3s ease; box-shadow: 0 -10px 30px rgba(0,0,0,.35); z-index: 30; visibility: visible !important; }
@@ -212,6 +212,11 @@ ul.assume li::marker { color: var(--accent); }
   .clock output { font-size: 22px; }
   .clock .mono { display: none; }
   .joystick { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 120px); }
+}
+/* phones in landscape: the drawer stops below the two HUD rows, so Options (to close it) stays in reach */
+@media (max-height: 500px) {
+  .panel { height: calc(100vh - 112px); height: calc(100dvh - 112px); }
+  .joystick { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 96px); }
 }
 @media (prefers-reduced-motion: reduce) { .panel, .loading { transition: none; } }
 
@@ -241,7 +246,7 @@ ul.assume li::marker { color: var(--accent); }
   text-transform: uppercase; letter-spacing: .08em; font-weight: 600; font-size: 15px; box-shadow: 0 2px 10px rgba(0,0,0,.35); }
 .status-pill { position: absolute; left: 14px; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 96px); z-index: 5; background: var(--scrim);
   color: var(--on-scrim-muted); padding: 3px 9px; font-size: 11.5px; pointer-events: none; }
-@media (max-width: 820px) {
+@media (max-width: 820px), (max-height: 500px) {
   .gate-tip { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 120px); }
   .status-pill { display: none; }
 }

@@ -7,6 +7,7 @@ import { LIGHT_SWAP, Model, type CameraDef, type Gate, type Scenario } from './m
 import { Post, QUALITY, type Quality } from './post';
 import { Walker } from './walk';
 import { FAR_LAYER, inMirror } from './mirror';
+import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
 import { FENCE_CHOICES, KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
@@ -53,6 +54,15 @@ const mark = (name: string) => marks.push([name, Math.round(performance.now())])
 
 const BASE = '../web/';
 const nextFrame = () => new Promise<void>(r => requestAnimationFrame(() => r()));
+/**
+ * Round 11: a yield for the loading steps that only need the CPU. requestAnimationFrame never fires while the page
+ * is hidden (a background tab, a hidden pane in a desktop app), which held loading at 'Building the scene…' until
+ * it was shown. While visible it waits a frame so the progress text paints; while hidden it yields a task through
+ * a MessageChannel, which background pages don't throttle.
+ */
+const yieldForPaint = () => document.hidden
+  ? new Promise<void>(r => { const c = new MessageChannel(); c.port1.onmessage = () => r(); c.port2.postMessage(0); })
+  : Promise.race([nextFrame(), new Promise<void>(r => setTimeout(r, 100))]);
 
 const loadText = $('load-text'), loadFill = $('load-fill');
 const progress = (f: number, text?: string) => { loadFill.style.width = `${Math.round(f * 100)}%`; if (text) loadText.textContent = text; };
@@ -86,7 +96,7 @@ async function main() {
   pinRenderDepth(renderer, pinned);
   // distant haze: the far bank 70 to 200 m away softens a little, like the photos
   const fogColor = uniform(atm.fogColor);
-  scene.fogNode = fog(fogColor, (params.has('haze0') ? rangeFogFactor(35, 1400) : rangeFogFactor(25, 900)).mul(params.has('mirrorfog') ? 1 : float(1).sub(inMirror)));
+  scene.fogNode = fog(fogColor, (params.has('haze0') ? rangeFogFactor(35, 1400) : rangeFogFactor(params.has('fog25') ? 25 : 60, 900)).mul(params.has('mirrorfog') ? 1 : float(1).sub(inMirror)));
 
   const model = new Model(renderer, atm);
   model.people = settings.people ?? true;
@@ -95,7 +105,8 @@ async function main() {
   const data = await modelData;
   mark('glb');
   progress(0.64, 'Building the scene…');
-  await nextFrame();   // let the text paint
+  await yieldForPaint();   // let the text paint
+  mark('painted');
   // mirrors are always built (so switching up from Low adds reflections); they're only drawn when the quality wants them
   model.setup(data as any, params.get('refl') !== '0', QUALITY[S.quality].reflectionScale);
   const cams = await camsP;
@@ -309,7 +320,8 @@ async function main() {
     const p = new Vector3(...(c.pos as [number, number, number])), t = new Vector3(...(c.target as [number, number, number]));
     const d = t.clone().sub(p);
     const ground = model.bounds.min.y;
-    const aerial = p.y > 8 || /aerial|overview/.test(name);
+    // aerial views, and the one taken from a boat on the canal (there's no ground to stand on out there)
+    const aerial = p.y > 8 || /aerial|overview|canal_view/.test(name);
     if (matchLens) targetFov = fovFor(c.lens);
     if (aerial) {
       if (walker.mode !== 'drone') setMode('drone');
@@ -335,7 +347,7 @@ async function main() {
 
 
   // ---------- panel / drawer ----------
-  const mobile = matchMedia('(max-width: 820px)');
+  const mobile = matchMedia('(max-width: 820px), (max-height: 500px)');   // phones in landscape too (Round 11)
   const panelToggle = $('panel-toggle');
   const setPanel = (open: boolean) => {
     if (mobile.matches) app.classList.toggle('drawer-open', open);
@@ -396,6 +408,12 @@ async function main() {
   fromUrl = urlDate !== null; setDate(S.date); fromUrl = false;   // a ?date= link isn't remembered
   setTime(S.minutes, true);
   mark('sun+env');
+  // Round 11: the water's own envMap, so its per-frame envMapIntensity (faded to 0 once the planar mirror is on)
+  // actually applies. Without one, three uses the scene's environmentIntensity instead, and the water reflected
+  // the sky twice, env and mirror: at grazing angles that turned the canal milky white. ?doubleenv=1 for before.
+  if (!params.has('doubleenv')) for (const w of model.waters) (w.material as any).envMap = scene.environment;
+  const skyVis = new SkyVis();
+  skyVis.apply(model.root, scene.environment!, (m: any) => renderer.library.fromMaterial(m));
   walker.rebuild(model.root);
   mark('collider');
   // on the alfresco, looking past the lounge to the pool and the canal
@@ -430,7 +448,7 @@ async function main() {
   // the night lights' visibility is part of every shader's key: set it for this time of day before compiling
   model.update(atm.state.night, 0, 0);
   progress(0.7, 'Compiling shaders…');
-  await nextFrame();
+  await yieldForPaint();
   if (params.get('compile') !== '0') {
     try {
       const { target, mrt } = post.target;
@@ -556,6 +574,7 @@ async function main() {
       await compileFor(renderer, scene, camera, target, mrt);
       await settle();
       mark('far+grass');
+      if (!SKYVIS_OFF && walker.wallsBVH) { const ms = await skyVis.bake(walker.wallsBVH, () => new Promise(r => setTimeout(r, 0))); mark('skyvis'); console.debug('sky visibility baked in', Math.round(ms), 'ms'); }
 
       // turn around, and the lighting scheme after dark, in the background, so neither stalls later
       setStatus('Getting the rest of the yard ready…');

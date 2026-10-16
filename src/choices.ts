@@ -1,14 +1,14 @@
 // The design choices shown as cards in the walkthrough panel. Notes are trimmed from the renders page copy
 // (ROLLER, KITCHEN and the fence comparison in gallery.ts). Thumbnails are small card_*.jpg files made from
 // the option renders by scripts/make-cards.mjs, so the walkthrough doesn't pull in full-size renders.
-export type Choice = { value: string; title: string; note: string; img: string; src: string };
+export type Choice = { value: string; title: string; note: string; img: string; src: string; /** The part of the render the card shows: [left, top, width, height] as fractions. */ crop?: [number, number, number, number] };
 
 export const ROLLER_CHOICES: Choice[] = [
-  { value: 'none', title: 'No roller', note: 'As in the main renders: nothing at either end of the pool.', img: 'card_roller_none.jpg', src: '05_pool_north_end__proposed.jpg' },
-  { value: 'roller_shallow', title: 'Shallow end', note: 'The easy fit. 1.66 m to the north fence leaves about 1 m to walk past, in full view from the alfresco.', img: 'card_roller_shallow.jpg', src: 'options_13_deep_end_to_house_roller_shallow.jpg' },
-  { value: 'roller_deep', title: 'Deep end', note: "Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.", img: 'card_roller_deep.jpg', src: 'options_05_pool_north_end_roller_deep.jpg' },
-  { value: 'roller_pit', title: 'In-ground box', note: 'In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.', img: 'card_roller_pit.jpg', src: 'options_05_pool_north_end_roller_pit.jpg' },
-  { value: 'roller_lowpro', title: 'Low-profile, deep end', note: 'A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.', img: 'card_roller_lowpro.jpg', src: 'options_05_pool_north_end_roller_lowpro.jpg' },
+  { value: 'none', title: 'No roller', note: 'As in the main renders: nothing at either end of the pool.', img: 'card_roller_none.jpg', src: '17_pool_overview__proposed.jpg', crop: [0.22, 0.1, 0.46, 0.8] },
+  { value: 'roller_shallow', title: 'Shallow end', note: 'The easy fit. 1.66 m to the north fence leaves about 1 m to walk past, in full view from the alfresco.', img: 'card_roller_shallow.jpg', src: 'options_17_pool_overview_roller_shallow.jpg', crop: [0.24, 0.52, 0.42, 0.36] },
+  { value: 'roller_deep', title: 'Deep end', note: "Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.", img: 'card_roller_deep.jpg', src: 'options_17_pool_overview_roller_deep.jpg', crop: [0.24, 0.1, 0.42, 0.36] },
+  { value: 'roller_pit', title: 'In-ground box', note: 'In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.', img: 'card_roller_pit.jpg', src: 'options_17_pool_overview_roller_pit.jpg', crop: [0.24, 0.1, 0.42, 0.36] },
+  { value: 'roller_lowpro', title: 'Low-profile, deep end', note: 'A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.', img: 'card_roller_lowpro.jpg', src: 'options_17_pool_overview_roller_lowpro.jpg', crop: [0.24, 0.1, 0.42, 0.36] },
 ];
 
 export const KITCHEN_CHOICES: Choice[] = [
@@ -42,4 +42,4 @@ export const PASSAGE_CHOICES: Choice[] = [
 /** What render.py shows when nothing in a group is picked. */
 export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_split', fence: 'perforated', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
 
-export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...FENCE_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src }));
+export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...FENCE_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

@@ -5,7 +5,7 @@ import { mkdirSync } from 'node:fs';
 import sharp from 'sharp';
 const argv = process.argv.slice(2), arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i + 1] : d; };
 const EVAL = arg('eval', '');
-const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round10/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
+const Q = arg('q', 'Medium'), OUT = arg('out', 'review/round11/cmp'), EXTRA = arg('extra', ''), LABEL = arg('label', 'now');
 mkdirSync(OUT, { recursive: true });
 // [camera, minutes, the Cycles render it should look like]
 const ONLY = arg('only', '');
@@ -19,7 +19,19 @@ const POOL = [
   ['17_pool_overview', 19 * 60 + 40, 'night_17_pool_overview_dusk.jpg'],
   ['15_lounge_from_alfresco', 21 * 60, 'times_15_lounge_from_alfresco_summer_2100.jpg'],
 ];
-const ALL = arg('set', '') === 'pool' ? POOL : [
+// --set r11: Round 11's items (canal by day, enclosed shade, alfresco at dusk, night canal, spa light)
+const R11 = [
+  ['15_lounge_from_alfresco', 14 * 60 + 45, '15_lounge_from_alfresco__proposed.jpg'],
+  ['14_spa_to_canal', 14 * 60 + 45, '14_spa_to_canal__proposed.jpg'],
+  ['21_play_area_north', 14 * 60 + 45, '21_play_area_north__proposed.jpg'],
+  ['19_play_area', 14 * 60 + 45, '19_play_area__proposed.jpg'],
+  ['12_from_pavilion', 14 * 60 + 45, '12_from_pavilion__proposed.jpg'],
+  ['16_outdoor_kitchen', 19 * 60 + 40, 'night_16_outdoor_kitchen_dusk.jpg'],
+  ['01_canal_view', 19 * 60 + 40, 'night_01_canal_view_dusk.jpg'],
+  ['14_spa_to_canal', 19 * 60 + 40, 'night_14_spa_to_canal_dusk.jpg'],
+  ['15_lounge_from_alfresco', 21 * 60, 'times_15_lounge_from_alfresco_summer_2100.jpg'],
+];
+const ALL = arg('set', '') === 'r11' ? R11 : arg('set', '') === 'pool' ? POOL : [
   ['05_pool_north_end', 14 * 60 + 45, '05_pool_north_end__proposed.jpg'],
   ['15_lounge_from_alfresco', 14 * 60 + 45, '15_lounge_from_alfresco__proposed.jpg'],
   ['15_lounge_from_alfresco', 7 * 60 + 30, 'times_15_lounge_from_alfresco_summer_0730.jpg'],

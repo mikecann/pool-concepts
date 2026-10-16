@@ -84,6 +84,9 @@ export class Walker {
     this.glide = null;
   }
 
+  /** The static collider (for the sky-visibility bake). */
+  get wallsBVH() { return this.walls; }
+
   setStick(x: number, y: number) { this.stick.x = x; this.stick.y = y; }
 
   /** Rebuild the colliders from what's visible now (scenario and options change what you bump into). */
