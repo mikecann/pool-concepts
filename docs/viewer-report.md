@@ -714,7 +714,65 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
   - `glitter*.png`
 - `phone/`, `roller_cards.png`, `pages/`
 
+## Round 12
+
+**Goal:** sweep every camera (20 in cameras.json, 01–21 with no 11), Today and Proposed, at the Cycles render time. The stills are 16 Jan 14:45 (build.py and render.py), not 13:00. Rank the biggest differences across all 40 pairs, fix them in order, and make every camera land correctly.
+
+**Sweep tool:** `node scripts/sweep.mjs --label X` (walk | Cycles sheet, plus where each camera really landed against Cycles).
+- Before: `review/round12/sweep_before.jpg`
+- After: `review/round12/sweep_after.jpg` (walk before | walk after | Cycles)
+
+**Ranked from the before sweep:**
+1. The old pavers: tan-brown with dark joints against Cycles' cream (in every Today view, and the promenade, terrace and passage in Proposed).
+2. The lawn: pale grey-olive against rich green.
+3. Camera placement: 06 +0.98 m, 13 Today −1.25 m, 01 +0.78 m, 10 +0.75 m, 20 Today −0.59 m.
+4. The canal: pale grey-blue from above against deep navy.
+5. The house sliders: dark panels against a lit room.
+6. Smaller: the pavilion deck violet, and the flames white-yellow.
+
+### Round 12 iteration log
+
+| # | Change | Before → after | Verdict |
+|---|---|---|---|
+| 1 | export_web.py's bake desaturated about each pixel's minimum; Blender's Hue/Saturation keeps the maximum (desaturating lightens). Fixed, then re-exported with export.sh (.blend not saved). `scripts/web/inspect_mats.py` (new, read-only) confirmed the .blend's nodes match mats.py | Paver albedo a little lighter (sunlit 143→156) | Kept (correct, small) |
+| 2 | **Root cause of the pavers:** setupWater's caustics pass rebuilt the colour node from `materialColor` for any mesh whose box overlaps the pool. `paving_upper` (and the Today lawn) were caught, so their grade and joints were replaced. Now it chains on the existing node | The paver grade and joints actually apply | Kept |
+| 3 | Pavers graded like the timber (`TIMBER.pavers_existing`: sat 0.5, ×1.9) | Sunlit pavers (156,138,118) → (177,169,162), Cycles (185,177,169) | Kept |
+| 4 | The caustics/underwater pass skips Today-only meshes (`set: existing`): the pool isn't there yet | Pale, caustic-netted squares on Today's lawn and pavers over the future pool's footprint → gone | Kept |
+| 5 | Lawn and context grass: roughness ≥ 0.95 (the 4× sky was sheening over it at grazing angles) and a grade (0.51, 0.54, 0.22) (`?lawn11=1` for before) | 15 Today (133,135,85) → (99,108,60), Cycles (98,107,43); 03 (151,158,142) → (108,121,91), Cycles (95,105,62) | Kept |
+| 6 | Walker view height: "go to" puts the eye at the render camera's height (seated, or over Today's lower ground), easing back to standing height once you walk | Every walk camera within 0.06 m of Cycles | Kept |
+| 7 | Drone may look slightly above level (max polar 0.52π instead of 0.49π) | Camera 01 was lifted 0.78 m to avoid looking up → exact | Kept |
+| 8 | Canal body colour much darker, toward Cycles' dense #17463F (`?murkcol=`) | Aerials, 14 and 15 show deep blue water like Cycles instead of pale grey-blue | Kept |
+| 9 | House sliders: glass opacity 0.82 → 0.4, and interior walls and floor glow with the daylight that would bounce into the room (warm, 0.6 at night) (`?rooms0=1` for before) | Black panels → a lit cream room behind the glass at 16 by day and at dusk | Kept. 18's slider is still dark (its room doesn't show through) |
+| 10 | Pavilion deck grade: less red (sat 0.55, ×(0.92, 0.9, 0.72)) | Violet in shade → dark blue-grey like Cycles at 12 | Kept |
+| 11 | Flames: more saturated gradient | White-yellow → orange with a light core | Kept |
+
+**Not done:**
+- **Night canal:** the house windows are still too faint in the reflection (Cycles' streaks are much brighter).
+- **Doubled jetty:** not investigated.
+- **18 slider room:** still dark.
+- **Paver joints:** still finer and lighter than Cycles'.
+
+**Checks:**
+- **Start view:** stands at the alfresco (feet 2.37, eye 4.02).
+- **'Go to':** all 20 entries load, with no camera underground or inside geometry. Only 10 has a fence rail 0.5 m overhead, the same as the Cycles camera.
+- **Frame rate:** Medium and High hold 60 fps at DPR 1 and 2 on all four views.
+- **Dusk scrub:** max 19 ms, 0 frames over 50 ms.
+- **Console:** clean, across qualities including Low at night, dawn to night, both scenarios and the camera jumps.
+- **Pages, settings, walk test, images and phone:** pages, settings and the walk test pass, 165 images with 0 missing, and phone portrait and landscape are fine.
+
+**Model:** the GLB is re-exported. To deploy, copy public/model/web from the-pool, which I've already done here. The `?v=` hash changes on build.
+
 ## Summary
+
+**Round 12:** an all-camera sweep, Today and Proposed.
+- **Pavers:** cream like Cycles. Their grade was being wiped by the pool's caustics pass, which also lit Today's lawn as if under water.
+- **Lawn:** green.
+- **Canal:** deep blue.
+- **Cameras:** every one lands at its Cycles position, seated views included.
+- **Sliders:** show a lit room.
+- **Smaller:** the deck lost its violet and the flames are orange.
+
+All targets hold.
 
 **Round 11:**
 - **Canal:** the milky look was the water reflecting the sky twice (environment map plus mirror). It now shows dark, crisp tree reflections, and at night vertical light streaks.

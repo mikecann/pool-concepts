@@ -7,6 +7,8 @@ import {
 } from 'three/webgpu';
 import { MeshBVH } from 'three-mesh-bvh';
 
+/** How far a view may sit from standing eye height (seated, or a camera over lower ground). */
+const liftFor = (eye: number) => Math.max(-1.0, Math.min(1.6, eye - 1.65));
 const EYE = 1.65, RADIUS = 0.24, STEP = 0.26, WALK = 2.2, RUN = 4.5, GRAVITY = 9.8;
 /** A small hop: 0.45 m. With the 0.26 m step-up that's well short of the 1.2 m pool fence. */
 const JUMP = 0.45;
@@ -51,6 +53,13 @@ export class Walker {
   yaw = 0; pitch = 0;
   mode: Mode = 'walk';
   private vy = 0;
+  /**
+   * Round 12: extra eye height so a "go to" lands exactly at the render camera's height: seated views sit lower,
+   * and Today's lawn is lower than the proposed deck the camera was placed for. Eases to 0 once you walk.
+   */
+  private lift = 0;
+  private liftFrom = 0;
+  private liftTo = 0;
   private grounded = false;
   private walls: MeshBVH | null = null;
   private water: MeshBVH | null = null;
@@ -122,17 +131,19 @@ export class Walker {
   }
 
   /** Put the walker on the floor under (x, z) near height y, facing the given direction. */
-  place(x: number, y: number, z: number, yaw: number, pitch = 0) {
+  place(x: number, y: number, z: number, yaw: number, pitch = 0, eyeY?: number) {
     const g = this.groundAt(x, z, y + 0.5);
     this.feet.set(x, Number.isFinite(g) ? g : y, z);
     this.yaw = yaw; this.pitch = pitch; this.vy = 0; this.glide = null;
+    this.lift = eyeY === undefined ? 0 : liftFor(eyeY - this.feet.y);
     this.apply();
   }
 
   /** Glide to a spot (used by "go to" and the render buttons). */
-  glideTo(to: Vector3, yaw: number, pitch: number, dur = 1.4) {
+  glideTo(to: Vector3, yaw: number, pitch: number, dur = 1.4, eyeY?: number) {
     const g = this.groundAt(to.x, to.z, to.y + 0.6);
     const target = new Vector3(to.x, Number.isFinite(g) ? g : to.y, to.z);
+    this.liftFrom = this.lift; this.liftTo = eyeY === undefined ? 0 : liftFor(eyeY - target.y);
     let y1 = yaw;
     while (y1 - this.yaw > Math.PI) y1 -= Math.PI * 2;
     while (y1 - this.yaw < -Math.PI) y1 += Math.PI * 2;
@@ -196,6 +207,7 @@ export class Walker {
       this.feet.lerpVectors(g.from, g.to, e);
       this.yaw = g.yaw0 + (g.yaw1 - g.yaw0) * e;
       this.pitch = g.p0 + (g.p1 - g.p0) * e;
+      this.lift = this.liftFrom + (this.liftTo - this.liftFrom) * e;
       if (g.t >= 1) this.glide = null;
       this.apply();
       return;
@@ -212,6 +224,8 @@ export class Walker {
     // forward is -Z rotated by yaw
     const dx = (fx * cos - fz * sin) * speed * dt, dz = (-fx * sin - fz * cos) * speed * dt;
     const before = this.feet.clone();
+    // walking (or jumping) eases a "go to" view height back to standing height
+    if ((dx || dz || this.vy > 0) && this.lift) { this.lift *= Math.exp(-dt * 5); if (Math.abs(this.lift) < 0.005) this.lift = 0; }
     if (dx || dz) {
       const next = this.feet.clone(); next.x += dx; next.z += dz;
       this.push(next);
@@ -246,7 +260,7 @@ export class Walker {
 
   apply() {
     if (this.mode !== 'walk' && !this.glide) return;
-    this.camera.position.set(this.feet.x, this.feet.y + EYE, this.feet.z);
+    this.camera.position.set(this.feet.x, this.feet.y + EYE + this.lift, this.feet.z);
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
   }
 

@@ -41,6 +41,7 @@ const OLD_PRESETS: Record<WaterKind, {
 /** How much of the pool floor shows through (Round 8): a Mondo-blue body veils it, as in Cycles. ?veil=0 for the old clear water. */
 /** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
 const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
+const MURK_COL = (new URLSearchParams(location.search).get('murkcol') ?? '0.035,0.06,0.085').split(',').map(Number) as [number, number, number];
 const MURK = Number(new URLSearchParams(location.search).get('murk') ?? 0.8);
 const STREAK_LEN = Number(new URLSearchParams(location.search).get('streaklen') ?? 0.012);
 const STREAK0 = new URLSearchParams(location.search).has('streak0');
@@ -153,7 +154,7 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
     let seen = behind.mul(T).add(body);
     // Round 11: the canal is murky (silt), so the near water shows a lit grey-green body, not the dark bed
-    if (kind === 'canal' && MURK > 0) seen = mix(seen, vec3(0.13, 0.17, 0.18).mul(ambient), float(MURK));
+    if (kind === 'canal' && MURK > 0) seen = mix(seen, vec3(...MURK_COL).mul(ambient), float(MURK));
     if (P.veil) {
       // the water body itself: a deep Mondo blue lit by the sun and sky, which hides part of the shell, more so
       // where the water is deep (as Cycles shows it: you mostly see the surface and its colour, not the floor)

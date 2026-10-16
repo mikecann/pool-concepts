@@ -124,9 +124,11 @@ const JOINTS: Record<string, { tile: number; width: number; grout: [number, numb
  * purple-red, and the outdoor table set honey rather than red. ?timber0=1 turns it off.
  */
 const TIMBER: Record<string, { sat: number; mul: [number, number, number]; rough?: number }> = {
+  // Round 12: the old pavers (Today, the promenade, the passage) render cream in Cycles; ours came out tan-brown
+  pavers_existing: { sat: 0.5, mul: [1.92, 1.9, 1.88] },
   composite_deck: { sat: 0.7, mul: [0.42, 0.4, 0.38] },
   bench_slats: { sat: 0.75, mul: [0.6, 0.56, 0.52] },
-  deck_hardwood: { sat: 0.75, mul: [1.0, 0.98, 0.78], rough: 0.8 },
+  deck_hardwood: { sat: 0.55, mul: [0.92, 0.9, 0.72], rough: 0.8 },   // Round 12: less red (it went violet under the blue sky light),
   outdoor_table_chair_set_01_table: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
   outdoor_table_chair_set_01_chair: { sat: 0.6, mul: [1.2, 1.3, 0.75] },
 };
@@ -141,6 +143,12 @@ const SPA_GAIN = Number(new URLSearchParams(location.search).get('spagain') ?? 2
 const WET_GAIN = Number(new URLSearchParams(location.search).get('wetgain') ?? 3);
 const GLITTER = new URLSearchParams(location.search).has('glitter');
 const CEIL = Number(new URLSearchParams(location.search).get('ceil') ?? 0.2);
+const WIN_OPACITY = Number(new URLSearchParams(location.search).get('win') ?? (new URLSearchParams(location.search).has('rooms0') ? 0.82 : 0.4));
+const ROOMS0 = new URLSearchParams(location.search).has('rooms0');
+const ROOM_DAY = Number(new URLSearchParams(location.search).get('roomday') ?? 1.5);
+const ROOM_NIGHT = Number(new URLSearchParams(location.search).get('roomnight') ?? 0.6);
+const LAWN11 = new URLSearchParams(location.search).has('lawn11');
+const LAWN_GRADE: [number, number, number] = [0.51, 0.54, 0.22];
 const NO_BARK = new URLSearchParams(location.search).has('bark0');
 const NO_TIMBER = new URLSearchParams(location.search).has('timber0');
 const FLAME10 = new URLSearchParams(location.search).has('flame10');
@@ -381,7 +389,7 @@ export class Model {
         n.transparent = true;
         n.roughness = 0.04; n.metalness = 0;
         n.color = new Color(u.window ? 0x1b2227 : 0x9fb3b8);
-        n.opacity = u.window ? 0.82 : 0.28;
+        n.opacity = u.window ? WIN_OPACITY : 0.28;
         n.depthWrite = !!u.window;
         n.envMapIntensity = 1;
         if (u.window) {
@@ -437,12 +445,36 @@ export class Model {
       const joint = JOINTS[mats[0]?.name as string];
       if (joint && !NO_JOINTS) {
         const n = conv(mats[0]);
-        if (!n.colorNode) n.colorNode = tileJoints(materialColor, joint);
+        // on top of any grade (TIMBER) already on this material, once
+        if (!n.userData.joints) { n.colorNode = tileJoints(n.colorNode ?? materialColor, joint); n.userData.joints = true; }
+        mesh.material = n;
+      }
+      if (/^interior_/.test(mats[0]?.name ?? '') && !ROOMS0) {
+        // Round 12: the rooms behind the sliders. Cycles fills them with daylight bounced off the floor and walls
+        // (a bright cream room through the glass); here nothing bounces indoors, so the room glows with the light
+        // the day would put into it, and warm after dark (the lit rooms the night renders show)
+        const n = conv(mats[0]);
+        const day = this.atm.sunIntensityU.mul(max(this.atm.sunDirU.y, 0)).mul(0.05).add(this.atm.skyGain.mul(1.2));
+        n.emissiveNode = materialColor.mul(vec3(1.0, 0.93, 0.82)).mul(day.mul(ROOM_DAY)).add(materialColor.mul(vec3(1.0, 0.75, 0.5)).mul(this.atm.nightU).mul(ROOM_NIGHT));
+        mesh.material = n;
+      }
+      if (mats[0]?.name === 'context_ground' && !LAWN11) {
+        // the neighbours' and verge grass: the same sheen problem as the lawn (Round 12)
+        const n = conv(mats[0]);
+        if (!n.colorNode) { n.roughnessNode = max(materialRoughness, float(0.95)); n.colorNode = materialColor.mul(vec3(...LAWN_GRADE)); }
         mesh.material = n;
       }
       if (mats[0]?.name === 'lawn') {
         const n = conv(mats[0]);
-        if (!n.colorNode) n.colorNode = lawnColor();
+        if (!n.colorNode) {
+          n.colorNode = lawnColor();
+          if (!LAWN11) {
+            // Round 12: grass is a deep diffuse surface; its glossy texture roughness let the (Round 10, 4x) sky
+            // sheen over it at grazing angles, so lawns read pale grey-olive where Cycles has them rich green
+            n.roughnessNode = max(materialRoughness, float(0.95));
+            n.colorNode = lawnColor().mul(vec3(...LAWN_GRADE));
+          }
+        }
         mesh.material = n;
         if (/lawn_grass$|lawn_kept_grass$|^front_lawn/.test(o.name)) this.lawns.push(mesh);
       }
@@ -489,7 +521,8 @@ export class Model {
         fm.positionNode = positionLocal.add(vec3(wob, wob.abs().mul(0.6), wob.mul(0.8)));
         // hot white-yellow core low and in the middle, orange towards the edges and up the tongue
         const edge = across.div(width.max(0.05)).max(v.mul(0.9)).clamp(0, 1);
-        const col = mix(mix(vec3(1.0, 0.66, 0.3), vec3(1.0, 0.42, 0.08), smoothstep(0.1, 0.55, edge)), vec3(1.0, 0.26, 0.03), smoothstep(0.55, 1.0, edge));
+        // Round 12: more saturated, so AgX's shoulder leaves them orange rather than white-yellow
+        const col = mix(mix(vec3(1.0, 0.5, 0.16), vec3(1.0, 0.3, 0.04), smoothstep(0.1, 0.55, edge)), vec3(0.95, 0.18, 0.015), smoothstep(0.55, 1.0, edge));
         fm.colorNode = col.mul(float(FLAME_GAIN).mul(this.fireFlicker)).mul(this.atm.nightU);
         fm.side = DoubleSide;
       } else {
@@ -555,11 +588,17 @@ export class Model {
     this.root.traverse(o => {
       const m = o as Mesh;
       if (!m.isMesh || m.userData.water || m.userData.night) return;
+      // Round 12: the pool only exists in the proposed scheme: Today's lawn and pavers on its footprint were being
+      // lit as if under water (pale, caustic-netted squares in the Today views)
+      let set: unknown; for (let q: Object3D | null = m; q && set === undefined; q = q.parent) set = q.userData.set;
+      if (set === 'existing') return;
       const b = new Box3().setFromObject(m);
       const hit = boxes.filter(x => b.min.y < x.level - 0.02 && b.max.x > x.minX && b.min.x < x.maxX && b.max.z > x.minZ && b.min.z < x.maxZ);
       if (!hit.length || (m.material as any).isNodeMaterial && done.has(m.material as Material)) return;
       const n = (m.material as any).isNodeMaterial ? (m.material as MeshStandardNodeMaterial) : this.toNode(m.material as Material);
-      let c: any = materialColor;
+      // on top of the material's own colour node (grades, joints): starting from materialColor dropped them on any
+      // big mesh whose box overlaps the pool, like the old pavers (Round 12)
+      let c: any = n.colorNode ?? materialColor;
       let under: any = float(0), glow: any = vec3(0);
       for (const x of hit) {
         c = causticsAlbedo(c, x, this.atm.sunDirU);

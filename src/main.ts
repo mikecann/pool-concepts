@@ -117,7 +117,7 @@ async function main() {
   const orbit = new OrbitControls(camera, canvas);
   orbit.enabled = false;
   orbit.enableDamping = true;
-  orbit.maxPolarAngle = Math.PI * 0.49;
+  orbit.maxPolarAngle = Math.PI * 0.52;   // a little above level, for the canal view (Round 12: 0.49 lifted camera 01 by 0.8 m)
   orbit.minDistance = 2; orbit.maxDistance = 220;
 
   let post!: Post;
@@ -330,7 +330,7 @@ async function main() {
       if (walker.mode !== 'walk') setMode('walk');
       // stand where the render camera is (its height says if it's seated or standing)
       const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
-      if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch);
+      if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch, p.y); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch, 1.4, p.y);
     }
     void ground;
     shadowDirty = true;
