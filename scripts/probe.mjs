@@ -17,7 +17,7 @@ const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['-
 const p = await b.newPage({ viewport: { width: 1000, height: 600 } });
 const errs = [];
 p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
-await p.goto('http://localhost:4173/model/?panel=0&' + extra);
+await p.goto('http://localhost:4173/model/walk/?panel=0&' + extra);
 await gpuCheck(p);
 await p.waitForFunction(() => document.getElementById('loading')?.classList.contains('done'), null, { timeout: 180000 });
 await p.evaluate(() => new Promise(r => setTimeout(r, 1500)));

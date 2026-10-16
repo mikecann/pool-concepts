@@ -11,4 +11,5 @@ rm -rf $OUT/img && mkdir -p $OUT/img $OUT/web
 uv run --quiet --with pillow python $POOL/model/scripts/web_images.py $POOL/renders/model $OUT/img
 # pool-model.glb, cameras.json and lights.json come from the-pool's scripts/web/export.sh
 cp $POOL/model/web/pool-model.glb $POOL/model/web/cameras.json $POOL/model/web/lights.json $OUT/web/
+node --experimental-strip-types scripts/make-cards.mjs $OUT/img 2>&1 | grep -v ExperimentalWarning
 du -sh $OUT

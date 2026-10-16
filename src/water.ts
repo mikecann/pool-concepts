@@ -70,7 +70,9 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   // so the lighting model only contributes the sun's glint.
   // how far the ripples push the reflection around: gentle on the pool and spa, choppier on the canal
   const reflection = mirror ? mirror.sample(g.mul({ pool: 0.05, spa: 0.15, canal: 0.25 }[kind])) : null;
-  if (reflection) m.envNode = vec3(0);
+  // until the mirror's shaders are ready (it's built after the first frame) the sky env map reflects instead;
+  // mirror.on fades from one to the other, and the material's envMapIntensity follows it each frame
+  if (reflection) m.userData.mirror = mirror;
 
   const absorb = vec3(...P.absorb), scatter = vec3(...P.scatter);
   m.emissiveNode = Fn(() => {
@@ -96,7 +98,7 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     const NdV = max(dot(nWorld, V), 0);
     const F = float(0.02).add(float(0.98).mul(pow(float(1).sub(NdV), 5)));
     const through = behind.mul(T).add(body).mul(float(1).sub(F));
-    return reflection ? through.add(reflection.mul(F)) : through;
+    return reflection ? through.add(reflection.mul(F).mul(mirror!.on)) : through;
   })();
   m.userData.waterKind = kind;
   return m;

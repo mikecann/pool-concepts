@@ -2,10 +2,12 @@ import { AgXToneMapping, PCFShadowMap, PerspectiveCamera, Scene, Vector2, Vector
 import { fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
-import { Model, type CameraDef, type Scenario } from './model';
+import { Model, type CameraDef, type Gate, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
 import { Walker } from './walk';
-import { buildGallery, VIEW_NAMES, type Fly } from './gallery';
+import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
+import { VIEW_NAMES } from './views';
+import { FENCE_CHOICES, KITCHEN_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -24,9 +26,16 @@ const S = {
   quality: 'High' as Quality,
 };
 
+/** Load-time marks for scripts/profile-load.mjs (ms since navigation start). */
+const marks: [string, number][] = ((window as any).__marks = []);
+const mark = (name: string) => marks.push([name, Math.round(performance.now())]);
+
+const BASE = '../web/';
+const nextFrame = () => new Promise<void>(r => requestAnimationFrame(() => r()));
+
 const loadText = $('load-text'), loadFill = $('load-fill');
 const progress = (f: number, text?: string) => { loadFill.style.width = `${Math.round(f * 100)}%`; if (text) loadText.textContent = text; };
-$('loading').style.backgroundImage = 'url(img/15_lounge_from_alfresco__proposed.jpg)';
+$('loading').style.backgroundImage = 'url(../img/15_lounge_from_alfresco__proposed.jpg)';
 
 function autoQuality(webgpu: boolean): Quality {
   const saved = store.get('pool-quality') as Quality | null;
@@ -38,27 +47,37 @@ function autoQuality(webgpu: boolean): Quality {
 }
 
 async function main() {
-  const webgpu = !!(navigator as any).gpu && !!(await (navigator as any).gpu.requestAdapter().catch(() => null));
-  S.quality = autoQuality(webgpu);
+  // the download doesn't need the GPU, so start it straight away and bring WebGPU up alongside
+  progress(0.02, 'Loading the model…');
+  const modelData = Model.fetch(BASE, f => progress(0.02 + f * 0.6, `Loading the model… ${Math.round(f * 100)}%`));
   const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   await renderer.init();
+  mark('renderer');
+  S.quality = autoQuality((renderer.backend as any).isWebGPUBackend === true);
   renderer.toneMapping = AgXToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   const scene = new Scene();
   const camera = new PerspectiveCamera(isTouch ? 70 : 62, 1, 0.08, 9000);
   const atm = new Atmosphere(renderer, scene);
+  const asyncPipes = new AsyncPipelines(renderer);
+  const pinned = new Map<any, number>();
+  pinRenderDepth(renderer, pinned);
   // distant haze: the far bank 70 to 200 m away softens a little, like the photos
   const fogColor = uniform(atm.fogColor);
   scene.fogNode = fog(fogColor, rangeFogFactor(35, 1400));
 
   const model = new Model(renderer, atm);
   scene.add(model.root);
-  progress(0.02, 'Loading the model…');
-  const base = 'web/';
-  const cams: CameraDef[] = await fetch(base + 'cameras.json').then(r => r.json()).catch(() => []);
-  await model.load(base, f => progress(0.02 + f * 0.83, `Loading the model… ${Math.round(f * 100)}%`), QUALITY[S.quality].reflections && params.get('refl') !== '0', QUALITY[S.quality].reflectionScale);
-  progress(0.88, 'Setting the sun…');
+  const camsP: Promise<CameraDef[]> = fetch(BASE + 'cameras.json').then(r => r.json()).catch(() => []);
+  const data = await modelData;
+  mark('glb');
+  progress(0.64, 'Building the scene…');
+  await nextFrame();   // let the text paint
+  model.setup(data as any, QUALITY[S.quality].reflections && params.get('refl') !== '0', QUALITY[S.quality].reflectionScale);
+  const cams = await camsP;
+  for (const m of model.mirrors) pinned.set(m.target, 0);
+  mark('model');
 
   const walker = new Walker(camera, canvas);
   const orbit = new OrbitControls(camera, canvas);
@@ -67,18 +86,25 @@ async function main() {
   orbit.maxPolarAngle = Math.PI * 0.49;
   orbit.minDistance = 2; orbit.maxDistance = 220;
 
-  let post: Post;
-  let grassBuilt = -1;
+  let post!: Post;
+  let booted = false;   // true once the first frame is up and the full post-processing is on
+  let grassBuilt = -1, grassReady = false;
   const setQuality = (q: Quality, rebuild = true) => {
     S.quality = q;
     const cfg = QUALITY[q];
     renderer.setPixelRatio(Math.min(devicePixelRatio, cfg.pixelRatio));
     resize();
     model.showFar = cfg.far;
-    if (grassBuilt !== cfg.grass) { model.grass.matchTexture(model.lawns[0]?.material); model.grass.build(model.lawns, cfg.grass); grassBuilt = cfg.grass; }
+    if (grassReady && grassBuilt !== cfg.grass) { model.grass.matchTexture(model.lawns[0]?.material); model.grass.build(model.lawns, cfg.grass); grassBuilt = cfg.grass; }
     model.grass.radius.value = cfg.grassRadius;
     model.apply();
-    if (rebuild) { post?.dispose(); post = new Post(renderer, scene, camera, params.get('post') === '0' ? 'Low' : q); }
+    if (rebuild) {
+      post?.dispose();
+      post = new Post(renderer, scene, camera, params.get('post') === '0' ? 'Low' : q);
+      pinned.set(post.target.target, 1);
+      if (booted) post.upgrade();
+      post.setNight(atm.state.night);
+    }
     document.querySelectorAll('#opt-quality button').forEach(b => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.q === q)));
     shadowDirty = true;
   };
@@ -105,7 +131,7 @@ async function main() {
     S.minutes = ((minutes % 1440) + 1440) % 1440;
     timeInput.value = String(Math.round(S.minutes));
     clock.textContent = fmt(S.minutes);
-    atm.set(S.date, S.minutes, force);
+    renderClean(renderer, () => atm.set(S.date, S.minutes, force));   // the sky env map renders too
     const { az, el } = atm.state;
     sunread.textContent = el > -0.8 ? `sun ${Math.round(az)}° ${compass(az)}, ${Math.round(el)}° up` : el > -6 ? 'after sunset' : el > -12 ? 'twilight' : 'night';
     fogColor.value.copy(atm.fogColor);
@@ -131,7 +157,9 @@ async function main() {
     S.scenario = s; model.scenario = s; model.apply(); walker.rebuild(model.root); shadowDirty = true;
     $('sc-existing').setAttribute('aria-pressed', String(s === 'existing'));
     $('sc-proposed').setAttribute('aria-pressed', String(s === 'proposed'));
+    renderScenarioChips?.();
   };
+  let renderScenarioChips: (() => void) | null = null;
   $('sc-existing').onclick = () => setScenario('existing');
   $('sc-proposed').onclick = () => setScenario('proposed');
   const chipRow = (box: HTMLElement, items: [string, string][], get: () => string, set: (v: string) => void) => {
@@ -148,10 +176,39 @@ async function main() {
     return render;
   };
   const optChanged = () => { model.apply(); walker.rebuild(model.root); shadowDirty = true; };
-  const renderRoller = chipRow($('opt-roller'), [['none', 'None'], ['roller_shallow', 'Shallow end'], ['roller_deep', 'Deep end'], ['roller_pit', 'In-ground box']],
-    () => model.roller, v => { model.roller = v; optChanged(); });
-  const renderKitchen = chipRow($('opt-kitchen'), [['kitchen_split', 'Split by the gate'], ['kitchen_continuous', 'One long bench'], ['kitchen_freestanding', 'Freestanding']],
-    () => model.kitchen, v => { model.kitchen = v; optChanged(); });
+  renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
+
+  // design choices as cards: each changes the world and moves you to where the change shows
+  const cardGroups: (() => void)[] = [];
+  const cards = (box: HTMLElement, items: Choice[], get: () => string, pick: (v: string) => void) => {
+    const buttons = items.map(c => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'card';
+      b.innerHTML = `<img src="../img/${c.img}" alt="" loading="lazy" width="104" height="65"><b>${c.title}</b><span>${c.note}</span>`;
+      b.onclick = () => { pick(c.value); cardGroups.forEach(r => r()); if (mobile.matches) setPanel(false); };
+      box.appendChild(b);
+      return b;
+    });
+    // only the pressed state changes, so the thumbnails never reload
+    const render = () => buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(get() === items[i].value)));
+    cardGroups.push(render);
+    render();
+  };
+  const ensureProposed = () => { if (S.scenario !== 'proposed') setScenario('proposed'); };
+  cards($('cards-roller'), ROLLER_CHOICES, () => model.roller, v => {
+    ensureProposed(); model.roller = v; optChanged();
+    // look down the pool from the opposite end, as the option renders do
+    goToCam(v === 'roller_deep' ? '05_pool_north_end' : '13_deep_end_to_house');
+  });
+  cards($('cards-kitchen'), KITCHEN_CHOICES, () => model.kitchen, v => {
+    ensureProposed(); model.kitchen = v; optChanged(); goToCam('16_outdoor_kitchen');
+  });
+  cards($('cards-fence'), FENCE_CHOICES, () => model.fence, v => {
+    ensureProposed(); model.fence = v as 'perforated' | 'glass'; optChanged(); goToCam('03_lawn_to_terrace');
+  });
+  const renderRoller = () => cardGroups.forEach(r => r()), renderKitchen = renderRoller;
+  void renderKitchen;
+
   $<HTMLInputElement>('opt-people').onchange = e => { model.people = (e.target as HTMLInputElement).checked; optChanged(); };
   chipRow($('opt-quality'), (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q] as [string, string]), () => S.quality,
     v => { store.set('pool-quality', v); setQuality(v as Quality); });
@@ -198,7 +255,7 @@ async function main() {
     const v = 2 * Math.atan(Math.tan(hfov / 2) / Math.max(camera.aspect, 1)) * 180 / Math.PI;
     return Math.min(80, Math.max(35, v));
   };
-  const goToCam = (name: string, matchLens = true) => {
+  const goToCam = (name: string, matchLens = true, instant = false) => {
     const c = cams.find(x => x.name === name);
     if (!c) return;
     const p = new Vector3(...(c.pos as [number, number, number])), t = new Vector3(...(c.target as [number, number, number]));
@@ -212,12 +269,22 @@ async function main() {
     } else {
       if (walker.mode !== 'walk') setMode('walk');
       // stand where the render camera is (its height says if it's seated or standing)
-      walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), Math.atan2(-d.x, -d.z), Math.atan2(d.y, Math.hypot(d.x, d.z)));
+      const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
+      if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch);
     }
     void ground;
     shadowDirty = true;
   };
   goto.onchange = () => { if (goto.value) goToCam(goto.value); goto.value = ''; canvas.focus(); };
+  const viewlist = $('viewlist');
+  for (const c of cams) {
+    const b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = `<b>${c.name.slice(0, 2)}</b>${VIEW_NAMES[c.name] ?? c.name}`;
+    b.onclick = () => { goToCam(c.name); if (mobile.matches) setPanel(false); };
+    viewlist.appendChild(b);
+  }
+
+
 
   // ---------- panel / drawer ----------
   const mobile = matchMedia('(max-width: 820px)');
@@ -236,16 +303,6 @@ async function main() {
   $('grab').addEventListener('pointerdown', e => { dragY = e.clientY; (e.target as HTMLElement).setPointerCapture(e.pointerId); });
   $('grab').addEventListener('pointerup', e => { if (dragY !== null) { setPanel(e.clientY - dragY < 0 || Math.abs(e.clientY - dragY) < 6 ? !app.classList.contains('drawer-open') || e.clientY - dragY < 0 : false); } dragY = null; });
 
-  buildGallery($('gallery'), (f: Fly) => {
-    if (f.scenario) setScenario(f.scenario);
-    if (f.roller) { model.roller = f.roller; renderRoller(); }
-    if (f.kitchen) { model.kitchen = f.kitchen; renderKitchen(); }
-    if (f.roller || f.kitchen) optChanged();
-    if (f.date && f.date !== S.date) setDate(f.date);
-    if (f.minutes !== undefined) setTime(f.minutes, true);
-    if (f.cam) goToCam(f.cam);
-    if (mobile.matches) setPanel(false);
-  });
 
   // ---------- pointer lock, touch look, joystick ----------
   const hint = $('hint');
@@ -284,16 +341,42 @@ async function main() {
   walker.onMove = () => { targetFov = DEFAULT_FOV; };
 
   // ---------- start ----------
+  mark('ui');
   setQuality(S.quality);
+  mark('post+grass');
   atm.placeShadow(new Vector3(1.3, 3, 2.6), QUALITY[S.quality].shadowHalf, QUALITY[S.quality].shadowMap);
   setDate(S.date);
   setTime(S.minutes, true);
+  mark('sun+env');
   walker.rebuild(model.root);
+  mark('collider');
   // on the alfresco, looking past the lounge to the pool and the canal
   walker.place(1.3, 3.0, 2.6, (156 * Math.PI) / 180, -0.08);
-  progress(0.94, 'Preparing materials…');
-  if (params.get('compile') !== '0') try { await renderer.compileAsync(scene, camera); } catch { /* compiles lazily instead */ }
-  progress(1, 'Ready');
+  // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&fence=glass&scenario=existing
+  if (params.get('scenario') === 'existing') setScenario('existing');
+  if (params.get('roller')) model.roller = params.get('roller')!;
+  if (params.get('kitchen')) model.kitchen = params.get('kitchen')!;
+  if (params.get('fence') === 'glass') model.fence = 'glass';
+  if (params.has('roller') || params.has('kitchen') || params.has('fence')) { optChanged(); renderRoller(); }
+  if (params.get('cam')) goToCam(params.get('cam')!, true, true);
+  // compile the pipelines the first view needs, all at once, for the targets the frames really render into
+  // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
+  // the night lights' visibility is part of every shader's key: set it for this time of day before compiling
+  model.update(atm.state.night, 0, 0);
+  progress(0.7, 'Compiling shaders…');
+  await nextFrame();
+  if (params.get('compile') !== '0') {
+    try {
+      const { target, mrt } = post.target;
+      const jobs: Promise<unknown>[] = [compileFor(renderer, scene, camera, target, mrt, (d, n) => progress(0.7 + 0.25 * (d / n), `Compiling shaders… ${d} of ${n}`)).then(() => mark('compile-main'))];
+      jobs.push(uploadTextures(renderer, model.root).then(() => mark('textures')));
+      await Promise.all(jobs);
+    } catch (e) { console.warn('precompile failed, compiling lazily', e); }
+  }
+  // anything still missing (the sun's shadow casters, odd variants) compiles in the background, not mid-frame
+  mark('compiled');
+  asyncPipes.active = true;
+  progress(0.97, 'Drawing the first frame…');
 
   // ---------- first visit: how to walk (shown once, after the first frame, remembered) ----------
   const welcome = $('welcome');
@@ -308,6 +391,104 @@ async function main() {
       return;
     }
     welcome.hidden = false;
+  }
+
+  $('show-help').onclick = () => { welcome.hidden = false; if (mobile.matches) setPanel(false); };
+
+  // ---------- gates: E (or the button on phones) opens the one you're facing; pool gates close themselves ----------
+  const gateTip = $('gate-tip'), gateBtn = $('gate-btn');
+  let nearGate: Gate | null = null;
+  const toggleGate = () => { if (nearGate) model.swingGate(nearGate, nearGate.to === 0); };
+  addEventListener('keydown', e => { if (e.code === 'KeyE' && !(e.target as HTMLElement)?.closest?.('input, select, textarea')) toggleGate(); });
+  gateBtn.onclick = toggleGate;
+  walker.segments = () => model.gates.filter(g => model.gateVisible(g)).map(g => {
+    const d = model.gateDir(g);
+    return { a: g.hinge, b: g.hinge.clone().addScaledVector(d, g.width), y0: g.hinge.y, y1: g.hinge.y + 1.25 };
+  });
+  const _gd = new Vector3();
+  const updateGateUI = (dt: number) => {
+    let best = 1.5, near: Gate | null = null;
+    const f = walker.feet, fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
+    for (const g of model.gates) {
+      if (!model.gateVisible(g)) continue;
+      model.gateDir(g, _gd);
+      const cx = g.hinge.x + _gd.x * g.width / 2 - f.x, cz = g.hinge.z + _gd.z * g.width / 2 - f.z, dist = Math.hypot(cx, cz);
+      if (walker.mode === 'walk' && dist < best && (cx * fx + cz * fz) / Math.max(dist, 1e-3) > 0.45) { best = dist; near = g; }
+      // self-closing: once you're clear of the swing for 5 s, it shuts by itself
+      if (g.to === 1) {
+        const r = Math.hypot(f.x - g.hinge.x, f.z - g.hinge.z);
+        g.clear = r > g.width + 0.45 ? g.clear + dt : 0;
+        if (g.clear > 5) model.swingGate(g, false);
+      }
+    }
+    nearGate = near;
+    const label = near ? (near.to === 1 ? 'Close the gate' : 'Open the gate') : '';
+    if (isTouch) {
+      gateBtn.hidden = !near;
+      if (near && gateBtn.textContent !== label) gateBtn.textContent = label;
+      gateTip.hidden = true;
+    } else {
+      gateTip.hidden = !near;
+      if (near) { const html = `Press <kbd>E</kbd> to ${near.to === 1 ? 'close' : 'open'} the gate`; if (gateTip.innerHTML !== html) gateTip.innerHTML = html; }
+    }
+  };
+
+  // ---------- after the first frame: full post-processing, far trees, grass, pipelines for looking around ----------
+  const status = $('status');
+  const setStatus = (t: string | null) => { status.hidden = !t; if (t) status.textContent = t; };
+  /** Wait for the pipelines started since the last call; keep shadows refreshing while casters pop in. */
+  const settle = async () => {
+    for (let i = 0; i < 40; i++) {
+      await nextFrame();
+      const p = asyncPipes.take();
+      if (!p.length) return;
+      await Promise.all(p);
+      shadowDirty = true;
+    }
+  };
+  async function finishLoading() {
+    const { target, mrt } = post.target;
+    try {
+      setStatus('Adding soft shadows and reflections…');
+      await settle();
+      post.upgrade();               // the full chain warms up behind the boot image...
+      await settle();
+      post.commitUpgrade();         // ...and swaps in once its pipelines are ready
+      booted = true; mark('upgraded');
+
+      const db = renderer.getDrawingBufferSize(new Vector2());
+      for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); m.ready = true; }
+      await settle();
+      mark('mirrors');
+
+      setStatus('Adding trees and grass…');
+      await nextFrame();
+      await model.finishFar();
+      grassReady = true;
+      await model.grass.build(model.lawns, QUALITY[S.quality].grass); grassBuilt = QUALITY[S.quality].grass;
+      model.grass.radius.value = QUALITY[S.quality].grassRadius;
+      await compileFor(renderer, scene, camera, target, mrt);
+      await settle();
+      mark('far+grass');
+
+      // turn around, and the lighting scheme after dark, in the background, so neither stalls later
+      setStatus('Getting the rest of the yard ready…');
+      for (const turn of [Math.PI / 2, Math.PI, -Math.PI / 2]) {
+        const c = camera.clone(); c.rotation.set(0, walker.yaw + turn, 0, 'YXZ'); c.updateMatrixWorld();
+        await compileFor(renderer, scene, c, target, mrt);
+      }
+      for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); }
+      if (atm.state.night < 0.004) {
+        // the night lights change every material's lighting, so compile that variant too (lights at zero)
+        const lights = model.nightLights.map(l => l.light);
+        lights.forEach(l => { l.visible = true; l.intensity = 0; });
+        await compileFor(renderer, scene, camera, target, mrt);
+        lights.forEach(l => { l.visible = false; });
+      }
+    } catch (e) { console.warn('background compile', e); }
+    asyncPipes.active = false;
+    mark('settled');
+    setStatus(null);
   }
 
   // ---------- loop ----------
@@ -326,7 +507,8 @@ async function main() {
     walker.update(dt);
     if (walker.mode === 'drone') orbit.update();
     if (Math.abs(camera.fov - targetFov) > 0.05) { camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
-    model.update(atm.state.night, now / 1000);
+    model.update(atm.state.night, now / 1000, dt);
+    updateGateUI(dt);
     model.grass.update(camera, QUALITY[S.quality].grass > 0);
     // sun shadows: re-render only when the sun moves or the viewer leaves the snapped box
     const cfg = QUALITY[S.quality];
@@ -345,9 +527,10 @@ async function main() {
     if (shadowFrames > 0) { atm.sun.shadow.needsUpdate = true; shadowFrames--; }
     frameNo++;
     const db = renderer.getDrawingBufferSize(new Vector2());
-    model.renderMirrors(renderer, scene, camera, db.x, db.y);
-    post.render();
-    if (firstFrame) { firstFrame = false; $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp); }
+    if (firstFrame) mark('frame-start');
+    renderClean(renderer, () => { model.renderMirrors(renderer, scene, camera, db.x, db.y); post.render(); });
+    if (firstFrame) mark('first-frame');
+    if (firstFrame) { firstFrame = false; $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp); finishLoading(); }
     frames++;
     if (now - fpsT > 500) { fpsEl.textContent = `${Math.round((frames * 1000) / (now - fpsT))} fps · ${S.quality} · ${(renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL 2'}`; frames = 0; fpsT = now; }
   });
@@ -365,6 +548,5 @@ async function main() {
 
 main().catch(err => {
   console.error(err);
-  loadText.innerHTML = `<span class="error">The 3D view couldn't start (${String(err?.message ?? err)}). The renders in the panel still work.</span>`;
-  try { buildGallery($('gallery'), () => {}); } catch { /* ignore */ }
+  loadText.innerHTML = `<span class="error">The 3D view couldn't start (${String(err?.message ?? err)}). The renders still work: <a href="../renders/">open the renders page</a>.</span>`;
 });

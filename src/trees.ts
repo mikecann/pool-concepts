@@ -58,12 +58,13 @@ function foliageMaterial(base: Color, sun: Light | null) {
 }
 
 /** Soften every far canopy; returns how many instanced canopies were changed. */
-export function softenFarTrees(meshes: InstancedMesh[], sun: Light | null = null) {
+export async function softenFarTrees(meshes: InstancedMesh[], sun: Light | null = null) {
   const geos = new Map<BufferGeometry, BufferGeometry>();
   const mats = new Map<string, MeshStandardNodeMaterial>();
   const m4 = new Matrix4(), pos = new Vector3(), q = new Quaternion(), s = new Vector3(), spin = new Quaternion(), up = new Vector3(0, 1, 0);
   let n = 0;
   for (const mesh of meshes) {
+    await new Promise(r => setTimeout(r, 0));   // one tree batch per task
     let g = geos.get(mesh.geometry);
     if (!g) { g = softGeometry(mesh.geometry); geos.set(mesh.geometry, g); }
     mesh.geometry = g;

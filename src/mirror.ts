@@ -15,6 +15,9 @@ export class Mirror {
   private viewProj = uniform(new Matrix4());
   readonly tex = texture(this.target.texture);
   meshes: Mesh[] = [];
+  /** 0 until the mirror's pipelines are compiled, then eased to 1 (the water uses the sky env map meanwhile). */
+  readonly on = uniform(0);
+  ready = false;
   scale = 0.5;
 
   constructor(public level: number) {}
@@ -33,7 +36,8 @@ export class Mirror {
     return this.meshes.some(m => m.visible && _frustum.intersectsBox(_box.setFromObject(m)));
   }
 
-  render(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, width: number, height: number) {
+  /** Size the target and place the mirrored camera (also used to precompile the mirror's pipelines). */
+  prepare(camera: PerspectiveCamera, width: number, height: number) {
     const w = Math.max(2, Math.round(width * this.scale)), h = Math.max(2, Math.round(height * this.scale));
     if (this.target.width !== w || this.target.height !== h) this.target.setSize(w, h);
     const c = this.cam;
@@ -57,6 +61,11 @@ export class Mirror {
     c.projectionMatrixInverse.copy(c.projectionMatrix).invert();
     // sample with the un-clipped projection so uvs line up with the image
     this.viewProj.value.multiplyMatrices(camera.projectionMatrix, c.matrixWorldInverse);
+  }
+
+  render(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, width: number, height: number) {
+    this.prepare(camera, width, height);
+    const c = this.cam;
 
     for (const m of this.meshes) m.userData._v = m.visible, m.visible = false;
     const rt = renderer.getRenderTarget(), mrt = renderer.getMRT();

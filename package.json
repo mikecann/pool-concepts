@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && rm -rf public/model/assets && vite build",
+    "build": "tsc --noEmit && rm -rf public/model/assets public/model/renders public/model/walk && vite build",
     "serve": "python3 -m http.server 4173 --directory public",
     "review": "node scripts/review.mjs"
   },

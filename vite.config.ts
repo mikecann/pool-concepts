@@ -24,5 +24,9 @@ export default defineConfig({
   base: '/model/',
   publicDir: false,
   plugins: [modelFiles()],
-  build: { outDir: 'public/model', emptyOutDir: false, target: 'es2022', chunkSizeWarningLimit: 2000 },
+  build: {
+    outDir: 'public/model', emptyOutDir: false, target: 'es2022', chunkSizeWarningLimit: 2000,
+    // three pages: /model/ (choose), /model/renders/ (no three.js) and /model/walk/ (the 3D walkthrough)
+    rollupOptions: { input: { home: 'index.html', renders: 'renders/index.html', walk: 'walk/index.html' } },
+  },
 });

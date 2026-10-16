@@ -2,27 +2,11 @@
 // Copy and data arrays (VIEWS, SUN, ROLLER, KITCHEN, DAY ...) are unchanged from that page.
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
-export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string };
+import { VIEWS } from './views';
 
-const VIEWS = [
-  ["01_canal_view", "From the canal", "From a boat about 20 m off the jetty, looking north at the house."],
-  ["02_jetty_to_pool", "From the jetty", "End of the jetty, looking back at the new 1.2 m limestone wall and the pump-shed doors."],
-  ["03_lawn_to_terrace", "From the lawn steps", "On the lawn steps looking west at the raised terrace, the spa deck and the pool fence."],
-  ["04_from_kitchen_door", "Out the kitchen door", "Stepping out of the breakfast-nook slider, under the new skillion."],
-  ["16_outdoor_kitchen", "Outdoor kitchen", "From the alfresco table, looking east at the BBQ and pizza oven along the fence."],
-  ["05_pool_north_end", "Pool, shallow end", "At the north fence by the gate, looking down the pool to the canal."],
-  ["06_sunken_lounge", "In the sunken lounge", "Seated in the lounge, 0.7 m below the deck, looking at the spa steps."],
-  ["15_lounge_from_alfresco", "Over the lounge", "Standing at the edge of the alfresco, looking down into the lounge and the fire pit."],
-  ["14_spa_to_canal", "Spa deck", "Beside the spa, looking across the pool to the canal."],
-  ["13_deep_end_to_house", "Deep end, looking back", "From the canal end of the pool back at the alfresco and the house."],
-  ["10_alfresco_corner", "North-west corner", "From the north fence across the pool to the alfresco and lounge."],
-  ["12_from_pavilion", "From the pavilion", "On the existing timber deck under the pavilion, looking west."],
-  ["09_promenade_west", "Along the canal path", "Walking west on the canal-side paving beside the new wall."],
-  ["17_pool_overview", "Pool from above", "Drone height above the house, looking down the length of the pool."],
-  ["07_aerial_southwest", "Aerial, south-west", "Drone height over the canal, looking north-east."],
-  ["08_aerial_southeast", "Aerial, south-east", "Drone height over the canal, looking north-west."],
-];
-export const VIEW_NAMES = Object.fromEntries(VIEWS.map(([id, name]) => [id, name]));
+export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string; fence?: 'perforated' | 'glass' };
+
+
 const SUN = {
   summer: [["0900", "9:00 am", "Sun 88° (east), 43° up", "The alfresco roof and the house shade the north half of the pool. The south half and the spa are in sun."],
            ["1200", "12:00 pm", "Sun 28° (north-north-east), 76° up", "Nearly overhead. Only the alfresco floor is shaded. The pool, spa and lounge are in full sun."],
@@ -105,7 +89,7 @@ const HTML = /* html */ `
     <div class="handle" id="handle" aria-hidden="true"></div>
     <span class="tag l" id="tag-l">Today</span>
     <span class="tag r" id="tag-r">Proposed</span>
-    <button class="fly" id="v-fly" type="button">Stand here</button>
+    <button class="fly" id="v-fly" type="button">Open in 3D</button>
   </div>
   <span class="desc hint" id="vdesc"></span>
   <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm.</p>
@@ -118,7 +102,7 @@ const HTML = /* html */ `
   <p>A stand-mounted roller sized for this pool: 4.6 m long, the blanket rolls up to about 0.42 m across, and the tube sits about 0.5 m up, so the roll clears the coping by about a hand's width.</p>
 </div>
 <section class="block" aria-label="Pool roller options">
-  <div class="fstage"><img id="r-img" alt=""><span class="tag l" id="r-tag"></span><button class="fly" id="r-fly" type="button">Stand here</button></div>
+  <div class="fstage"><img id="r-img" alt=""><span class="tag l" id="r-tag"></span><button class="fly" id="r-fly" type="button">Open in 3D</button></div>
   <div class="chips" role="group" aria-label="Roller position" id="r-opts"></div>
   <div class="chips" id="r-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="r-note"></div>
@@ -130,7 +114,7 @@ const HTML = /* html */ `
   <p>Along the alfresco's east fence, between the house wall and the lounge. Charcoal cabinets 900 mm high with a pale concrete top, a 900 mm built-in BBQ and a dome oven about 0.73 m wide.</p>
 </div>
 <section class="block" aria-label="Kitchen options">
-  <div class="fstage"><img id="k-img" alt=""><span class="tag l" id="k-tag"></span><button class="fly" id="k-fly" type="button">Stand here</button></div>
+  <div class="fstage"><img id="k-img" alt=""><span class="tag l" id="k-tag"></span><button class="fly" id="k-fly" type="button">Open in 3D</button></div>
   <div class="chips" role="group" aria-label="Kitchen layout" id="k-opts"></div>
   <div class="chips" id="k-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="k-note"></div>
@@ -142,7 +126,7 @@ const HTML = /* html */ `
   <p>The same three views at different times, with the sun calculated for Geographe. After sunset the lighting is switched on.</p>
 </div>
 <section class="block" aria-label="Time of day">
-  <div class="fstage"><img id="d-img" alt=""><span class="tag l" id="d-tag"></span><button class="fly" id="d-fly" type="button">Stand here</button></div>
+  <div class="fstage"><img id="d-img" alt=""><span class="tag l" id="d-tag"></span><button class="fly" id="d-fly" type="button">Open in 3D</button></div>
   <div class="chips" role="group" aria-label="Season">
     <button id="d-summer" aria-pressed="true">Summer · 16 Jan</button>
     <button id="d-winter" aria-pressed="false">Winter · 21 Jun</button>
@@ -162,7 +146,7 @@ const HTML = /* html */ `
   <p>Mid-January, twenty minutes after sunset, with every light on. Warm white (about 2700 K) everywhere except the pool and spa. The lounge itself is in the day series above at 7:40 pm and 9:00 pm.</p>
 </div>
 <section class="block" aria-label="After dark">
-  <div class="fstage"><img id="n-img" alt=""><span class="tag l" id="n-tag">Dusk, 7:40 pm</span><button class="fly" id="n-fly" type="button">Stand here</button></div>
+  <div class="fstage"><img id="n-img" alt=""><span class="tag l" id="n-tag">Dusk, 7:40 pm</span><button class="fly" id="n-fly" type="button">Open in 3D</button></div>
   <div class="chips" id="n-views" role="group" aria-label="Viewpoint"></div>
   <ul class="legend">
     <li>LED strip tucked under the front of every bench seat, washing the lounge floor</li>
@@ -181,8 +165,8 @@ const HTML = /* html */ `
   <p>The 7 Oct estimate prices charcoal perforated aluminium, 1.2 m high with two gates. SK02 and the scope notes still say frameless glass, which the 21 Sep estimate had at about $630 more.</p>
 </div>
 <section class="block" aria-label="Pool fence">
-  <div class="fstage"><img id="f-img" alt=""><span class="tag l" id="f-tag">Perforated aluminium</span></div>
-  <p class="hint">From the lawn and the pavilion, glass keeps the pool and spa in view. Perforated panels read as a dark screen with the shapes behind just showing through. The walkthrough shows the perforated fence.</p>
+  <div class="fstage"><img id="f-img" alt=""><span class="tag l" id="f-tag">Perforated aluminium</span><button class="fly" id="f-fly" type="button">Open in 3D</button></div>
+  <p class="hint">From the lawn and the pavilion, glass keeps the pool and spa in view. Perforated panels read as a dark screen with the shapes behind just showing through.</p>
   <div class="chips" role="group" aria-label="Fence type">
     <button id="f-perf" aria-pressed="true">Perforated</button>
     <button id="f-glass" aria-pressed="false">Glass</button>
@@ -207,7 +191,7 @@ const HTML = /* html */ `
     <span class="mono" id="sun-pos"></span>
     <p id="sun-note" class="hint"></p>
   </div>
-  <button class="linkbtn" id="sun-sync" type="button">Set the walkthrough to this time</button>
+  <button class="linkbtn" id="sun-sync" type="button">Open in 3D at this time</button>
 </section>
 
 <div class="section-head">
@@ -266,7 +250,8 @@ const HTML = /* html */ `
     <button data-theme="auto">Auto</button><button data-theme="light">Light</button><button data-theme="dark">Dark</button></span></span>
 </footer>`;
 
-export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
+export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase = 'img/') {
+  const I = imgBase;
   root.innerHTML = HTML;
   const $ = (id: string) => root.querySelector<HTMLElement>('#' + id)!;
   const img = (id: string) => $(id) as HTMLImageElement;
@@ -302,8 +287,8 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
   const show = (i: number) => {
     current = i;
     const [id, name, desc] = VIEWS[i];
-    img('img-today').src = `img/${id}__existing.jpg`; img('img-today').alt = `${name}, today`;
-    img('img-proposed').src = `img/${id}__proposed.jpg`; img('img-proposed').alt = `${name}, with the proposed pool and alfresco`;
+    img('img-today').src = `${I}${id}__existing.jpg`; img('img-today').alt = `${name}, today`;
+    img('img-proposed').src = `${I}${id}__proposed.jpg`; img('img-proposed').alt = `${name}, with the proposed pool and alfresco`;
     $('vnum').textContent = 'View ' + id.slice(0, 2);
     $('vname').textContent = name;
     $('vdesc').textContent = desc;
@@ -312,7 +297,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
   VIEWS.forEach(([id, name], i) => {
     const b = document.createElement('button');
     b.className = 'thumb'; b.type = 'button'; b.setAttribute('role', 'listitem');
-    b.innerHTML = `<img src="img/thumb_${id}.jpg" alt="" loading="lazy"><span><b>${id.slice(0, 2)}</b>${name}</span>`;
+    b.innerHTML = `<img src="${I}thumb_${id}.jpg" alt="" loading="lazy"><span><b>${id.slice(0, 2)}</b>${name}</span>`;
     b.onclick = () => show(i);
     $('strip').appendChild(b);
   });
@@ -347,14 +332,14 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
   };
   picker({ opts: ROLLER, optBox: $('r-opts'), viewBox: $('r-views'), img: 'r-img', tag: 'r-tag', note: 'r-note', flyBtn: 'r-fly',
     views: ROLLER_VIEWS,
-    src: (o, v) => `img/options_${v}_${o}.jpg`,
+    src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_split' }) });
   picker({ opts: KITCHEN, optBox: $('k-opts'), viewBox: $('k-views'), img: 'k-img', tag: 'k-tag', note: 'k-note', flyBtn: 'k-fly',
     views: KITCHEN_VIEWS,
-    src: (o, v) => `img/options_${v}_${o}.jpg`,
+    src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
   picker({ opts: [['dusk', 'Dusk, 7:40 pm']], viewBox: $('n-views'), img: 'n-img', tag: 'n-tag', flyBtn: 'n-fly', views: NIGHTV,
-    src: (o, v) => `img/night_${v}_${o}.jpg`,
+    src: (o, v) => `${I}night_${v}_${o}.jpg`,
     onFly: (_o, v) => fly({ cam: v, scenario: 'proposed', date: '2027-01-16', minutes: 19 * 60 + 40, roller: 'none', kitchen: 'kitchen_split' }) });
 
   // ---------- the lounge through the day ----------
@@ -365,7 +350,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
     chips($('d-times'), list, D.t, i => { D.t = i; renderDay(); });
     chips($('d-views'), DAYV, D.v, i => { D.v = i; renderDay(); });
     const [key, label, pos, note] = list[D.t];
-    img('d-img').src = `img/times_${DAYV[D.v][0]}_${D.season}_${key}.jpg`;
+    img('d-img').src = `${I}times_${DAYV[D.v][0]}_${D.season}_${key}.jpg`;
     img('d-img').alt = `${DAYV[D.v][1]}, ${D.season} at ${label}`;
     $('d-tag').textContent = (D.season === 'summer' ? '16 Jan, ' : '21 Jun, ') + label;
     $('d-time').textContent = label; $('d-pos').textContent = pos; $('d-note').textContent = note;
@@ -374,7 +359,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
   $('d-winter').onclick = () => { D.season = 'winter'; renderDay(); };
   $('d-fly').onclick = () => fly({ cam: DAYV[D.v][0], scenario: 'proposed', date: SEASON_DATE[D.season], minutes: hhmm(DAY[D.season][D.t][0]), roller: 'none', kitchen: 'kitchen_split' });
   renderDay();
-  warmNear($('d-img'), Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))));
+  warmNear($('d-img'), Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `${I}times_${v}_${season}_${key}.jpg`))));
 
   // ---------- fence ----------
   let fType = 'perf', fView = 0;
@@ -383,14 +368,15 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
     $('f-glass').setAttribute('aria-pressed', String(fType === 'glass'));
     chips($('f-views'), FV, fView, i => { fView = i; renderFence(); });
     const id = FV[fView][0];
-    img('f-img').src = `img/${id}__${fType === 'perf' ? 'proposed' : 'glass'}.jpg`;
+    img('f-img').src = `${I}${id}__${fType === 'perf' ? 'proposed' : 'glass'}.jpg`;
     img('f-img').alt = `${FV[fView][1]} view with a ${fType === 'perf' ? 'perforated aluminium' : 'frameless glass'} pool fence`;
     $('f-tag').textContent = fType === 'perf' ? 'Perforated aluminium' : 'Frameless glass';
   };
   $('f-perf').onclick = () => { fType = 'perf'; renderFence(); };
+  $('f-fly').onclick = () => fly({ cam: FV[fView][0], scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', fence: fType === 'perf' ? 'perforated' : 'glass' });
   $('f-glass').onclick = () => { fType = 'glass'; renderFence(); };
   renderFence();
-  warmNear($('f-img'), FV.flatMap(([id]) => [`img/${id}__proposed.jpg`, `img/${id}__glass.jpg`]));
+  warmNear($('f-img'), FV.flatMap(([id]) => [`${I}${id}__proposed.jpg`, `${I}${id}__glass.jpg`]));
 
   // ---------- sun plan ----------
   let season: keyof typeof SUN = 'summer', tIdx = 2;
@@ -399,7 +385,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
     const list = SUN[season]; if (tIdx >= list.length) tIdx = list.length - 1;
     chips($('times'), list, tIdx, i => { tIdx = i; renderSun(); });
     const [key, label, pos, note] = list[tIdx];
-    img('plan-img').src = `img/sun_${season}_${key}.jpg`;
+    img('plan-img').src = `${I}sun_${season}_${key}.jpg`;
     img('plan-img').alt = `Plan view, ${season} at ${label}`;
     $('sun-time').textContent = label; $('sun-pos').textContent = pos; $('sun-note').textContent = note;
   };
@@ -407,7 +393,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
   $('s-winter').onclick = () => { season = 'winter'; renderSun(); };
   $('sun-sync').onclick = () => fly({ cam: '', date: SEASON_DATE[season], minutes: hhmm(SUN[season][tIdx][0]) });
   renderSun();
-  warmNear($('plan-img'), Object.entries(SUN).flatMap(([s, list]) => list.map(([key]) => `img/sun_${s}_${key}.jpg`)));
+  warmNear($('plan-img'), Object.entries(SUN).flatMap(([s, list]) => list.map(([key]) => `${I}sun_${s}_${key}.jpg`)));
 
   // ---------- sheet colours ----------
   const themeBtns = [...root.querySelectorAll<HTMLButtonElement>('#theme button')];
@@ -423,5 +409,5 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void) {
 
   show(0); applyMode();
   const idle = (window as any).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 2500));
-  idle(() => warm(VIEWS.flatMap(([id]) => [`img/${id}__proposed.jpg`, `img/${id}__existing.jpg`])));
+  idle(() => warm(VIEWS.flatMap(([id]) => [`${I}${id}__proposed.jpg`, `${I}${id}__existing.jpg`])));
 }

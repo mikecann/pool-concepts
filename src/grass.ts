@@ -99,7 +99,7 @@ export class Grass {
   }
 
   /** Scatter tufts over the up-facing triangles of the lawn meshes, `density` per m². */
-  build(lawns: Mesh[], density: number) {
+  async build(lawns: Mesh[], density: number) {
     for (const c of this.cells) { this.group.remove(c.mesh); c.mesh.dispose(); }
     this.cells = [];
     if (density <= 0) return;
@@ -107,6 +107,7 @@ export class Grass {
     const a = new Vector3(), b = new Vector3(), c = new Vector3(), e1 = new Vector3(), e2 = new Vector3(), n = new Vector3(), pt = new Vector3();
     const q = new Quaternion(), up = new Vector3(0, 1, 0), s = new Vector3(1, 1, 1), mtx = new Matrix4();
     for (const lawn of lawns) {
+      await new Promise(r => setTimeout(r, 0));   // one lawn per task, so building never stalls a frame for long
       lawn.updateWorldMatrix(true, false);
       const g = lawn.geometry, pos = g.getAttribute('position'), index = g.index;
       const count = index ? index.count : pos.count;

@@ -8,6 +8,11 @@ import {
 import { MeshBVH } from 'three-mesh-bvh';
 
 const EYE = 1.65, RADIUS = 0.24, STEP = 0.26, WALK = 1.45, RUN = 3.4, GRAVITY = 9.8;
+/** A small hop: 0.45 m. With the 0.26 m step-up that's well short of the 1.2 m pool fence. */
+const JUMP = 0.45;
+
+/** A moving obstacle the capsule can't pass, as a vertical strip from a to b (e.g. a gate leaf). */
+export type Segment = { a: Vector3; b: Vector3; y0: number; y1: number };
 const _v = new Vector3(), _v2 = new Vector3(), _m = new Matrix4(), _seg = new Line3(), _box = new Box3();
 
 /** Merge world-space triangles of the given meshes (instanced meshes expanded) into one BVH. */
@@ -55,10 +60,13 @@ export class Walker {
   /** Set while a "go to" glide is running. */
   private glide: { from: Vector3; to: Vector3; yaw0: number; yaw1: number; p0: number; p1: number; t: number; dur: number } | null = null;
   onMove?: () => void;
+  /** Gate leaves and anything else that moves: checked every step on top of the static walls. */
+  segments: () => Segment[] = () => [];
 
   constructor(private camera: PerspectiveCamera, private dom: HTMLElement) {
     addEventListener('keydown', e => {
       if ((e.target as HTMLElement)?.closest?.('input, select, textarea')) return;
+      if (e.code === 'Space' && !e.repeat) this.jump();
       this.keys.add(e.code);
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && document.activeElement === dom) e.preventDefault();
     });
@@ -86,6 +94,7 @@ export class Walker {
       const m = o as Mesh;
       if (!m.isMesh) return;
       if (m.userData.water) { water.push(m); return; }
+      if (m.userData.gateLeaf) return;   // gates move: handled as segments
       if ((m.userData.collide === false && !m.userData.window) || m.userData.lod === 'far') return;
       walls.push(m);
     });
@@ -153,7 +162,28 @@ export class Walker {
       if (!moved) break;
     }
     p.x = _seg.start.x; p.z = _seg.start.z;
+    // moving obstacles, in plan: push the capsule's circle out of each strip it overlaps at this height
+    for (const s of this.segments()) {
+      if (p.y + EYE < s.y0 || p.y + STEP > s.y1) continue;
+      const ax = s.a.x, az = s.a.z, dx = s.b.x - ax, dz = s.b.z - az;
+      const len2 = dx * dx + dz * dz || 1e-6;
+      const t = Math.max(0, Math.min(1, ((p.x - ax) * dx + (p.z - az) * dz) / len2));
+      let nx = p.x - (ax + dx * t), nz = p.z - (az + dz * t);
+      const d = Math.hypot(nx, nz), min = RADIUS + 0.03;
+      if (d >= min) continue;
+      if (d < 1e-5) { nx = -dz; nz = dx; } // dead centre: pick the leaf's normal
+      const n = Math.hypot(nx, nz);
+      p.x += (nx / n) * (min - d); p.z += (nz / n) * (min - d);
+    }
   }
+
+  jump() {
+    if (this.mode !== 'walk' || !this.grounded || this.glide) return;
+    this.vy = Math.sqrt(2 * GRAVITY * JUMP);
+    this.grounded = false;
+  }
+
+  get onGround() { return this.grounded; }
 
   update(dt: number) {
     if (this.glide) {

@@ -1,4 +1,4 @@
-// Screenshot the walkthrough at set times and viewpoints, in headed Chromium with a real GPU (WebGPU).
+// Screenshot the walkthrough at set times and viewpoints, in headless Chromium with the real GPU (WebGPU).
 //   npm run build && npm run serve   (in another shell), then:
 //   node scripts/review.mjs [--times 0730,1300] [--views alfresco,lounge] [--quality High] [--out review/run] [--size 1600x900] [--date 2027-01-16]
 import { chromium } from 'playwright';
@@ -23,7 +23,7 @@ const QUALITY = arg('quality', 'High');
 const OUT = arg('out', 'review');
 const DATE = arg('date', '2027-01-16');
 const [W, H] = arg('size', '1600x900').split('x').map(Number);
-const URL = arg('url', 'http://localhost:4173/model/');
+const URL = arg('url', 'http://localhost:4173/model/walk/');
 const EXTRA = arg('extra', '');
 const SCEN = arg('scenario', 'proposed');
 const EVAL = arg('eval', '');
@@ -50,7 +50,8 @@ await gpuCheck(page);
 await page.waitForFunction(() => document.getElementById('loading')?.classList.contains('done') || /couldn't/.test(document.getElementById('load-text')?.textContent ?? ''), null, { timeout: 180000 });
 const failed = await page.evaluate(() => /couldn't/.test(document.getElementById('load-text')?.textContent ?? ''));
 if (failed) { console.log(await page.evaluate(() => document.getElementById('load-text').textContent)); }
-await page.addStyleTag({ content: '.hint-pill,.welcome{display:none!important}' });
+await page.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 120000 }).catch(() => {});   // mirrors, far trees, grass
+await page.addStyleTag({ content: '.hint-pill,.welcome,.status-pill,.gate-tip{display:none!important}' });
 const frames = n => page.evaluate(n => new Promise(r => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
 await frames(30);
 for (const v of views) {

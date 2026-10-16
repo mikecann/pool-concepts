@@ -163,7 +163,118 @@ All under `pool-concepts/review/` (gitignored):
    - The full review set runs at 60 fps on High, night drone included.
    - **Sheets:** `review/round3/sheet_final.png` and `sheet_final3.png`.
 
+## Round 4
+
+### 1. Two ways in
+- **`/model/`** is now a chooser with two big cards, each with a preview and one line: **A, Renders** (`/model/renders/`) and **B, Live 3D** (`/model/walk/`). Each page links back to the chooser and across to the other.
+- **The renders page** is the old sidebar gallery at full width: the before/after wipe across the 16 views, the roller and kitchen options, the lounge through the day, after dark, the fence comparison, the sun plan, and the notes and assumptions.
+  - Wide screens put the picture on the left and the choices and notes on the right.
+  - Every picture has **Open in 3D**, which deep-links to the walkthrough at the same camera, time, scenario and options (e.g. `walk/?cam=17_pool_overview&t=885&roller=roller_shallow`).
+- **Separate builds:** Vite now builds three pages (`index.html`, `renders/index.html`, `walk/index.html`). The renders page bundle is 24 KB and the network log shows **no three.js and no GLB** there. The walkthrough loads **no gallery renders**: only its loading-screen picture and 9 new small card thumbnails (`img/card_*.jpg`, about 9 KB each, made by `scripts/make-cards.mjs`, which `sync-model.sh` now runs).
+- **Moves and shared code:**
+  - The old root `index.html` is now `walk/index.html`.
+  - `src/views.ts` holds the 16 view names for both pages.
+  - `src/tokens.css` holds the shared drawing-sheet tokens.
+  - `src/sheet.css` styles the chooser and the renders page.
+
+### 2. The walkthrough's panel is 3D only
+- **What's there:**
+  - Today/Proposed
+  - people
+  - frame rate
+  - quality
+  - "How to walk around", which reopens the help card
+  - design-choice cards
+  - a viewpoint list
+  - a link to the renders page
+- **The cards:** each has a thumbnail and a one- or two-line note trimmed from the ROLLER/KITCHEN/fence copy (`src/choices.ts`).
+- **Clicking a card** switches to Proposed, updates the world (and rebuilds the collider) and glides the camera to where the change shows:
+  - Shallow end, in-ground box and no roller look up the pool from the deep end (camera 13).
+  - Deep end looks down it from the north fence (camera 05).
+  - Kitchen cards go to the outdoor kitchen view (16), which also shows the gate moving.
+  - Fence cards go to the lawn steps (03).
+- **The glass fence** swaps the pool fence infill and gate infill to a pale-green 20% glass that casts no shadow. The frames stay charcoal, so it reads as framed glass, not quite SK02's frameless spigots.
+
+### 3. Gates
+- **Pivots:** each gate leaf (`gate` extras) is re-parented into a pivot group at `gate_hinge` and swung about +Y by `gate_swing` × 90°.
+- **Prompt:** within 1.5 m and roughly facing a gate, a tooltip says **Press E to open the gate** ("close" when open). Phones get a tap button instead.
+- **Swing:** about 0.6 s, eased.
+- **Self-closing:** once you're clear of the swing, an open gate shuts itself after 5 s.
+- **Collision:** the leaves are out of the static collider and checked every step as a moving strip, so a closed gate blocks you and an open one doesn't.
+- **Walk test:**
+  - walking into the closed north gate stops you
+  - E opens it and you walk through
+  - it swung shut on its own about 5 s after the walker cleared its swing
+
+### 4. Jump
+- **Space** gives a 0.45 m hop (measured peak +0.42 m), with gravity, landing on whatever's below.
+- **The pool fence:** the test runs and jumps at the east pool fence from the lawn. Walking stops at a 0.6 m terrace step. Jumping gets you up that step, and you then stop against the fence (x 3.32, fence line 3.10), so you **can't clear the 1.2 m pool fence**.
+
+### 5. Loading
+
+Headless Chromium on this Mac's GPU, localhost. Cold = fresh browser (empty HTTP and shader caches); warm = reload.
+
+| | First frame (cold) | Settled (cold) | First frame (warm) | Settled (warm) |
+|---|---|---|---|---|
+| Before | 2.69 to 2.72 s | 2.99 to 3.02 s | 2.19 to 2.20 s | 2.50 to 2.51 s |
+| After | **1.26 to 1.34 s** | 2.72 to 2.88 s | **0.74 to 1.07 s** | 2.20 to 2.80 s |
+
+"Settled" is the old "interactive" metric: 10 frames in a row under 50 ms. Before, nothing moved until that point. Now you can walk from the first frame, while the full lighting, the mirrors, the far trees and the grass arrive over the next ~1.5 s. That costs one ~0.35 s frame when the full lighting swaps in, and a few 70 to 120 ms frames. Logs: `review/profile_before.txt`, `review/round4/profile_after.txt`.
+
+On an emulated 50 Mbps connection (`THROTTLE_MBPS=50`), the 15 MB download takes ~2.7 s and the first frame lands at 3.4 to 3.8 s, so only ~0.65 s after the download (log: `review/round4/profile_after_50mbps.txt`). I didn't measure the old build throttled. Its post-download part was ~2.2 s on localhost, so on a 50 Mbps line expect the first frame about 1.5 s sooner than before.
+
+What changed (`src/compile.ts`, `main.ts`, `post.ts`):
+- **Download alongside start-up:** the GLB starts downloading at once, in parallel with WebGPU start-up.
+- **Parallel compile:** pipelines are compiled for the first view only (three culls to the frustum), all in parallel. three's `compileAsync` waits for each object's pipeline before starting the next; `compileFor()` hands the promises to one shared list instead.
+- **The real target:** it compiles for the post pass's MRT target, which the frames actually use, not the canvas.
+- **Three keying bugs** meant the old precompile mostly didn't count:
+  - The 14 night lights were still visible when it ran, so every shader was built for the night lighting.
+  - three keys render contexts by call depth, and the scene pass is drawn at depth 1 by the boot chain but depth 2 inside SSGI, so after the upgrade everything rebuilt again. `pinRenderDepth()` fixes each scene target to one depth.
+  - The precompile's target and MRT leaked into frames drawn during background compiles. Frames now draw through `renderClean()`.
+- **Boot pipeline:** the first frame shows the scene pass as it is (same MRT, so nothing compiled is wasted). The full SSGI/TRAA/bloom chain warms up in a second pipeline and swaps in once its pipelines are ready.
+- **Deferred:**
+  - Water mirrors: the water uses the sky reflection meanwhile, then fades to the mirror.
+  - Far trees and grass: built a batch per task.
+  - Precompiles for turning around and for the night lighting: done in the background, so neither stalls later.
+- **Textures** upload alongside the compile.
+- **Async pipelines while loading:** any pipeline still missing is created asynchronously, so objects appear a frame later instead of freezing the page. It's switched off once loading is done.
+- **Material dedupe:** identical flat materials now share one material. This cut materials but barely changed timings, because three already shares shaders between same-shaped materials.
+- **Honest progress text:**
+  - On the loading screen: "Loading the model… N%" → "Building the scene…" → "Compiling shaders… k of n" → "Drawing the first frame…".
+  - After the first frame, a small status pill: "Adding soft shadows and reflections…" → "Adding trees and grass…" → "Getting the rest of the yard ready…", then it disappears.
+  - "Ready" is gone.
+
+### 6 and 7. Sync, checks and review
+- **Sync:** `scripts/sync-model.sh ../the-pool` ran with the re-exported GLB (closed gates with the new extras), and I rebuilt.
+- **Image check:** `scripts/check-images.mjs` reports 121 checked, 0 missing. That's every renders-page image, the card thumbnails and the chooser's pictures. It now loads the TS modules through Vite.
+- **Walk test** (`review/round4/walk-test.txt`) passes:
+  - steps down and up
+  - pool coping and house wall
+  - closed gate blocks, E opens, walk through, self-closes
+  - jump height and landing
+  - can't clear the pool fence
+- **Page checks** (`scripts/pages-check.mjs`, results in `review/round4/pages-check.txt`):
+  - network per page
+  - every card click checked for its camera move
+  - the gate tooltip and button
+  - screenshots in `review/round4/pages/`
+- **Review set:** re-run.
+  - Sheets: `review/round4/sheet_final.png` (the brief's 15) and `sheet_final3.png`.
+  - Pages and walkthrough: `review/round4/sheet_pages.png`, `sheet_walk.png`, `sheet_phone.png`.
+  - Fresh pages hold 57 to 60 fps on High at night. The long back-to-back headless runs end lower (37 to 42), as in Round 2, and a single-page drift check showed none (57.6 → 60.1 fps after 15 changes).
+
+### Caveats
+- **The upgrade frame:** SSGI/TRAA/bloom build their shaders synchronously in three, and there's no API to precompile them. That's the one ~0.35 s frame just after the first.
+- **Relies on three internals:** the loading fixes patch three r186 internals (`_pipelines`, `_renderContexts`). They're isolated in `src/compile.ts` and commented, and need re-checking on a three upgrade.
+
 ## Summary
+
+**Round 4:**
+- `/model/` is a chooser between the renders (no three.js) and Live 3D.
+- The 3D panel holds only 3D controls and design-choice cards that change the world and move the camera, including a glass fence.
+- Gates open with E, close themselves and block you when shut.
+- Space hops 0.45 m but can't clear the pool fence.
+- First frame: cold 2.7 → 1.3 s, warm 2.2 → 0.75 s, with honest progress text.
 
 **Round 3:** the far trees look leafy, there's a one-time how-to-walk card, the phone layout fits in two rows, and the sky and distance are softened. Everything checks out at 60 fps.
 

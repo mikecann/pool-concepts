@@ -52,6 +52,40 @@ function topFaces(mesh: Mesh) {
   mesh.geometry = geo;
 }
 
+export type Gate = { leaf: Object3D; pivot: Group; hinge: Vector3; dir: Vector3; width: number; swing: number;
+  angle: number; from: number; to: number; t: number; clear: number };
+const UP = new Vector3(0, 1, 0);
+const isAncestor = (a: Object3D, b: Object3D) => { let o: Object3D | null = b.parent; while (o) { if (o === a) return true; o = o.parent; } return false; };
+
+/**
+ * The export has 178 materials, 133 of them flat colours, many identical apart from their name. Every
+ * distinct material is its own shader and pipeline, so share one material per identical flat colour.
+ * Only plain opaque "flat" materials are merged; glass, water, LEDs, the lawn and anything textured
+ * keep their own, because the viewer customises those individually.
+ */
+function dedupeMaterials(root: Object3D) {
+  const canon = new Map<string, Material>();
+  const all = new Set<Material>();
+  root.traverse(o => {
+    const mesh = o as Mesh;
+    if (!mesh.isMesh) return;
+    const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const out = list.map((m: any) => {
+      const k = m.userData?.kind ?? m.userData?.web_kind;
+      if (k !== 'flat' || m.map || m.normalMap || m.transparent || m.alphaTest > 0 || m.name === 'lawn' || /canopy/i.test(m.name) || m.userData?.led) { all.add(m); return m; }
+      const e = m.emissive as Color | undefined;
+      const key = [m.type, m.color.getHexString(), m.roughness.toFixed(3), m.metalness.toFixed(3), m.side, m.vertexColors,
+        e ? e.getHexString() : '', m.emissiveIntensity, m.ior ?? '', m.specularIntensity ?? '', m.flatShading].join('|');
+      let c = canon.get(key);
+      if (!c) { c = m; canon.set(key, m); }
+      all.add(c!);
+      return c!;
+    });
+    mesh.material = Array.isArray(mesh.material) ? out : out[0];
+  });
+  return all.size;
+}
+
 export class Model {
   readonly root = new Group();
   readonly nightLights: { light: AnyLight; base: number; def: LightDef }[] = [];
@@ -70,18 +104,29 @@ export class Model {
   kitchen = 'kitchen_split';
   people = true;   // the figures are there to judge scale, so they start on
   showFar = true;
+  farReady = false;
+  materialCount = 0;
+  readonly gates: Gate[] = [];
+  /** Pool fence infill: 'perforated' (the estimate) or 'glass' (SK02's frameless glass). */
+  fence: 'perforated' | 'glass' = 'perforated';
+  private fencePanels: { mesh: Mesh; perforated: Material }[] = [];
+  private fenceGlass: MeshStandardNodeMaterial | null = null;
 
   constructor(private renderer: WebGPURenderer, private atm: Atmosphere) {
     RectAreaLightNode.setLTC(RectAreaLightTexturesLib.init());
   }
 
-  async load(base: string, onProgress: (f: number) => void, reflections: boolean, reflectionScale: number) {
+  /** Start downloading the model and lights. Doesn't need the renderer, so it runs while WebGPU starts up. */
+  static fetch(base: string, onProgress: (f: number) => void) {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
-    const [gltf, lights] = await Promise.all([
+    return Promise.all([
       loader.loadAsync(base + 'pool-model.glb', e => { if (e.total) onProgress(e.loaded / e.total); }),
       fetch(base + 'lights.json').then(r => (r.ok ? r.json() : [])).catch(() => []) as Promise<LightDef[]>,
     ]);
+  }
+
+  setup([gltf, lights]: [{ scene: Group }, LightDef[]], reflections: boolean, reflectionScale: number) {
     const scene = gltf.scene;
     scene.traverse(o => {
       // a node with several primitives becomes a Group of meshes: hand the node's extras down
@@ -90,12 +135,86 @@ export class Model {
     this.root.add(scene);
     this.root.add(this.grass.group);
     this.root.updateMatrixWorld(true);
+    this.materialCount = dedupeMaterials(this.root);
     this.setupMaterials();
-    softenFarTrees(this.farCanopies(), this.atm.sun);
+    this.setupGates();
+    this.setupFence();
     this.setupWater(reflections, reflectionScale);
     this.setupLights(lights);
     this.bounds.setFromObject(this.root);
     this.apply();
+  }
+
+  /** Far trees are hidden for the first frame and softened afterwards (see trees.ts). */
+  async finishFar() {
+    if (this.farReady) return;
+    await softenFarTrees(this.farCanopies(), this.atm.sun);
+    this.farReady = true;
+    this.apply();
+  }
+
+  // ---------- gates ----------
+  /**
+   * Gate leaves carry extras gate, gate_hinge, gate_dir (closed leaf direction), gate_width and gate_swing in
+   * three.js coordinates. The optimiser moved node origins, so each leaf is re-parented into a pivot group
+   * at its hinge and swung by rotating the pivot about +Y.
+   */
+  private setupGates() {
+    const leaves: Object3D[] = [];
+    this.root.traverse(o => { if (o.userData.gate && !leaves.some(l => isAncestor(l, o))) leaves.push(o); });
+    for (const leaf of leaves) {
+      const u = leaf.userData;
+      const hinge = new Vector3(...(u.gate_hinge as [number, number, number]));
+      const pivot = new Group();
+      pivot.name = leaf.name + '_pivot';
+      pivot.position.copy(hinge);
+      leaf.parent!.add(pivot);
+      pivot.updateMatrixWorld(true);
+      pivot.attach(leaf);
+      leaf.traverse(m => { m.userData.gateLeaf = true; });
+      this.gates.push({ leaf, pivot, hinge, dir: new Vector3(...(u.gate_dir as [number, number, number])).normalize(),
+        width: u.gate_width ?? 0.86, swing: Math.sign(u.gate_swing ?? 1) || 1, angle: 0, from: 0, to: 0, t: 1, clear: 0 });
+    }
+  }
+
+  private setupFence() {
+    this.root.traverse(o => {
+      const m = o as Mesh;
+      if (m.isMesh && /^fence_pool_.*(infill|gate\d+_2)$/.test(m.name)) this.fencePanels.push({ mesh: m, perforated: m.material as Material });
+    });
+    const g = new MeshStandardNodeMaterial();
+    g.color = new Color(0xa8c2bf);    // 12 mm toughened glass, seen edge-on it's green; face-on it's barely there
+    g.roughness = 0.03; g.metalness = 0;
+    g.transparent = true; g.opacity = 0.2; g.depthWrite = false; g.side = DoubleSide;
+    this.fenceGlass = g;
+  }
+
+  /** Open (1) or close (0) a gate with a quick eased swing. */
+  swingGate(g: Gate, open: boolean) {
+    const to = open ? 1 : 0;
+    if (g.to === to) return;
+    g.from = g.angle; g.to = to; g.t = 0; g.clear = 0;
+  }
+
+  /** The leaf's current direction from the hinge. */
+  gateDir(g: Gate, out = new Vector3()) {
+    return out.copy(g.dir).applyAxisAngle(UP, g.swing * g.angle * Math.PI / 2);
+  }
+
+  gateVisible(g: Gate) {
+    let o: Object3D | null = g.leaf;
+    while (o) { if (!o.visible) return false; o = o.parent; }
+    return true;
+  }
+
+  private updateGates(dt: number) {
+    for (const g of this.gates) {
+      if (g.t >= 1) continue;
+      g.t = Math.min(1, g.t + dt / 0.6);
+      const e = g.t < 0.5 ? 2 * g.t * g.t : 1 - (-2 * g.t + 2) ** 2 / 2;
+      g.angle = g.from + (g.to - g.from) * e;
+      g.pivot.rotation.y = g.swing * g.angle * Math.PI / 2;
+    }
   }
 
   private farCanopies() {
@@ -290,7 +409,8 @@ export class Model {
   }
 
   /** Called every frame: dusk fade, fire flicker, flame visibility. */
-  update(night: number, t: number) {
+  update(night: number, t: number, dt = 0) {
+    this.updateGates(dt);
     const flick = 0.82 + 0.1 * Math.sin(t * 13.1) + 0.06 * Math.sin(t * 23.7 + 1.3) + 0.05 * Math.sin(t * 7.3 + 0.4);
     this.fireFlicker.value = flick;
     const on = night > 0.004;
@@ -310,7 +430,7 @@ export class Model {
       if (u.option !== this.roller && u.option !== this.kitchen && u.option !== gate) return false;
     }
     if (u.people && !this.people) return false;
-    if (u.lod === 'far' && !this.showFar) return false;
+    if (u.lod === 'far' && (!this.showFar || !this.farReady)) return false;
     return true;
   }
 
@@ -323,10 +443,19 @@ export class Model {
       o.visible = this.visibleFor(u);
     });
     for (const l of this.shadowLights) l.shadow!.needsUpdate = true;
+    for (const p of this.fencePanels) {
+      p.mesh.material = this.fence === 'glass' && this.fenceGlass ? this.fenceGlass : p.perforated;
+      p.mesh.castShadow = this.fence !== 'glass';
+    }
   }
 
   /** Render the planar reflections whose water is on screen. */
   renderMirrors(renderer: WebGPURenderer, scene: any, camera: any, w: number, h: number) {
-    for (const m of this.mirrors) if (m.visible(camera)) m.render(renderer, scene, camera, w, h);
+    for (const m of this.mirrors) {
+      if (!m.ready) continue;
+      m.on.value = Math.min(1, m.on.value + 0.08);
+      for (const w of m.meshes) (w.material as any).envMapIntensity = 1 - m.on.value;
+      if (m.visible(camera)) m.render(renderer, scene, camera, w, h);
+    }
   }
 }

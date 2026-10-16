@@ -30,18 +30,43 @@ export class Post {
   /** How much of SSGI's one-bounce light to add on top of the IBL (which already has the sky). */
   readonly giMix = uniform(0.12);
 
-  constructor(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera, q: Quality) {
+  readonly scenePass: any;
+  private cfg: typeof QUALITY[Quality];
+  private upgraded = false;
+
+  /**
+   * Starts in a cheap "boot" state that shows the scene pass as it is (no SSGI, TRAA or bloom), so the first
+   * frame only needs the scene's own pipelines. The pass already has the MRT outputs the full chain needs, so
+   * nothing compiled for the first frame is wasted. upgrade() then adds the effects.
+   */
+  constructor(private renderer: WebGPURenderer, scene: Scene, private camera: PerspectiveCamera, q: Quality) {
     const dbg = new URLSearchParams(location.search);
     const cfg = { ...QUALITY[q] };
     if (dbg.get('ssgi') === '0') cfg.ssgi = null;
     if (dbg.get('taa') === '0') cfg.taa = false;
-    const pipeline = new RenderPipeline(renderer);
-    const scenePass = pass(scene, camera);
+    this.cfg = cfg;
+    this.pipeline = new RenderPipeline(renderer);
+    this.scenePass = pass(scene, camera);
+    if (cfg.ssgi || cfg.taa) {
+      this.scenePass.setMRT(mrt({ output, diffuseColor, normal: packNormalToRGB(normalView), velocity }));
+      this.scenePass.getTexture('diffuseColor').type = UnsignedByteType;
+      this.scenePass.getTexture('normal').type = UnsignedByteType;
+    }
+    this.pipeline.outputNode = this.scenePass.getTextureNode('output');
+  }
+
+  get isUpgraded() { return this.upgraded; }
+
+  /** The render target and MRT the scene is drawn into, for precompiling its pipelines. */
+  get target() { return { target: this.scenePass.renderTarget, mrt: this.scenePass.getMRT() }; }
+
+  upgrade() {
+    if (this.upgraded) return;
+    this.upgraded = true;
+    const cfg = this.cfg, camera = this.camera, scenePass = this.scenePass;
+    const dbg = new URLSearchParams(location.search);
     let beauty: any;
     if (cfg.ssgi || cfg.taa) {
-      scenePass.setMRT(mrt({ output, diffuseColor, normal: packNormalToRGB(normalView), velocity }));
-      scenePass.getTexture('diffuseColor').type = UnsignedByteType;
-      scenePass.getTexture('normal').type = UnsignedByteType;
       const color = scenePass.getTextureNode('output');
       const depth = scenePass.getTextureNode('depth');
       const vel = scenePass.getTextureNode('velocity');
@@ -68,9 +93,22 @@ export class Post {
     this.bloomNode = bloom(beauty, 0.12, 0.45, 6);
     this.bloomNode.strength = this.bloomStrength;
     this.bloomNode.threshold = this.bloomThreshold;
-    pipeline.outputNode = beauty.add(this.bloomNode);
-    this.pipeline = pipeline;
+    this.full = new RenderPipeline(this.renderer);
+    this.full.outputNode = beauty.add(this.bloomNode);
   }
+
+  /** The full chain, while it warms up (rendered every frame before the boot output covers it). */
+  private full: RenderPipeline | null = null;
+
+  /** Swap the warmed-up full chain in. */
+  commitUpgrade() {
+    if (!this.full) return;
+    this.pipeline.dispose();
+    this.pipeline = this.full;
+    this.full = null;
+    this.ready = true;
+  }
+  ready = false;
 
   /** Bloom is for the lights after dark; by day only the sun's glint on the water should catch it. */
   setNight(night: number) {
@@ -80,6 +118,9 @@ export class Post {
     this.giMix.value = 0.12 * (1 - night);
   }
 
-  render() { this.pipeline.render(); }
-  dispose() { this.pipeline.dispose(); }
+  render() {
+    if (this.full) this.full.render();
+    this.pipeline.render();
+  }
+  dispose() { this.pipeline.dispose(); this.full?.dispose(); }
 }

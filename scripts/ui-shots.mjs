@@ -9,7 +9,7 @@ const frames = (p, n) => p.evaluate(n => new Promise(r => { let i = 0; const f =
 const adapter = async p => p.evaluate(async () => { const a = await navigator.gpu?.requestAdapter(); return a ? `${a.info?.vendor} ${a.info?.architecture}` : 'none'; });
 
 const desk = await browser.newPage({ viewport: { width: 1600, height: 900 } });
-await desk.goto('http://localhost:4173/model/?q=High');
+await desk.goto('http://localhost:4173/model/walk/?q=High');
 console.log('GPU adapter:', await adapter(desk));
 await ready(desk);
 await frames(desk, 20);
@@ -37,7 +37,7 @@ console.log('desktop fps', await desk.evaluate(() => document.getElementById('fp
 
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const phone = await ctx.newPage();
-await phone.goto('http://localhost:4173/model/');
+await phone.goto('http://localhost:4173/model/walk/');
 await ready(phone);
 await phone.evaluate(() => __viewer.setTime(17 * 60 + 30));
 await frames(phone, 40);
