@@ -59,7 +59,7 @@
         <li><b>Fly</b> mode: the arrows on the right go up and down</li>
         <li><b>&#8596;</b> is a tape measure: tap two points</li>
       </ul>
-      <p class="hint">The slider at the bottom sets the time of day.<span class="desk-only"> Near a gate, lid or door, press <b>E</b> to open it (walking or flying), and <b>Space</b> hops.</span><span class="phone-only"> Near a gate, tap the button that appears to open it.</span></p>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>The slider at the bottom sets the time of day.<span class="desk-only"> Near a gate, lid or door, press <b>E</b> to open it (walking or flying), and <b>Space</b> hops.</span><span class="phone-only"> Near a gate, tap the button that appears to open it.</span></p></details>
       <button type="button" id="welcome-ok">Got it</button>
     </section>
     <div class="crosshair" id="crosshair" aria-hidden="true"></div>
@@ -97,88 +97,83 @@
   <aside class="panel" id="panel" aria-label="Walkthrough settings and design choices">
     <div class="grab" id="grab" aria-hidden="true"><span></span></div>
     <div class="panel-scroll" id="panel-scroll">
-      <section class="block live">
-        <span class="label">In the walkthrough</span>
-        <div class="field">
-          <span class="fl">Scenario</span>
-          <div class="chips" role="group" aria-label="Scenario" id="opt-scenario"></div>
-        </div>
-        <div class="field row">
-          <label class="check"><input type="checkbox" id="opt-people" checked> People for scale</label>
-          <label class="check"><input type="checkbox" id="opt-fps"> Frame rate</label>
-        </div>
-        <div class="field">
-          <span class="fl">Picture quality</span>
-          <div class="chips" role="group" aria-label="Picture quality" id="opt-quality"></div>
-        </div>
-        <button type="button" class="linkbtn" id="show-help">How to walk around</button>
-      </section>
-
-      <div class="section-head">
-        <span class="label">Design choices</span>
-        <h2>Try the options</h2>
-        <p>Pick a part of the design, then an option: it changes in place and you stay where you are. <b>View</b> takes you to a good spot to see it.</p>
+      <div class="panel-head">
+        <h2 class="panel-title">Design options</h2>
+        <button type="button" class="icon-btn" id="settings-btn" aria-haspopup="dialog" aria-controls="settings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5L19.4 13ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg></button>
       </div>
       <div class="cat-tabs" role="tablist" aria-label="Design choices" id="cat-tabs"></div>
       <div class="cat-panel" role="tabpanel" data-cat="pool" id="cat-pool">
         <section class="block" aria-labelledby="roller-h">
-          <h3 class="fl" id="roller-h">Pool cover: roller, blanket box or roll-on cover</h3>
+          <h3 class="fl" id="roller-h">Pool cover</h3>
           <div class="cards" id="cards-roller"></div>
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="spacover" id="cat-spacover">
         <section class="block" aria-labelledby="spacover-h">
           <h3 class="fl" id="spacover-h">Hot tub cover</h3>
-          <p class="hint">Australian Spa Covers' soft, segmented Roll-On cover. A round 2.0 m spa needs a custom-made one.</p>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>Australian Spa Covers' soft, segmented Roll-On cover. A round 2.0 m spa needs a custom-made one.</p></details>
           <div class="cards" id="cards-spacover"></div>
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="alfresco" id="cat-alfresco">
         <section class="block" aria-labelledby="kitchen-h">
-          <h3 class="fl" id="kitchen-h">Outdoor kitchen</h3>
+          <h3 class="fl" id="kitchen-h">Kitchen</h3>
           <div class="cards" id="cards-kitchen"></div>
         </section>
         <section class="block" aria-labelledby="post-h">
-          <h3 class="fl" id="post-h">Alfresco posts and beams</h3>
-          <p class="hint">Where the roof's west edge is held up. Every layout flies the beams over the house gutter.</p>
+          <h3 class="fl" id="post-h">Roof posts</h3>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>Where the roof's west edge is held up. Every layout flies the beams over the house gutter.</p></details>
           <div class="cards" id="cards-post"></div>
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="fences" id="cat-fences">
         <section class="block" aria-labelledby="pier-h">
-          <h3 class="fl" id="pier-h">Fence by the pavilion pier</h3>
-          <p class="hint">WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
+          <h3 class="fl" id="pier-h">Fence by the pier</h3>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p></details>
           <div class="cards" id="cards-pier"></div>
         </section>
         <section class="block" aria-labelledby="nfence-h">
-          <h3 class="fl" id="nfence-h">North pool fence</h3>
+          <h3 class="fl" id="nfence-h">North fence</h3>
           <div class="cards" id="cards-nfence"></div>
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="passage" id="cat-passage">
         <section class="block" aria-labelledby="passage-h">
-          <h3 class="fl" id="passage-h">Side passage surface</h3>
+          <h3 class="fl" id="passage-h">Side path</h3>
           <div class="cards" id="cards-passage"></div>
         </section>
         <section class="block" aria-labelledby="play-h">
-          <h3 class="fl" id="play-h">Kids' play area</h3>
+          <h3 class="fl" id="play-h">Play area</h3>
           <div class="cards" id="cards-play"></div>
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="spa" id="cat-spa">
         <section class="block" aria-labelledby="pump-h">
-          <h3 class="fl" id="pump-h">Pump room under the spa deck</h3>
-          <p class="hint">1.94 x 1.04 m inside with 0.96 m headroom (SK02's floor at −1100). You kneel in it; walk in and you'll crouch.</p>
+          <h3 class="fl" id="pump-h">Pump room</h3>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>1.94 x 1.04 m inside with 0.96 m headroom (SK02's floor at −1100). You kneel in it; walk in and you'll crouch.</p></details>
           <div class="cards" id="cards-pump"></div>
         </section>
       </div>
 
       <footer>
-        <span>The rendered views, the sun plan and the notes and assumptions are on <a href="../renders/">the renders page</a>.</span>
-        <span><a href="../">&larr; Back to the start</a></span>
+        <span>More pictures and notes: <a href="../renders/">the renders page</a>.</span>
       </footer>
     </div>
   </aside>
+  <dialog class="settings" id="settings" aria-labelledby="settings-h">
+    <form method="dialog" class="settings-inner">
+      <div class="settings-head"><h2 id="settings-h">Settings</h2><button class="icon-btn" value="close" aria-label="Close settings" title="Close">&times;</button></div>
+      <div class="field row">
+        <label class="check"><input type="checkbox" id="opt-people" checked> People for scale</label>
+        <label class="check"><input type="checkbox" id="opt-fps"> Frame rate</label>
+      </div>
+      <div class="field">
+        <span class="fl">Picture quality</span>
+        <div class="chips" role="group" aria-label="Picture quality" id="opt-quality"></div>
+      </div>
+      <button type="button" class="linkbtn" id="show-help">How to walk around</button>
+    </form>
+  </dialog>
 </div>
 <script type="module" src="/src/main.ts"></script>
 </body>

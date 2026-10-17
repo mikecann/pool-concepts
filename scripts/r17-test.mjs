@@ -28,9 +28,9 @@ const opt = (k, v) => p.evaluate(([k, v]) => __viewer.setOption(k, v), [k, v]);
 await p.evaluate(() => __viewer.setPanel(true));
 for (const m of ['fly', 'drone']) {
   await p.locator(`#mode-${m}`).click(); await wait(300);
-  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card', { hasText: 'Corner post' }).click(); await wait(2000);
+  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Corner post/ }) }).click(); await wait(2000);
   const after1 = await mode();
-  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card', { hasText: 'Moved' }).click(); await wait(2000);
+  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card').filter({ has: p.locator('b', { hasText: /^Moved/ }) }).click(); await wait(2000);
   const after2 = await mode();
   await p.evaluate(() => __viewer.goToCam('06_sunken_lounge')); await wait(2000);
   const after3 = await mode();
@@ -45,8 +45,8 @@ const where = () => p.evaluate(() => ({ m: __viewer.walker.mode, c: __viewer.cam
 for (const m of ['walk', 'fly', 'drone']) {
   await p.locator(`#mode-${m}`).click(); await wait(800);
   const a = await where();
-  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card', { hasText: 'Two posts' }).click(); await wait(1200);
-  await p.locator('#tab-pool').click(); await p.locator('#cards-roller .card', { hasText: 'Deep end' }).first().click(); await wait(1200);
+  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Two posts/ }) }).click(); await wait(1200);
+  await p.locator('#tab-pool').click(); await p.locator('#cards-roller .card').filter({ has: p.locator('b', { hasText: /^Roller, deep end/ }) }).click(); await wait(1200);
   await p.locator('#sc-existing').click(); await wait(400); await p.locator('#sc-proposed').click(); await wait(800);
   const b2 = await where();
   check(`${m}: cards and Today/Proposed leave the camera and mode alone`, a.m === b2.m && a.c.join() === b2.c.join(), `${a.m} ${a.c.join(',')} -> ${b2.m} ${b2.c.join(',')}`);

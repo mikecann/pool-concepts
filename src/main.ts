@@ -258,7 +258,6 @@ async function main() {
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
     remember({ options: { roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage } });
   };
-  renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
 
   // design choices as cards: each changes the world and moves you to where the change shows
   const cardGroups: (() => void)[] = [];
@@ -266,16 +265,26 @@ async function main() {
     const buttons = items.map(c => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'card';
-      b.innerHTML = `<img src="../img/${c.img}" alt="" loading="lazy" width="104" height="65"><b>${c.title}</b><span>${c.note}</span>`;
+      // Round 17e: a short title and one plain line; the full story (rules, sizes, trade-offs) behind More
+      b.innerHTML = `<img src="../img/${c.img}" alt="" loading="lazy" width="104" height="65"><b>${c.title}</b><span>${c.short ?? c.note}</span>`;
       const pic = b.querySelector('img')!; pic.addEventListener('error', () => pic.classList.add('missing'));   // render not made yet
       b.onclick = () => { pick(c.value); cardGroups.forEach(r => r()); if (mobile.matches) setPanel(false); };
-      box.appendChild(b);
+      const wrap = document.createElement('div'); wrap.className = 'card-wrap';
+      wrap.appendChild(b);
+      const extra = document.createElement('div'); extra.className = 'card-extra';
+      if (c.short && c.note) {
+        const more = document.createElement('details'); more.className = 'card-more';
+        more.innerHTML = `<summary>More</summary><p>${c.note}</p>`;
+        extra.appendChild(more);
+      }
       if (c.link) {
-        // a product page (Round 16): a link under the card, opening in a new tab (not part of the card's button)
+        // a product page (Round 16): small, opening in a new tab (not part of the card's button)
         const a = document.createElement('a');
         a.className = 'card-link'; a.href = c.link.href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${c.link.label} \u2197`;
-        box.appendChild(a);
+        extra.appendChild(a);
       }
+      if (extra.childElementCount) wrap.appendChild(extra);
+      box.appendChild(wrap);
       return b;
     });
     // only the pressed state changes, so the thumbnails never reload
@@ -290,9 +299,22 @@ async function main() {
     cards($(`cards-${id}`), items, () => (model as any)[key], v => { ensureProposed(); (model as any)[key] = v; optChanged(); });
     const box = $(`cards-${id}`), h = box.parentElement!.querySelector('h3');
     const btn = document.createElement('button');
-    btn.type = 'button'; btn.className = 'view-btn'; btn.title = 'Go to the suggested viewpoint for this choice';
-    btn.innerHTML = '<span aria-hidden="true">&#128065;</span> View';
+    btn.type = 'button'; btn.className = 'view-btn icon-btn';
+    btn.setAttribute('aria-label', 'Show me this from a good spot');
+    btn.title = 'Show me this from a good spot';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 9.4 1.5 12c1.2 2.6 5 7 10.5 7s9.3-4.4 10.5-7C21.3 9.4 17.5 5 12 5Zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z"/></svg>';
     btn.onclick = () => { goToCam(view()); if (mobile.matches) setPanel(false); };
+    // the section's longer note (the WA rules, sizes) opens from a small i in the heading, next to the eye
+    const info = box.parentElement!.querySelector<HTMLDetailsElement>('.sec-info');
+    if (info && h) {
+      const note = document.createElement('p'); note.className = 'sec-note'; note.hidden = true; note.id = `${id}-note`;
+      note.innerHTML = info.querySelector('p')!.innerHTML;
+      const ib = document.createElement('button'); ib.type = 'button'; ib.className = 'icon-btn info-btn'; ib.textContent = 'i';
+      ib.setAttribute('aria-expanded', 'false'); ib.setAttribute('aria-controls', note.id); ib.title = 'About this choice'; ib.setAttribute('aria-label', 'About this choice');
+      ib.onclick = () => { note.hidden = !note.hidden; ib.setAttribute('aria-expanded', String(!note.hidden)); };
+      info.replaceWith(note);
+      h.appendChild(ib);
+    }
     h?.appendChild(btn);
   };
   // the roller: look down the pool from the opposite end, as the option renders do (the shallow-end ones sit behind
@@ -321,10 +343,10 @@ async function main() {
   const CATS: { id: string; name: string; summary: () => string }[] = [
     { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
     { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
-    { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · posts: ${title(POST_CHOICES, model.post).toLowerCase()}` },
-    { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · north: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
-    { id: 'passage', name: 'Side passage', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
-    { id: 'spa', name: 'Under the spa', summary: () => `Pump room: ${title(PUMP_CHOICES, model.pump).toLowerCase()}` },
+    { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
+    { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
+    { id: 'passage', name: 'Side path', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · play area ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
+    { id: 'spa', name: 'Pump room', summary: () => title(PUMP_CHOICES, model.pump) },
   ];
   const catTabs = $('cat-tabs');
   let openCat = CATS.some(c => c.id === store.get('pool-cat')) ? store.get('pool-cat')! : 'pool';
@@ -678,7 +700,13 @@ async function main() {
     welcome.hidden = false;
   }
 
-  $('show-help').onclick = () => { welcome.hidden = false; if (mobile.matches) setPanel(false); };
+  // Round 17e: the settings live behind the gear at the top of the panel, in a modal dialog (Esc, the x or a click
+  // outside closes it; the browser keeps keyboard focus inside while it's open)
+  const settingsDlg = $<HTMLDialogElement>('settings');
+  $('settings-btn').onclick = () => settingsDlg.showModal();
+  settingsDlg.addEventListener('click', e => { if (e.target === settingsDlg) settingsDlg.close(); });   // the backdrop
+  settingsDlg.addEventListener('close', () => $('settings-btn').focus());
+  $('show-help').onclick = () => { settingsDlg.close(); welcome.hidden = false; if (mobile.matches) setPanel(false); };
 
   // ---------- gates: E (or the button on phones) opens the one you're facing; pool gates close themselves ----------
   const gateTip = $('gate-tip'), gateBtn = $('gate-btn');

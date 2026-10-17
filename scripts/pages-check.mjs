@@ -50,7 +50,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   await p.evaluate(() => { __viewer.setPanel(true); __viewer.setTime(15 * 60); });
   await frames(p, 30);
   await p.screenshot({ path: `${OUT}/walk_panel.png` });
-  for (const [box, value] of [['cards-roller', 'Low-profile, deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'Aggregate to the play area']]) {
+  for (const [box, value] of [['cards-roller', 'Low roller, deep end'], ['cards-roller', 'Roller, shallow end'], ['cards-kitchen', 'One long bench'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'New paving all the way']]) {
     const before = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
     // Round 15: the cards live in category tabs; open the one that holds this group first
     await p.evaluate(b => document.getElementById(b).closest('.cat-panel') && document.getElementById('tab-' + document.getElementById(b).closest('.cat-panel').dataset.cat).click(), box);
@@ -67,7 +67,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   }
   // the north pool gate: tooltip, then open
   await p.locator('#tab-pool').click();
-  await p.locator('#cards-roller .card', { hasText: 'No roller' }).click();
+  await p.locator('#cards-roller .card', { hasText: 'No pool cover' }).click();
   await p.locator('#tab-fences').click();
   await p.locator('#cards-nfence .card', { hasText: 'As drawn' }).click();
   await p.waitForTimeout(1500);

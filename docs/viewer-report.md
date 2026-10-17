@@ -977,6 +977,23 @@ The model agent's first batch, wired up (viewer only; the-pool untouched, no syn
 
 **Performance:** not measured; Blender was running.
 
+## Round 17e
+
+**A simpler sidebar.**
+- **Settings:** people, frame rate, picture quality and "How to walk around" moved behind a gear at the top of the panel. It opens a native modal `<dialog>`: Esc, the × or a click outside closes it, focus stays inside while it's open and returns to the gear after. The sidebar's duplicate Today/Proposed is gone; the top bar keeps it, on phone too.
+- **Removed:** the "Design choices / Try the options / Pick a part…" intro. The panel starts with "Design options" and the gear.
+- **Categories:** plain names (Pool cover, Hot tub cover, Alfresco, Fences, Side path, Pump room) with a short current choice.
+- **Cards:** every one has a short title (2–4 words) and one plain line of about 8 words (`short` in choices.ts). The full explanation is behind a small "More" under the card. Section notes (the WA pool rules, the pump room's headroom, the roof posts, the spa cover) are behind a small ⓘ in the section heading. The product links stay, smaller.
+- **View buttons:** icon-only (an eye), with a tooltip and aria-label.
+- **Renders page:** unchanged, except that it shares the choices' titles, so its option chips show the shorter titles; its notes are the full text as before.
+
+**Tests:** the page check, settings-test (opens the gear first) and r17-test now pick cards by exact title. The page checks, settings, r16, r17, tools, phone and image checks (223, 0 missing) pass.
+
+**Screenshots (`review/round17e/`):**
+- `before_after_desktop.png`, `before_after_phone.png`
+- `after_desktop_fences.png`
+- `cmp_info_settings.png` (ⓘ and More open, and the settings dialog)
+
 ## Summary
 
 **Round 17:**

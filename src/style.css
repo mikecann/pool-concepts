@@ -310,3 +310,44 @@ ul.assume li::marker { color: var(--accent); }
 
 .card-warn { display: block; margin-top: 4px; font-style: normal; font-weight: 600; color: #b5542a; }
 .card-warn[hidden] { display: none; }
+
+/* ---------- Round 17e: a simpler sidebar ---------- */
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+.panel-title { margin: 0; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; font-size: 18px; }
+.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--rule); background: var(--sheet);
+  color: var(--ink); cursor: pointer; font: inherit; font-size: 20px; line-height: 1; flex: none; }
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn:focus-visible, .card-more summary:focus-visible, .sec-info summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.view-btn.icon-btn { width: 30px; height: 28px; margin: 0; color: var(--accent); }
+.block h3.fl { display: flex; align-items: center; gap: 8px; }
+.block h3.fl .view-btn { margin-left: auto; }
+/* the section's longer note, behind a small i */
+.sec-info { margin: -4px 0 8px; font-size: 13px; color: var(--muted); }
+.sec-info summary { list-style: none; display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--rule);
+  font: italic 600 12px/1 Georgia, serif; color: var(--muted); cursor: pointer; }
+.sec-info summary::-webkit-details-marker { display: none; }
+.sec-info[open] summary { border-color: var(--accent); color: var(--accent); }
+.sec-info p { margin: 6px 0 0; line-height: 1.4; }
+/* cards: thumbnail, a short title, one line; More opens the full story */
+.card-wrap { display: grid; }
+.card span { font-size: 13px; }
+.card-extra { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; padding: 2px 6px 0; }
+.card-more { font-size: 12.5px; color: var(--muted); flex: 1 1 100%; order: 2; }
+.card-more summary { cursor: pointer; width: max-content; color: var(--accent); }
+.card-more p { margin: 4px 0 2px; line-height: 1.4; }
+.card-link { margin: 0; font-size: 12px; justify-self: auto; }
+/* the settings dialog */
+.settings { border: 1px solid var(--rule); padding: 0; background: var(--paper, var(--sheet)); color: var(--ink); width: min(360px, calc(100vw - 32px)); }
+.settings::backdrop { background: rgba(0, 0, 0, .35); }
+.settings-inner { display: grid; gap: 14px; padding: 14px 16px 16px; }
+.settings-head { display: flex; align-items: center; justify-content: space-between; }
+.settings-head h2 { margin: 0; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-size: 18px; }
+.settings .linkbtn { justify-self: start; }
+
+.info-btn.icon-btn { width: 24px; height: 24px; border-radius: 50%; font: italic 600 13px/1 Georgia, serif; color: var(--muted); margin-left: auto; }
+.info-btn[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.info-btn + .view-btn { margin-left: 0; }
+.sec-note { margin: -2px 0 10px; font-size: 13px; line-height: 1.4; color: var(--muted); }
+.card-extra { padding: 0 6px; margin-top: -2px; }
+.card-more summary { font-size: 12px; }
+.block h3.fl .info-btn + .view-btn { margin-left: 0; }

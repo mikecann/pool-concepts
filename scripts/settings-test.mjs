@@ -31,12 +31,15 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   check('the old saved time is gone from the saved settings', await p.evaluate(() => { const o = JSON.parse(localStorage.getItem('pool-settings') ?? '{}'); return o.minutes === undefined && o.date === undefined; }));
   // change things: options are remembered, the time and date are not
   await p.evaluate(() => { __viewer.setPanel(true); });
+  // Round 17e: these live behind the gear
+  await p.locator('#settings-btn').click();
   await p.locator('#opt-quality button', { hasText: /^Low$/ }).click();
   await p.locator('#opt-fps').uncheck();
   await p.locator('#opt-people').uncheck();
-  await p.locator('#tab-pool').click(); await p.locator('#cards-roller .card', { hasText: 'Low-profile' }).click();
-  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card', { hasText: 'Moved' }).click();
-  await p.locator('#tab-passage').click(); await p.locator('#cards-passage .card', { hasText: 'play area' }).click();
+  await p.keyboard.press('Escape');
+  await p.locator('#tab-pool').click(); await p.locator('#cards-roller .card').filter({ has: p.locator('b', { hasText: /^Low roller/ }) }).click();
+  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card').filter({ has: p.locator('b', { hasText: /^Moved/ }) }).click();
+  await p.locator('#tab-passage').click(); await p.locator('#cards-passage .card').filter({ has: p.locator('b', { hasText: /^New paving/ }) }).click();
   // the inset fence card warns while a kitchen is chosen, not with none
   await p.locator('#tab-fences').click();
   const warnNone = await p.locator('#cards-pier .card-warn').isVisible();
