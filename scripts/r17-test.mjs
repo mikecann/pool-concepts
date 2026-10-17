@@ -28,9 +28,9 @@ const opt = (k, v) => p.evaluate(([k, v]) => __viewer.setOption(k, v), [k, v]);
 await p.evaluate(() => __viewer.setPanel(true));
 for (const m of ['fly', 'drone']) {
   await p.locator(`#mode-${m}`).click(); await wait(300);
-  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Corner post/ }) }).click(); await wait(2000);
+  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Corner post$/ }) }).click(); await wait(2000);
   const after1 = await mode();
-  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card').filter({ has: p.locator('b', { hasText: /^Moved/ }) }).click(); await wait(2000);
+  await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card').filter({ has: p.locator('b', { hasText: /^Moved 1.5 m north$/ }) }).click(); await wait(2000);
   const after2 = await mode();
   await p.evaluate(() => __viewer.goToCam('06_sunken_lounge')); await wait(2000);
   const after3 = await mode();

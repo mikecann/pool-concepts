@@ -55,6 +55,8 @@ const POSTS = [
     <p>The west beam runs over the post and cantilevers 1.65 m to the south edge, so nothing stands on the side facing the pool and lounge. The post sits about where you'd step from the alfresco onto the coping, and the cantilevered corner is the part most exposed to wind uplift.</p>`],
   ["post_two", "Two posts", `<b>Two posts on the south side</b>
     <p>Shorter spans than the corner post, with nothing on the pier. Two posts along the lounge's edge, though: the west one 0.11 m from the lounge coping, the east one 1.0 m from the benchtops.</p>`],
+  ["post_corner_steps", "Corner post, steps moved", `<b>A corner post, with the lounge steps moved</b>
+    <p>One post right at the roof's south-west corner, standing on the lounge's north wall, with only the west-edge beam. The lounge's north-west steps move 0.45 m east so the flight is clear of the post, and the north bench gets about 0.5 m shorter. The post is 0.5 m from the pool coping. With the lounge kitchen, its west end sits at the head of the moved steps, leaving 0.77 m of the flight open.</p>`],
 ];
 const PUMP = [
   ["pump_doors", "Slatted doors", `<b>Slatted doors</b>
@@ -77,7 +79,7 @@ const DAY = {
 };
 const DAYV = [["15_lounge_from_alfresco", "Over the lounge"], ["06_sunken_lounge", "In the lounge"], ["04_from_kitchen_door", "Kitchen door"]];
 const NIGHTV = [["13_deep_end_to_house", "Deep end"], ["14_spa_to_canal", "Spa deck"], ["16_outdoor_kitchen", "Outdoor kitchen"], ["17_pool_overview", "From above"], ["01_canal_view", "From the canal"]];
-// the main renders are 16 Jan at 2:45 pm, still with the split kitchen (not re-rendered for the no-kitchen default) and no roller
+// the main renders are 16 Jan at 2:45 pm with no kitchen and no roller
 const RENDER_TIME = { date: "2027-01-16", minutes: 14 * 60 + 45 };
 const SEASON_DATE = { summer: "2027-01-16", winter: "2027-06-21" } as const;
 const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
@@ -99,6 +101,10 @@ const POST_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitch
 const PUMP_VIEWS = [['22_pump_room', 'Inside'], ['09_promenade_west', 'From the promenade']];
 // the lounge kitchen's renders come with the post layout: show it with SK02's post
 const kitchenSrc = (o: string, v: string) => `img/options_${v}_${o === 'kitchen_lounge' ? 'kitchen_lounge_post_as_drawn' : o}.jpg`;
+// Round 18b: the dusk and times-of-day images are being re-rendered without the kitchen; until they're synced they
+// show the old split kitchen, so they say so and open in 3D with it. Set these to false once the new images are in.
+const OLD_KITCHEN = { day: false, dusk: false };
+const oldKitchenNote = '<p class="hint stale">The kitchen in these pictures is the old split-by-the-gate layout; new ones without it are on the way.</p>';
 const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner', 'North-west corner'], ['12_from_pavilion', 'From the pavilion']];
 
 /** Every image the panel can show (used to check nothing 404s after a sync). */
@@ -141,7 +147,7 @@ const HTML = /* html */ `
     <button class="fly" id="v-fly" type="button">Open in 3D</button>
   </div>
   <span class="desc hint" id="vdesc"></span>
-  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. The outdoor kitchen isn't decided: these views show the split-by-the-gate layout, one of the options below.</p>
+  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. No outdoor kitchen is shown: it isn't decided yet (see the options below).</p>
   <div class="strip" id="strip" role="list"></div>
 </section>
 
@@ -160,7 +166,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Options to decide</span>
   <h2>Outdoor kitchen</h2>
-  <p>Not decided yet: no kitchen, one of three layouts along the alfresco's east fence, or a bench facing the lounge. The built-in ones are charcoal cabinets 900 mm high with a pale concrete top, a 900 mm BBQ and a dome oven about 0.73 m wide. The main views above still show the split-by-the-gate layout.</p>
+  <p>Not decided yet: no kitchen, one of three layouts along the alfresco's east fence, or a bench facing the lounge. The built-in ones are charcoal cabinets 900 mm high with a pale concrete top, a 900 mm BBQ and a dome oven about 0.73 m wide.</p>
 </div>
 <section class="block" aria-label="Kitchen options">
   <div class="fstage"><img id="k-img" alt=""><span class="tag l" id="k-tag"></span><button class="fly" id="k-fly" type="button">Open in 3D</button></div>
@@ -233,6 +239,7 @@ const HTML = /* html */ `
   <span class="label">Where we sit</span>
   <h2>The lounge through the day</h2>
   <p>The same three views at different times, with the sun calculated for Geographe. After sunset the lighting is switched on.</p>
+  ${OLD_KITCHEN.day ? oldKitchenNote : ''}
 </div>
 <section class="block" aria-label="Time of day">
   <div class="fstage"><img id="d-img" alt=""><span class="tag l" id="d-tag"></span><button class="fly" id="d-fly" type="button">Open in 3D</button></div>
@@ -253,6 +260,7 @@ const HTML = /* html */ `
   <span class="label">Lighting</span>
   <h2>After dark</h2>
   <p>Mid-January, twenty minutes after sunset, with every light on. Warm white (about 2700 K) everywhere except the pool and spa. The lounge itself is in the day series above at 7:40 pm and 9:00 pm.</p>
+  ${OLD_KITCHEN.dusk ? oldKitchenNote : ''}
 </div>
 <section class="block" aria-label="After dark">
   <div class="fstage"><img id="n-img" alt=""><span class="tag l" id="n-tag">Dusk, 7:40 pm</span><button class="fly" id="n-fly" type="button">Open in 3D</button></div>
@@ -407,7 +415,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   $('m-today').onclick = () => { mode = 'today'; applyMode(); };
   $('m-compare').onclick = () => { mode = 'compare'; applyMode(); };
   $('m-proposed').onclick = () => { mode = 'proposed'; applyMode(); };
-  $('v-fly').onclick = () => fly({ cam: VIEWS[current][0], scenario: mode === 'today' ? 'existing' : 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split' });
+  $('v-fly').onclick = () => fly({ cam: VIEWS[current][0], scenario: mode === 'today' ? 'existing' : 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none' });
 
   // ---------- option pickers ----------
   type Picker = { opts: string[][]; optBox?: HTMLElement; viewBox: HTMLElement; img: string; tag: string; note?: string; views: string[][];
@@ -434,29 +442,29 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: ROLLER, optBox: $('r-opts'), viewBox: $('r-views'), img: 'r-img', tag: 'r-tag', note: 'r-note', flyBtn: 'r-fly',
     views: ROLLER_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_split' }) });
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_none' }) });
   picker({ opts: PLAY, optBox: $('pl-opts'), viewBox: $('pl-views'), img: 'pl-img', tag: 'pl-tag', note: 'pl-note', flyBtn: 'pl-fly',
     views: PLAY_VIEWS, src: (o, v) => I + playSrc(o, v).replace(/^img\//, ''),
-    onFly: (o, v) => { const c = PLAY.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', play: c[3], passage: c[4] }); } });
+    onFly: (o, v) => { const c = PLAY.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', play: c[3], passage: c[4] }); } });
   picker({ opts: PIER, optBox: $('p-opts'), viewBox: $('p-views'), img: 'p-img', tag: 'p-tag', note: 'p-note', flyBtn: 'p-fly',
     views: PIER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pier: o }) });
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pier: o }) });
   picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
     views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => { const c = SIDE.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', nfence: c[3], passage: c[4] }); } });
+    onFly: (o, v) => { const c = SIDE.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });
   picker({ opts: KITCHEN, optBox: $('k-opts'), viewBox: $('k-views'), img: 'k-img', tag: 'k-tag', note: 'k-note', flyBtn: 'k-fly',
     views: KITCHEN_VIEWS,
     src: (o, v) => I + kitchenSrc(o, v).replace(/^img\//, ''),
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
   picker({ opts: POSTS, optBox: $('po-opts'), viewBox: $('po-views'), img: 'po-img', tag: 'po-tag', note: 'po-note', flyBtn: 'po-fly',
     views: POST_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', post: o }) });
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: o }) });
   picker({ opts: PUMP, optBox: $('pu-opts'), viewBox: $('pu-views'), img: 'pu-img', tag: 'pu-tag', note: 'pu-note', flyBtn: 'pu-fly',
     views: PUMP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pump: o }) });
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pump: o }) });
   picker({ opts: [['dusk', 'Dusk, 7:40 pm']], viewBox: $('n-views'), img: 'n-img', tag: 'n-tag', flyBtn: 'n-fly', views: NIGHTV,
     src: (o, v) => `${I}night_${v}_${o}.jpg`,
-    onFly: (_o, v) => fly({ cam: v, scenario: 'proposed', date: '2027-01-16', minutes: 19 * 60 + 40, roller: 'none', kitchen: 'kitchen_split' }) });
+    onFly: (_o, v) => fly({ cam: v, scenario: 'proposed', date: '2027-01-16', minutes: 19 * 60 + 40, roller: 'none', kitchen: OLD_KITCHEN.dusk ? 'kitchen_split' : 'kitchen_none' }) });
 
   // ---------- the lounge through the day ----------
   const D = { season: 'summer' as keyof typeof DAY, t: 2, v: 0 };
@@ -473,7 +481,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   };
   $('d-summer').onclick = () => { D.season = 'summer'; renderDay(); };
   $('d-winter').onclick = () => { D.season = 'winter'; renderDay(); };
-  $('d-fly').onclick = () => fly({ cam: DAYV[D.v][0], scenario: 'proposed', date: SEASON_DATE[D.season], minutes: hhmm(DAY[D.season][D.t][0]), roller: 'none', kitchen: 'kitchen_split' });
+  $('d-fly').onclick = () => fly({ cam: DAYV[D.v][0], scenario: 'proposed', date: SEASON_DATE[D.season], minutes: hhmm(DAY[D.season][D.t][0]), roller: 'none', kitchen: OLD_KITCHEN.day ? 'kitchen_split' : 'kitchen_none' });
   renderDay();
   warmNear($('d-img'), Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `${I}times_${v}_${season}_${key}.jpg`))));
 

@@ -1018,6 +1018,14 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 
 **Performance:** not measured; Blender was running.
 
+## Round 18b
+
+- **post_corner_steps**: new Alfresco post card, "Corner post, steps moved". The kitchen_lounge interaction (kitchen's west end at the head of the moved steps, 0.77 m of the flight open) is in its More text, with no warning. Renders page lists it at 10, 04, 15 and 06.
+- **Renders page**: main views say no kitchen is shown; round 18's split-layout note is gone and Open in 3D uses kitchen_none again. "The lounge through the day" and "After dark" still show the old split kitchen, so they carry a note and open with kitchen_split until fresh images land: flip `OLD_KITCHEN` in src/gallery.ts to false then.
+- **3D checks** (review/round18b): ribbed Smart Span roof reads from above and below; the house rear wall stops under the roof; straight pier fence kink and height look right.
+- **Ribbed roof cost**: Medium alfresco 537 draws / 2685k tris vs 539 / 2683k in round 17, so no measurable change. Fps skipped (Blender running).
+- r17-test title filters made exact ("Corner post" now has a sibling). Full suite passes; check-images 234, 0 missing, 1 awaiting (pavilion kitchen_lounge).
+
 ## Summary
 
 **Round 17:**
