@@ -460,9 +460,41 @@
   "name": "pump_room_light",
   "type": "AREA",
   "position": [
-   -0.76342,
+   -0.76376,
    2.188,
-   10.81909
+   10.82408
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.95,
+   0.88
+  ],
+  "power": 25.0,
+  "dayPower": 25.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.56,
+  "sizeY": 0.05,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ]
+ },
+ {
+  "name": "pump_room_light_1",
+  "type": "AREA",
+  "position": [
+   1.91078,
+   2.188,
+   11.14001
   ],
   "direction": [
    0.0,
