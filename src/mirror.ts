@@ -8,6 +8,8 @@ import { positionWorld, texture, uniform, vec2, vec4 } from 'three/tsl';
 
 /** Layer the far tree canopies live on (as well as being drawn by the main camera). */
 export const FAR_LAYER = 2;
+/** Overlays drawn on top of the view (the tape measure): the main camera only. */
+export const OVERLAY_LAYER = 3;
 
 const _frustum = new Frustum(), _m = new Matrix4(), _box = new Box3();
 
@@ -58,6 +60,7 @@ export class Mirror {
     const c = this.cam;
     c.copy(camera, false);
     if (!this.farTrees) c.layers.disable(FAR_LAYER);
+    c.layers.disable(OVERLAY_LAYER);   // the tape measure isn't reflected
     // mirror the camera in y = level
     const p = camera.position, L = this.level;
     c.position.set(p.x, 2 * L - p.y, p.z);

@@ -3,8 +3,8 @@
 //   Medium:       the same with the cheapest SSGI preset at a lower pixel ratio
 //   Low:          scene pass -> bloom (phones)
 // Tone mapping (AgX) and exposure are applied by the pipeline's output transform.
-import { RenderPipeline, UnsignedByteType, type PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
-import { diffuseColor, float, max, mix, step, packNormalToRGB, pow, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
+import { Color, RenderPipeline, UnsignedByteType, type PerspectiveCamera, type Scene, type WebGPURenderer } from 'three/webgpu';
+import { exp, screenUV, sin, time, vec2, vec3, diffuseColor, float, max, mix, step, packNormalToRGB, pow, unpackRGBToNormal, mrt, normalView, output, pass, sample, uniform, vec4, velocity } from 'three/tsl';
 import { ssgi } from 'three/addons/tsl/display/SSGINode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -30,10 +30,23 @@ const LOOK = Number(new URLSearchParams(location.search).get('look') ?? 1.2);
 export class Post {
   /** The tone-mapping exposure, so the look pivots on mid grey as displayed (set with renderer.toneMappingExposure). */
   readonly exposureU = uniform(1);
+  /** Round 15: 1 while the eye is under the pool or spa surface (set every frame), and the colour of the lit water. */
+  readonly underU = uniform(0);
+  readonly waterFogU = uniform(new Color(0.06, 0.22, 0.26));
   private look(c: any) {
-    if (LOOK === 1) return c;
+    // under water: everything tinted teal, fading into the lit water body with distance, with a soft shimmer of
+    // caustic light. Cheap: one depth read; the branch is uniform, so above water it costs nothing.
+    const dist = this.scenePass.getViewZNode().negate();
+    const fog = float(1).sub(exp(dist.mul(-0.32)));
+    const uv0 = screenUV.mul(vec2(7, 4));
+    const shimmer = sin(uv0.x.mul(6.3).add(time.mul(1.7)).add(sin(uv0.y.mul(5.1).sub(time.mul(1.3))).mul(1.6)))
+      .mul(sin(uv0.y.mul(7.7).sub(time.mul(1.1)).add(sin(uv0.x.mul(4.3).add(time)).mul(1.4)))).mul(0.5).add(0.5);
+    const tinted = c.rgb.mul(vec3(0.42, 0.82, 0.86)).mul(float(0.9).add(shimmer.pow(3).mul(0.35)));
+    const under = mix(tinted, this.waterFogU, fog);
+    const col = mix(c.rgb, under, this.underU);
+    if (LOOK === 1) return vec4(col, c.a);
     const e = this.exposureU;
-    return vec4(pow(max(c.rgb.mul(e).div(0.18), float(1e-6)), float(LOOK)).mul(0.18).div(e), c.a);
+    return vec4(pow(max(col.mul(e).div(0.18), float(1e-6)), float(LOOK)).mul(0.18).div(e), c.a);
   }
 
   pipeline: RenderPipeline;

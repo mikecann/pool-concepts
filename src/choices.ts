@@ -15,6 +15,7 @@ export const KITCHEN_CHOICES: Choice[] = [
   { value: 'kitchen_split', title: 'Split by the gate', note: "Keeps SK02's gate: a 2.4 m bench with the pizza oven north of it, the BBQ cabinet south of it.", img: 'card_kitchen_split.jpg', src: 'options_16_outdoor_kitchen_kitchen_split.jpg' },
   { value: 'kitchen_continuous', title: 'One long bench', note: 'The gate moves about 1 m south so the cabinets run unbroken for 3.3 m. The most workspace.', img: 'card_kitchen_continuous.jpg', src: 'options_16_outdoor_kitchen_kitchen_continuous.jpg' },
   { value: 'kitchen_freestanding', title: 'Freestanding', note: 'A BBQ on a trolley and the oven on a stainless table. The cheapest, and the least bench space.', img: 'card_kitchen_freestanding.jpg', src: 'options_16_outdoor_kitchen_kitchen_freestanding.jpg' },
+  { value: 'kitchen_none', title: 'No outdoor kitchen', note: 'No kitchen at all: the alfresco stays open, and the gate stays where SK02 has it.', img: 'card_kitchen_none.jpg', src: 'options_16_outdoor_kitchen_kitchen_none.jpg' },
 ];
 
 export const FENCE_CHOICES: Choice[] = [

@@ -37,8 +37,8 @@ export type SunState = { az: number; el: number; dir: Vector3; day: number; nigh
 const DUSK_MIE = Number(new URLSearchParams(location.search).get('duskmie') ?? 0.3);
 const DUSK_ENV = Number(new URLSearchParams(location.search).get('duskenv') ?? 0.4);
 const DUSK_FOG = Number(new URLSearchParams(location.search).get('duskfog') ?? 0.2);
-const MOON = Number(new URLSearchParams(location.search).get('moon') ?? 0.1);
-const MOON_DIR = new Vector3(0.45, 0.78, -0.43).normalize();
+const MOON = Number(new URLSearchParams(location.search).get('moon') ?? 1);
+const MOON_FILL = Number(new URLSearchParams(location.search).get('moonfill') ?? 10);
 const CLOUDS = new URLSearchParams(location.search).has('clouds');
 /** Round 10 day sky radiance multiplier (see set()). */
 const SKY_X = Number(new URLSearchParams(location.search).get('skyx') ?? 4);
@@ -174,7 +174,7 @@ export class Atmosphere {
     // (Mie) scattering with the sun held just under the horizon made that halo, so it fades out through dusk
     // and the sky light on the scene through dusk: Preetham's sky with the sun held at -1.2 deg still lit the far bank's
     // white walls like late afternoon at 19:40, where Cycles' multiple-scattering sky has them as dark silhouettes
-    this.scene.environmentIntensity = lerp(1, DUSK_ENV, smooth(3, -2, el) * (1 - smooth(-7, -11, el)));
+    this.scene.environmentIntensity = lerp(1, DUSK_ENV, smooth(3, -2, el) * (1 - smooth(-7, -11, el))) * (1 + MOON_FILL * MOON * smooth(-4, -10, el));
     for (const sk of [this.sky, this.envSky]) sk.mieCoefficient.value = SKY.mieCoefficient * lerp(DUSK_MIE, 1, smooth(-2, 4, el));
 
     // the sun: Preetham extinction for colour and strength, normalised so the noon sun is white at 6.5
@@ -189,13 +189,11 @@ export class Atmosphere {
     this.farSun.intensity = strength;
     this.farSun.position.copy(st.dir).multiplyScalar(100);
     this.farSun.updateMatrixWorld(); this.farSun.target.updateMatrixWorld();
-    // Round 14: moonlight. After dusk the same light (no new light: the light set stays fixed) becomes a dim, cool
-    // moon high in the north-east, so the yard reads as dim shapes with soft moon shadows rather than near black
-    // (Today has no garden lights at all). ?moon=0 for none.
-    const moonK = MOON * smooth(-4, -10, el);
-    this.lightDir.copy(el < -3 ? MOON_DIR : st.dir);
-    this.sun.intensity = strength + moonK;
-    if (moonK > 0 && strength < 0.001) this.sun.color.setRGB(0.72, 0.82, 1.0);
+    // Round 14/15: moonlight, as a fill. The night sky's light on the yard is raised (a cool, soft moonlit fill: the
+    // yard reads as dim shapes; Today has no garden lights at all). It used to be the sun light turned into a moon,
+    // but moving that light's direction at dusk cost 50-100 ms frames in the dusk scrub. ?moon=0 for none.
+    this.lightDir.copy(st.dir);
+    this.sun.intensity = strength;
     // the sun stays in the scene at night with zero intensity: hiding it changes every shader's light set
     this.sun.visible = LIGHT_SWAP_ATM ? strength > 0.001 : true;   // never toggles
     this.sunIntensityU.value = strength;

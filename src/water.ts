@@ -5,11 +5,11 @@
 // What you see *through* the surface is added as emission: the scene behind it from the viewport colour
 // buffer, offset by the ripples, absorbed per colour channel by the depth of water the ray travels through,
 // plus light scattered back out of the water body.
-import { Color, MeshStandardNodeMaterial, Vector2 } from 'three/webgpu';
+import { Color, DoubleSide, MeshStandardNodeMaterial, Vector2 } from 'three/webgpu';
 import {
-  abs, cameraNear, cameraFar, cameraPosition, clamp, cos, dot, exp, float, Fn, If, length, Loop, max, mix, mx_noise_vec3, mx_worley_noise_vec2,
+  abs, cameraNear, mx_noise_float, cameraFar, cameraPosition, clamp, cos, dot, exp, float, Fn, If, length, Loop, max, mix, mx_noise_vec3, mx_worley_noise_vec2,
   modelWorldMatrix, normalLocal, normalize, normalWorld, perspectiveDepthToViewZ, transformDirection, vertexStage, positionView, positionWorld, pow, screenUV, sin, smoothstep, time,
-  transformNormalToView, uniform, specularColor, specularColorBlended, specularF90, diffuseColor, metalness, vec2, vec3, viewportDepthTexture, viewportSharedTexture, select,
+  transformNormalToView, frontFacing, uniform, specularColor, specularColorBlended, specularF90, diffuseColor, metalness, vec2, vec3, viewportDepthTexture, viewportSharedTexture, select,
 } from 'three/tsl';
 import type { Atmosphere } from './atmosphere';
 import type { Mirror } from './mirror';
@@ -41,6 +41,7 @@ const OLD_PRESETS: Record<WaterKind, {
 /** How much of the pool floor shows through (Round 8): a Mondo-blue body veils it, as in Cycles. ?veil=0 for the old clear water. */
 /** The canal: how far the swell bends the reflection (0.35 smeared the far bank into blobs), and its strength. */
 const CANAL_WOBBLE = Number(new URLSearchParams(location.search).get('wobble') ?? 0.15);
+const TUB_GLOW = Number(new URLSearchParams(location.search).get('tubglow') ?? 0.012);
 const MURK_COL = (new URLSearchParams(location.search).get('murkcol') ?? '0.035,0.06,0.085').split(',').map(Number) as [number, number, number];
 const MURK = Number(new URLSearchParams(location.search).get('murk') ?? 0.8);
 const STREAK_LEN = Number(new URLSearchParams(location.search).get('streaklen') ?? 0.012);
@@ -67,7 +68,8 @@ const PRESETS: Record<WaterKind, Preset> = new URLSearchParams(location.search).
   { absorb: [0.55, 0.16, 0.1], scatter: [0.004, 0.03, 0.05], rough: 0.015, refract: 0.03,
     waves: [[0.4, 2.3, 0.0009, 0.9, 0], [2.1, 1.4, 0.0005, 1.3, 0], [4.0, 0.8, 0.00022, 1.8, 0], [5.3, 0.45, 0.0001, 2.5, 0]],
     detail: 0.003, detailScale: 2.2, detailSpeed: 0.35, caustic: 1, veil: VEIL, body: [0.09, 0.2, 0.32] },
-  spa: CYCLES ? { absorb: [0.315, 0.14, 0.12], scatter: [0.001, 0.004, 0.006], rough: 0.03, refract: 0.04,
+  spa: CYCLES ? { absorb: [0.95, 0.24, 0.2],   // Round 15: a hot tub's aqua (was Cycles' 0.315, 0.14, 0.12)
+    scatter: [0.001, 0.004, 0.006], rough: 0.03, refract: 0.04,
     waves: [[0.9, 0.7, 0.0012, 2.0, 0], [2.7, 0.45, 0.0008, 2.6, 0], [4.6, 0.3, 0.0005, 3.2, 0]],
     detail: 0.035, detailScale: 5.5, detailSpeed: 1.0, caustic: 1 } :
   { absorb: [1.05, 0.3, 0.17], scatter: [0.005, 0.034, 0.055], rough: 0.03, refract: 0.04,
@@ -97,7 +99,33 @@ function slope(kind: WaterKind) {
   });
 }
 
-export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror | null) {
+/**
+ * Round 15: the hot tub running. Four jets near the wall boil up foam that drifts and breaks up, a fine fizz of
+ * bubbles over the surface, and a churned surface that's rougher near the jets. All in the surface shader.
+ * Returns the foam cover (0..1) and an extra surface slope. ?tub0=1 for the plain spa water.
+ */
+function hotTub(tub: { cx: number; cz: number; r: number }) {
+  const p = positionWorld.xz, c = vec2(tub.cx, tub.cz);
+  let jets: any = float(0);
+  for (let i = 0; i < 4; i++) {
+    const a = i * Math.PI / 2 + 0.6, jx = tub.cx + Math.cos(a) * (tub.r - 0.14), jz = tub.cz + Math.sin(a) * (tub.r - 0.14);
+    const d = p.sub(vec2(jx, jz));
+    jets = jets.add(exp(dot(d, d).mul(-7)));
+  }
+  const rad = length(p.sub(c)).div(tub.r);
+  // swirling flow: sample the noise in coordinates that turn slowly round the tub
+  const ang = time.mul(0.25);
+  const q = vec2(p.x.mul(cos(ang)).sub(p.y.mul(sin(ang))), p.x.mul(sin(ang)).add(p.y.mul(cos(ang))));
+  const churn = mx_noise_vec3(vec3(q.mul(7), time.mul(1.6)));
+  const froth = mx_noise_float(vec3(q.mul(34), time.mul(2.6))).mul(0.5).add(0.5).mul(mx_noise_float(vec3(q.mul(9), time.mul(1.1))).mul(0.4).add(0.8));
+  const fizz = mx_noise_float(vec3(p.mul(110), time.mul(5))).mul(0.5).add(0.5);
+  const near = jets.min(1).add(smoothstep(0.85, 1.0, rad).mul(0.12));
+  const foam = smoothstep(0.3, 0.75, froth.mul(near.mul(1.25))).add(smoothstep(0.7, 0.82, fizz).mul(0.3)).clamp(0, 1);
+  const slopeAdd = churn.xy.mul(float(0.09).add(near.mul(0.18)));
+  return { foam, slopeAdd };
+}
+
+export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror | null, tub?: { cx: number; cz: number; r: number }) {
   const P = PRESETS[kind];
   const m = new MeshStandardNodeMaterial();
   m.transparent = true;   // drawn after the opaque scene so the viewport buffer holds what's underneath
@@ -108,8 +136,15 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
   (m as any).ior = 1.33;
   if (P.glint === 0) (m as any).specularIntensity = 0;   // no sun glitter; the mirror and Fresnel do the work
   m.colorNode = vec3(0);
+  if (kind !== 'canal') m.side = DoubleSide;   // Round 15: the surface seen from under the water
 
-  const g = slope(kind)(positionWorld.xz);
+  const T0 = tub && !new URLSearchParams(location.search).has('tub0') ? hotTub(tub) : null;
+  const g = T0 ? slope(kind)(positionWorld.xz).add(T0.slopeAdd) : slope(kind)(positionWorld.xz);
+  if (T0) {
+    // foam is a lit, rough white surface; clear water stays a mirror
+    m.colorNode = vec3(0.82, 0.86, 0.87).mul(T0.foam);
+    m.roughnessNode = mix(float(P.rough), float(0.7), T0.foam);
+  }
   const nWorld = normalize(vec3(g.x.negate(), 1, g.y.negate()));
   m.normalNode = transformNormalToView(nWorld);
 
@@ -161,13 +196,22 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
       const deep = float(1).sub(exp(thickness.mul(-0.9)));
       seen = mix(seen, vec3(...P.body!).mul(ambient), deep.mul(P.veil));
     }
-    const through = seen.mul(float(1).sub(F));
+    let through = seen.mul(float(1).sub(F));
+    if (T0) {
+      // foam hides the water below; at dusk and night the spa light glows cyan through the clear water
+      through = through.mul(float(1).sub(T0.foam.mul(0.9))).add(vec3(0.1, 0.55, 0.62).mul(atm.nightU).mul(TUB_GLOW).mul(float(1).sub(T0.foam.mul(0.6))));
+    }
     // the canal mirror's sky is a touch dimmer than the real one, as Cycles shows it (the far bank stays the brightest)
     // Round 11: murky canal water tints what it reflects (Cycles' canal_water absorbs into #17463F), rather than
     // just dimming it: the far bank's trees come back dark and the sky mid-blue, not near-white
     const canalR = reflection && CANAL_TINT ? mix(reflection, vec3(dot(reflection, vec3(0.2126, 0.7152, 0.0722))), 0.35).mul(vec3(...CANAL_TINT)) : reflection;
     const r = reflection && kind === 'canal' ? (CANAL_TINT ? canalR : reflection.mul(CANAL_REFLECT)) : reflection;
-    return r ? through.add(r.mul(F).mul(mirror!.on)) : through;
+    const above = r ? through.add(r.mul(F).mul(mirror!.on)) : through;
+    if (kind === 'canal') return above;
+    // Round 15: from under the water you see the surface from below: a bright, rippling teal window (Snell's window
+    // of the sky in the middle, the pool's own walls reflected at the edges, folded into one tone here)
+    const below = vec3(0.12, 0.36, 0.4).mul(ambient.mul(5).add(0.004)).mul(float(0.75).add(abs(g.x).add(abs(g.y)).mul(40).min(0.5)));
+    return select(frontFacing, above, below);
   })();
   m.userData.waterKind = kind;
   return m;

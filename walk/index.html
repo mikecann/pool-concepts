@@ -29,8 +29,10 @@
       <div class="hud-right">
         <div class="seg" role="group" aria-label="Camera mode">
           <button id="mode-walk" aria-pressed="true">Walk</button>
+          <button id="mode-fly" aria-pressed="false">Fly</button>
           <button id="mode-drone" aria-pressed="false">Drone</button>
         </div>
+        <button class="hud-btn tool" id="measure-btn" aria-pressed="false" title="Tape measure (M)"><span class="long">Measure</span><span class="short">&#8596;</span></button>
         <label class="sr" for="goto">Go to a viewpoint</label>
         <select id="goto" class="hud-select"><option value="">Go to…</option></select>
         <button class="hud-btn" id="panel-toggle" aria-expanded="true" aria-controls="panel"><span class="open-label"><span class="long">Options &amp; views</span><span class="short">Options</span></span><span class="close-label">Hide panel</span></button>
@@ -38,6 +40,9 @@
     </header>
 
     <div class="hint-pill" id="hint" hidden></div>
+    <div class="measure-bar" id="measure-bar" hidden><span id="measure-text">Click two points to measure</span><button type="button" id="measure-clear">Clear</button><button type="button" id="measure-done">Done</button></div>
+    <div class="measure-labels" id="measure-labels" aria-live="polite"></div>
+    <div class="fly-pad" id="fly-pad" hidden><button type="button" id="fly-up" aria-label="Fly up">&#9650;</button><button type="button" id="fly-down" aria-label="Fly down">&#9660;</button></div>
     <div class="gate-tip" id="gate-tip" hidden></div>
     <button type="button" class="gate-btn" id="gate-btn" hidden>Open the gate</button>
     <div class="status-pill mono" id="status" hidden></div>
@@ -48,11 +53,16 @@
         <li><b>Click</b> the view to look around with the mouse</li>
         <li><b>W A S D</b> or the <b>arrow keys</b> to walk</li>
         <li><b>Shift</b> to run</li>
+        <li><b>Fly</b> mode: <b>Space</b> or <b>E</b> up, <b>C</b> or <b>Q</b> down</li>
+        <li><b>M</b> for the tape measure: click two points</li>
+        <li>In the pool, <b>C</b> ducks under; <b>Space</b> at the wall climbs out</li>
         <li><b>Esc</b> to stop looking and get your mouse back</li>
       </ul>
       <ul class="keys phone">
         <li>The <b>stick</b> bottom left to walk</li>
         <li><b>Drag</b> anywhere else to look</li>
+        <li><b>Fly</b> mode: the arrows on the right go up and down</li>
+        <li><b>&#8596;</b> is a tape measure: tap two points</li>
       </ul>
       <p class="hint">The slider at the bottom sets the time of day.<span class="desk-only"> Near a gate, press <b>E</b> to open it, and <b>Space</b> hops.</span><span class="phone-only"> Near a gate, tap the button that appears to open it.</span></p>
       <button type="button" id="welcome-ok">Got it</button>
@@ -112,33 +122,49 @@
       <div class="section-head">
         <span class="label">Design choices</span>
         <h2>Try the options</h2>
-        <p>Pick one and the view moves to where you can see it.</p>
+        <p>Pick a part of the design, then an option: the view moves to where you can see it.</p>
       </div>
-      <section class="block" aria-labelledby="roller-h">
-        <h3 class="fl" id="roller-h">Pool roller</h3>
-        <div class="cards" id="cards-roller"></div>
-      </section>
-      <section class="block" aria-labelledby="kitchen-h">
-        <h3 class="fl" id="kitchen-h">Outdoor kitchen</h3>
-        <div class="cards" id="cards-kitchen"></div>
-      </section>
-      <section class="block" aria-labelledby="fence-h">
-        <h3 class="fl" id="fence-h">Pool fence</h3>
-        <div class="cards" id="cards-fence"></div>
-      </section>
-      <section class="block" aria-labelledby="pier-h">
-        <h3 class="fl" id="pier-h">Fence by the pavilion pier</h3>
-        <p class="hint">WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
-        <div class="cards" id="cards-pier"></div>
-      </section>
-      <section class="block" aria-labelledby="nfence-h">
-        <h3 class="fl" id="nfence-h">North pool fence</h3>
-        <div class="cards" id="cards-nfence"></div>
-      </section>
-      <section class="block" aria-labelledby="passage-h">
-        <h3 class="fl" id="passage-h">Side passage surface</h3>
-        <div class="cards" id="cards-passage"></div>
-      </section>
+      <div class="cat-tabs" role="tablist" aria-label="Design choices" id="cat-tabs"></div>
+      <div class="cat-panel" role="tabpanel" data-cat="pool" id="cat-pool">
+        <section class="block" aria-labelledby="roller-h">
+          <h3 class="fl" id="roller-h">Pool roller</h3>
+          <div class="cards" id="cards-roller"></div>
+        </section>
+      </div>
+      <div class="cat-panel" role="tabpanel" data-cat="alfresco" id="cat-alfresco">
+        <section class="block" aria-labelledby="kitchen-h">
+          <h3 class="fl" id="kitchen-h">Outdoor kitchen</h3>
+          <div class="cards" id="cards-kitchen"></div>
+        </section>
+        <p class="soon">Alfresco post options: coming soon.</p>
+      </div>
+      <div class="cat-panel" role="tabpanel" data-cat="fences" id="cat-fences">
+        <section class="block" aria-labelledby="fence-h">
+          <h3 class="fl" id="fence-h">Pool fence</h3>
+          <div class="cards" id="cards-fence"></div>
+        </section>
+        <section class="block" aria-labelledby="pier-h">
+          <h3 class="fl" id="pier-h">Fence by the pavilion pier</h3>
+          <p class="hint">WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
+          <div class="cards" id="cards-pier"></div>
+        </section>
+        <section class="block" aria-labelledby="nfence-h">
+          <h3 class="fl" id="nfence-h">North pool fence</h3>
+          <div class="cards" id="cards-nfence"></div>
+        </section>
+      </div>
+      <div class="cat-panel" role="tabpanel" data-cat="passage" id="cat-passage">
+        <section class="block" aria-labelledby="passage-h">
+          <h3 class="fl" id="passage-h">Side passage surface</h3>
+          <div class="cards" id="cards-passage"></div>
+        </section>
+      </div>
+      <div class="cat-panel" role="tabpanel" data-cat="spa" id="cat-spa">
+        <section class="block">
+          <h3 class="fl">Pump room under the spa deck</h3>
+          <p class="soon">Coming soon: the pump room options are being modelled.</p>
+        </section>
+      </div>
 
       <section class="block" aria-labelledby="views-h">
         <div class="section-head"><span class="label">Viewpoints</span><h2 id="views-h">Go to a view</h2></div>

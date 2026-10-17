@@ -139,7 +139,7 @@ const WARM = !new URLSearchParams(location.search).has('warm0');
 const LOUNGE_GAIN = Number(new URLSearchParams(location.search).get('lounge') ?? (WARM ? 0.7 : 1));
 const WET_LIGHTS = !new URLSearchParams(location.search).has('wet0');
 const WET_PATH = Number(new URLSearchParams(location.search).get('wetpath') ?? 3);
-const SPA_GAIN = Number(new URLSearchParams(location.search).get('spagain') ?? 2);
+const SPA_GAIN = Number(new URLSearchParams(location.search).get('spagain') ?? 0.5);
 const WET_GAIN = Number(new URLSearchParams(location.search).get('wetgain') ?? 3);
 const GLITTER = new URLSearchParams(location.search).has('glitter');
 const CEIL = Number(new URLSearchParams(location.search).get('ceil') ?? 0.35);
@@ -149,6 +149,7 @@ const ROOM_DAY = Number(new URLSearchParams(location.search).get('roomday') ?? 1
 const ROOM_NIGHT = Number(new URLSearchParams(location.search).get('roomnight') ?? 0.6);
 const LAWN11 = new URLSearchParams(location.search).has('lawn11');
 const LAWN_GRADE: [number, number, number] = [0.51, 0.54, 0.22];
+const NO_SPACAP = new URLSearchParams(location.search).has('spacap');
 const NO_BARK = new URLSearchParams(location.search).has('bark0');
 const BENCH_LOW = Number(new URLSearchParams(location.search).get('benchlow') ?? 0.55);
 /**
@@ -372,7 +373,31 @@ export class Model {
     return (this.renderer as any).library.fromMaterial(m) as MeshStandardNodeMaterial;
   }
 
+  /**
+   * Round 15: the spa cabinet is a capped cylinder whose top cap sits 7 cm above the spa's water, so from anywhere
+   * the hot tub read as a flat grey disc (the cap) and the water was never seen. Drop the cap's triangles: the
+   * shell's rim covers the cabinet's top edge. (To fix in the export too: build the cabinet as an uncapped tube.)
+   */
+  private openSpaCabinet() {
+    this.root.traverse(o => {
+      const m = o as Mesh;
+      if (!m.isMesh || !/^spa_cabinet/.test(m.name) || NO_SPACAP) return;
+      const g = m.geometry, pos = g.getAttribute('position');
+      g.computeBoundingBox();
+      const top = g.boundingBox!.max.y, eps = (top - g.boundingBox!.min.y) * 0.002 + 1e-4;
+      const idx = g.index ? Array.from(g.index.array) : [...Array(pos.count).keys()];
+      const keep: number[] = [];
+      for (let i = 0; i < idx.length; i += 3) {
+        const cap = [0, 1, 2].every(k => Math.abs(pos.getY(idx[i + k]) - top) < eps);
+        if (!cap) keep.push(idx[i], idx[i + 1], idx[i + 2]);
+      }
+      if (keep.length < idx.length) { g.setIndex(keep); this.spaCapRemoved += (idx.length - keep.length) / 3; }
+    });
+  }
+  spaCapRemoved = 0;
+
   private setupMaterials() {
+    this.openSpaCabinet();
     const converted = new Map<Material, MeshStandardNodeMaterial>();
     const conv = (m: Material) => { let n = converted.get(m); if (!n) { n = this.toNode(m); converted.set(m, n); } return n; };
     const maxAniso = this.renderer.getMaxAnisotropy?.() ?? 8;
@@ -584,7 +609,9 @@ export class Model {
         this.mirrors.push(mirror);
       }
       for (const kind of l.kinds) {
-        const mat = waterMaterial(kind, this.atm, mirror);
+        let tub: { cx: number; cz: number; r: number } | undefined;
+        if (kind === 'spa') { const b = new Box3().setFromObject(groups.get(kind)![0]); tub = { cx: (b.min.x + b.max.x) / 2, cz: (b.min.z + b.max.z) / 2, r: (b.max.x - b.min.x) / 2 }; }
+        const mat = waterMaterial(kind, this.atm, mirror, tub);
         for (const m of groups.get(kind)!) { m.material = mat; m.castShadow = false; m.receiveShadow = true; this.waters.push(m); mirror?.meshes.push(m); }
       }
     }

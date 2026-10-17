@@ -12,6 +12,10 @@ const liftFor = (eye: number) => Math.max(-1.0, Math.min(1.6, eye - 1.65));
 const EYE = 1.65, RADIUS = 0.24, STEP = 0.26, WALK = 2.2, RUN = 4.5, GRAVITY = 9.8;
 /** A small hop: 0.45 m. With the 0.26 m step-up that's well short of the 1.2 m pool fence. */
 const JUMP = 0.45;
+/** Fly mode (Round 15): a sphere of this radius against the yard, no gravity; speeds in m/s. */
+const FLY_R = 0.3, FLY = 4, FLY_FAST = 12;
+/** In the pool: how much slower you wade, and the lowest the eye can duck (below the surface). */
+const WADE = 0.45, DUCK = -1.35;
 
 /** A moving obstacle the capsule can't pass, as a vertical strip from a to b (e.g. a gate leaf). */
 export type Segment = { a: Vector3; b: Vector3; y0: number; y1: number };
@@ -46,7 +50,7 @@ function buildBVH(meshes: Mesh[], limit?: Box3) {
   return new MeshBVH(g);
 }
 
-export type Mode = 'walk' | 'drone';
+export type Mode = 'walk' | 'drone' | 'fly';
 
 export class Walker {
   readonly feet = new Vector3();
@@ -63,6 +67,14 @@ export class Walker {
   private grounded = false;
   private walls: MeshBVH | null = null;
   private water: MeshBVH | null = null;
+  /** Pool and spa water (Round 15): you can step in. The canal (`water`) stays a no-go. */
+  private pool: MeshBVH | null = null;
+  /** Fly mode's position (the eye). */
+  readonly fly = new Vector3();
+  /** Set by update: the pool or spa surface height above the eye's (x, z), or -Infinity. */
+  waterTop = -Infinity;
+  /** The eye's current height offset while ducking in the pool. */
+  private duck = 0;
   private keys = new Set<string>();
   private stick = { x: 0, y: 0 };
   private ray = new Ray();
@@ -82,7 +94,7 @@ export class Walker {
     addEventListener('keyup', e => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
     dom.addEventListener('mousemove', e => {
-      if (document.pointerLockElement !== dom || this.mode !== 'walk') return;
+      if (document.pointerLockElement !== dom || this.mode === 'drone') return;
       this.look(e.movementX * 0.0022, e.movementY * 0.0022);
     });
   }
@@ -100,12 +112,12 @@ export class Walker {
 
   /** Rebuild the colliders from what's visible now (scenario and options change what you bump into). */
   rebuild(root: Object3D) {
-    const walls: Mesh[] = [], water: Mesh[] = [];
+    const walls: Mesh[] = [], water: Mesh[] = [], pool: Mesh[] = [];
     root.updateMatrixWorld(true);
     root.traverseVisible(o => {
       const m = o as Mesh;
       if (!m.isMesh) return;
-      if (m.userData.water) { water.push(m); return; }
+      if (m.userData.water) { (m.userData.water === 'canal' ? water : pool).push(m); return; }
       if (m.userData.gateLeaf) return;   // gates move: handled as segments
       if ((m.userData.collide === false && !m.userData.window) || m.userData.lod === 'far') return;
       walls.push(m);
@@ -114,7 +126,18 @@ export class Walker {
     const limit = new Box3(new Vector3(-60, -10, -60), new Vector3(60, 30, 60));
     this.walls = buildBVH(walls, limit);
     this.water = buildBVH(water, limit);
+    this.pool = buildBVH(pool, limit);
   }
+
+  /** The pool or spa surface above or below (x, z), or -Infinity. */
+  poolSurfaceAt(x: number, z: number, fromY = 6) {
+    if (!this.pool) return -Infinity;
+    this.ray.origin.set(x, fromY, z); this.ray.direction.set(0, -1, 0);
+    const hit = this.pool.raycastFirst(this.ray, DoubleSide);
+    return hit ? hit.point.y : -Infinity;
+  }
+  /** True while the feet are in the pool or spa water. */
+  get inWater() { return this.waterTop > this.feet.y + 0.05; }
 
   private groundAt(x: number, z: number, fromY: number) {
     if (!this.walls) return -Infinity;
@@ -136,6 +159,7 @@ export class Walker {
     if (!Number.isFinite(g) || g < 1.0) return null;
     const w = this.waterAt(x, z, fromY);
     if (Number.isFinite(w) && w > g - 0.01) return null;
+    if (this.poolSurfaceAt(x, z, fromY) > g - 0.01) return null;   // not into the pool or spa either
     return g;
   }
   /** Where the walker last stood on solid ground (for leaving drone mode somewhere sensible). */
@@ -203,12 +227,83 @@ export class Walker {
   }
 
   jump() {
-    if (this.mode !== 'walk' || !this.grounded || this.glide) return;
+    if (this.mode !== 'walk' || this.glide) return;
+    if (this.inWater && this.climbOut()) return;
+    if (!this.grounded) return;
     this.vy = Math.sqrt(2 * GRAVITY * JUMP);
     this.grounded = false;
   }
 
   get onGround() { return this.grounded; }
+
+  /**
+   * In the pool, Space at the wall climbs out onto the coping you're facing (Round 15). Looks 0.55 m ahead for a dry
+   * floor up to 1.9 m above the feet, and glides up onto it.
+   */
+  climbOut() {
+    const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
+    for (const d of [0.45, 0.6, 0.8]) {
+      const x = this.feet.x + fx * d, z = this.feet.z + fz * d;
+      const g = this.groundAt(x, z, this.feet.y + 2.2);
+      if (!Number.isFinite(g) || g - this.feet.y < 0.3 || g - this.feet.y > 1.9) continue;
+      if (this.poolSurfaceAt(x, z) > g - 0.01) continue;
+      const w = this.waterAt(x, z, g + 0.5);
+      if (Number.isFinite(w) && w > g - 0.01) continue;
+      this.duck = 0;
+      this.glide = { from: this.feet.clone(), to: new Vector3(x, g, z), yaw0: this.yaw, yaw1: this.yaw, p0: this.pitch, p1: this.pitch, t: 0, dur: 0.7 };
+      return true;
+    }
+    return false;
+  }
+
+  /** Enter fly mode at the camera's current place and direction. */
+  startFly(from: Vector3, yaw: number, pitch: number) {
+    this.fly.copy(from); this.yaw = yaw; this.pitch = pitch; this.glide = null;
+    this.mode = 'fly';
+    this.pushSphere(this.fly);
+    this.apply();
+  }
+
+  /** Push a sphere at p out of the walls (and the canal surface) in 3D, so fly mode slides along what it touches. */
+  private pushSphere(p: Vector3) {
+    for (const bvh of [this.walls, this.water]) {
+      if (!bvh) continue;
+      _box.min.set(p.x - FLY_R, p.y - FLY_R, p.z - FLY_R); _box.max.set(p.x + FLY_R, p.y + FLY_R, p.z + FLY_R);
+      for (let iter = 0; iter < 4; iter++) {
+        let moved = false;
+        bvh.shapecast({
+          intersectsBounds: b => b.intersectsBox(_box),
+          intersectsTriangle: t => {
+            t.closestPointToPoint(p, _v);
+            const d = _v.distanceTo(p);
+            if (d < FLY_R && d > 1e-6) { p.addScaledVector(_v2.subVectors(p, _v).divideScalar(d), FLY_R - d); moved = true; }
+          },
+        });
+        if (!moved) break;
+      }
+    }
+  }
+
+  private updateFly(dt: number) {
+    const k = this.keys;
+    let fx = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0) + this.stick.x;
+    let fz = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) + this.stick.y;
+    const up = (k.has('Space') || k.has('KeyE') ? 1 : 0) - (k.has('KeyC') || k.has('KeyQ') ? 1 : 0) + this.flyUp;
+    const speed = k.has('ShiftLeft') || k.has('ShiftRight') ? FLY_FAST : FLY;
+    // forward follows where you look (pitch included), strafe stays level
+    const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch), sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
+    const v = new Vector3(fx * cy - fz * sy * cp, fz * sp + up, -fx * sy - fz * cy * cp);
+    if (v.lengthSq() > 1) v.normalize();
+    if (v.lengthSq() === 0) return;
+    // sub-steps so a fast flight can't tunnel through a thin wall
+    const total = v.multiplyScalar(speed * dt), n = Math.max(1, Math.ceil(total.length() / (FLY_R * 0.8)));
+    total.divideScalar(n);
+    for (let i = 0; i < n; i++) { this.fly.add(total); this.pushSphere(this.fly); }
+    this.fly.y = Math.max(-1, Math.min(120, this.fly.y));
+    this.onMove?.();
+  }
+  /** Touch: the up/down buttons in fly mode (-1, 0 or 1). */
+  flyUp = 0;
 
   update(dt: number) {
     if (this.glide) {
@@ -223,14 +318,19 @@ export class Walker {
       this.apply();
       return;
     }
+    if (this.mode === 'fly') { this.updateFly(Math.min(dt, 0.05)); this.waterTop = this.poolSurfaceAt(this.fly.x, this.fly.z); this.apply(); return; }
     if (this.mode !== 'walk') return;
     dt = Math.min(dt, 0.05);
     const k = this.keys;
+    this.waterTop = this.poolSurfaceAt(this.feet.x, this.feet.z, this.feet.y + 3);
+    // in the pool: C or Q ducks your head under, letting go comes back up
+    const ducking = this.inWater && (k.has('KeyC') || k.has('KeyQ'));
+    this.duck += ((ducking ? DUCK : 0) - this.duck) * Math.min(1, dt * 4);
     let fx = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0) + this.stick.x;
     let fz = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) + this.stick.y;
     const len = Math.hypot(fx, fz);
     if (len > 1) { fx /= len; fz /= len; }
-    const speed = (k.has('ShiftLeft') || k.has('ShiftRight') || Math.hypot(this.stick.x, this.stick.y) > 0.92 ? RUN : WALK);
+    const speed = (k.has('ShiftLeft') || k.has('ShiftRight') || Math.hypot(this.stick.x, this.stick.y) > 0.92 ? RUN : WALK) * (this.inWater ? WADE : 1);
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     // forward is -Z rotated by yaw
     const dx = (fx * cos - fz * sin) * speed * dt, dz = (-fx * sin - fz * cos) * speed * dt;
@@ -240,7 +340,7 @@ export class Walker {
     if (dx || dz) {
       const next = this.feet.clone(); next.x += dx; next.z += dz;
       this.push(next);
-      // no walking onto water: test the spot, then each axis on its own so you slide along the coping
+      // no walking onto the canal (the pool and spa you can step into): test the spot, then each axis on its own
       const blocked = (p: Vector3) => {
         const w = this.waterAt(p.x, p.z, p.y + STEP + 0.3);
         if (!Number.isFinite(w)) return false;
@@ -258,10 +358,12 @@ export class Walker {
     const g = this.groundAt(this.feet.x, this.feet.z, this.feet.y + STEP + 0.02);
     if (Number.isFinite(g) && g >= this.feet.y - 0.06 && this.vy <= 0) {
       this.feet.y = g; this.vy = 0; this.grounded = true;
-      if (g >= 1.0) this.lastStood.copy(this.feet);
+      if (g >= 1.0 && !this.inWater) this.lastStood.copy(this.feet);
     } else {
       this.grounded = false;
-      this.vy -= GRAVITY * dt;
+      // water slows a fall to a gentle sink
+      this.vy -= GRAVITY * dt * (this.inWater ? 0.25 : 1);
+      if (this.inWater) this.vy = Math.max(this.vy, -1.2);
       this.feet.y += this.vy * dt;
       if (Number.isFinite(g) && this.feet.y <= g) { this.feet.y = g; this.vy = 0; this.grounded = true; }
       if (this.feet.y < -20) { this.feet.copy(before); this.vy = 0; }
@@ -271,8 +373,9 @@ export class Walker {
   }
 
   apply() {
+    if (this.mode === 'fly' && !this.glide) { this.camera.position.copy(this.fly); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); return; }
     if (this.mode !== 'walk' && !this.glide) return;
-    this.camera.position.set(this.feet.x, this.feet.y + EYE + this.lift, this.feet.z);
+    this.camera.position.set(this.feet.x, this.feet.y + EYE + this.lift + this.duck, this.feet.z);
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
   }
 

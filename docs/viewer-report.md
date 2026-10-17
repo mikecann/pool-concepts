@@ -808,7 +808,45 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 - **Dusk scrub:** max 21 ms.
 - **Other checks:** the walk test, settings, images (165, 0 missing), page checks and phone layouts all pass.
 
+## Round 15
+
+**Scope:** Mike's requests, viewer only. The-pool was untouched and not synced; a model agent is working in parallel.
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sidebar in categories:** Pool / Alfresco / Fences / Side passage / Under the spa. A two-column grid of category buttons, each showing its current choice(s), and only the open category's cards below. Arrow keys move between them; the open one is remembered (`pool-cat`). In the phone drawer the grid sits at the top | The whole design reads at a glance; much less scrolling. Walk page loads 6 card images instead of 15 (`review/round15/sidebar.png`) |
+| 2 | **Tape measure** (`src/measure.ts`; the ↔ Measure button or `M`): click or tap two points. Raycast with snapping to the face's corner (≤ 6 cm) or edge (≤ 3.5 cm). A yellow line and end dots drawn over everything (overlay layer, not reflected), with a label of 3D, horizontal (↔) and vertical (↕) distances. Several at once; Clear or `Esc` removes them, Done or `M` puts the tape away. With the mouse locked it measures at the crosshair | Works in walk, fly and drone, and by touch (`review/round15/tools/measure_*.png`) |
+| 3 | **Fly mode** (Walk / Fly / Drone): a 0.3 m sphere against the collider, sliding in 3D, no gravity, sub-stepped so it can't tunnel. WASD and mouse look, `Space`/`E` up, `C`/`Q` down, `Shift` fast; touch gets ▲/▼ buttons. E only opens gates in walk mode, so no clash. All six mode switches are safe: fly starts where you are and where you look; fly → walk lands below you if that's a floor in the lot, otherwise where you last stood | `review/round15/tools/fly.png` |
+| 4 | **Into the pool:** walls collide, and the floor, bench and steps are walkable. You wade at 0.45× speed, and falls sink gently. `C`/`Q` ducks your head under; `Space` at the wall climbs out onto the coping (0.3–1.9 m up); the steps work too. The spa too. The canal is still a no-go (it's now a separate collider). Under the surface: a teal tint, depth fog toward the lit water (day or pool-light colour), a caustic shimmer, and the surface seen from below (the water is now double-sided, with a bright Snell's-window tone) | `review/round15/tools/underwater.png` |
+| 5 | **Hot tub.** **Root cause:** the spa cabinet is a capped cylinder whose top cap sat 7 cm above the water, so the "flat grey disc" was the cabinet lid and the water was never seen. The viewer drops the cap's 62 triangles (`?spacap=1` for before; the export should build an uncapped tube). Then the water: four jets boiling up foam that swirls and breaks up, a fine bubble fizz, a churned surface rougher near the jets, a hot tub's aqua (absorption 0.95, 0.24, 0.2), and a soft cyan glow at night. The spa light is halved, as it was blown out | `review/round15/hottub.jpg`: before, then day, dusk and night, close up, from the deck and from the lounge. Steam not done |
+| 6 | **No outdoor kitchen:** `kitchen_none` card. All kitchen geometry is hidden and the SK02 gate stays. The card shows "Render to come" until `options_16_outdoor_kitchen_kitchen_none.jpg` exists; check-images now lists such cards as awaiting a render, not missing | `review/round15/kitchen_none.jpg` |
+| 7 | **Hinges** (`src/hinges.ts`), ready for the next export: parts tagged `interact: lid/door`, `group`, `pivot`, `axis`, `open_deg` swing about their pivot on `E` (or the phone button), with "Press E to open the lid/door". `blanket_from`/`pit_roll` are carried through for the roller pits | Tested with a stand-in lid: opens to 100°, closes again |
+| 8 | **Moonlight reworked:** Round 14's moon (the sun light turned to a fixed moon direction) cost 50–100 ms frames in the dusk scrub, traced by bisecting with `?moon=0` and then a direction-only switch. It's now a fill: the night sky's environment light ×(1 + 10·moon). No light, direction or shadow changes | Today at night still reads as dim shapes (`review/round15/moonfill.jpg`: off, 8, 20); no moon shadows any more |
+| 9 | **Detail pass** at eye height (`review/round15/detail_sheet.jpg`) | The spa cap (#5) was the real find; nothing else clipped or floated at eye height |
+
+**Tests:**
+- **New `scripts/tools-test.mjs` (PASS):**
+  - Tape measure by real clicks: 3 m apart on the deck reads 2.98 m. It also covers the label, Esc, the drone and Done.
+  - Fly: Space and E up, C down to the ground, stopped by the alfresco ceiling and the house wall, and all six mode switches.
+  - Pool: in off the coping, slower wading, ducking under turns the underwater look on, Space climbs out, and no walking into the canal.
+  - Hinge open and close, and a clean console.
+- **Updated for the tabs:** settings-test and pages-check.
+
+**Numbers:**
+- **Frame rate:** Low, Medium and High hold 60 fps at DPR 1 and 2 on all four views.
+- **Dusk scrub:** 24 passes; 23 max out at 18–23 ms, and one frame hit 51 ms.
+- **Other checks:** switch-test, walk test, settings, images (165 plus 1 awaiting its render), page checks and phone layouts all pass.
+
 ## Summary
+
+**Round 15:**
+- **Sidebar:** choices in categories.
+- **New tools:** tape measure and fly mode.
+- **Pool and spa:** you can walk into them, with an underwater look.
+- **Hot tub:** it was hidden under the cabinet's lid; now it's water with jets and foam.
+- **Kitchen:** a 'No outdoor kitchen' option.
+- **Hinges:** a system ready for lids and doors.
+- **Moonlight:** now a fill, which fixed dusk-scrub hitches.
 
 **Round 14:**
 - **Night:** moonlight via the sun light, plus a Today-at-night note.

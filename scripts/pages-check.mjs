@@ -52,6 +52,8 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   await p.screenshot({ path: `${OUT}/walk_panel.png` });
   for (const [box, value] of [['cards-roller', 'Low-profile, deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-fence', 'Glass'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'Aggregate to the play area']]) {
     const before = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
+    // Round 15: the cards live in category tabs; open the one that holds this group first
+    await p.evaluate(b => document.getElementById(b).closest('.cat-panel') && document.getElementById('tab-' + document.getElementById(b).closest('.cat-panel').dataset.cat).click(), box);
     await p.locator(`#${box} .card`).filter({ has: p.locator('b', { hasText: new RegExp(`^${value.replace(/[.]/g, '\\.')}$`) }) }).click();
     await p.waitForTimeout(2200); await frames(p, 30);
     const after = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
@@ -60,8 +62,11 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
     await p.screenshot({ path: `${OUT}/walk_card_${value.toLowerCase().replace(/ /g, '_')}.png` });
   }
   // the north pool gate: tooltip, then open
+  await p.locator('#tab-fences').click();
   await p.locator('#cards-fence .card', { hasText: 'Perforated' }).click();
+  await p.locator('#tab-pool').click();
   await p.locator('#cards-roller .card', { hasText: 'No roller' }).click();
+  await p.locator('#tab-fences').click();
   await p.locator('#cards-nfence .card', { hasText: 'As drawn' }).click();
   await p.waitForTimeout(1500);
   await p.evaluate(() => { __viewer.setPanel(false); const g = __viewer.model.gates.find(g => g.leaf.name.startsWith('fence_pool_north')); const d = g.dir; const mx = g.hinge.x + d.x * g.width / 2, mz = g.hinge.z + d.z * g.width / 2; __viewer.place(mx + 0.2, 3, mz - 1.35, 182, -14); });
@@ -79,7 +84,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   await p.waitForFunction(() => document.getElementById('loading')?.classList.contains('done'), null, { timeout: 120000 });
   await p.evaluate(() => { __viewer.setTime(15 * 60); __viewer.setPanel(true); });
   await frames(p, 20);
-  await p.evaluate(() => document.getElementById('cards-roller').scrollIntoView());
+  await p.evaluate(() => document.getElementById('cat-tabs').scrollIntoView());
   await frames(p, 10);
   await p.screenshot({ path: `${OUT}/walk_phone_drawer.png` });
   await p.evaluate(() => { __viewer.setPanel(false); const g = __viewer.model.gates.find(g => g.leaf.name.startsWith('fence_pool_north')); const d = g.dir; const mx = g.hinge.x + d.x * g.width / 2, mz = g.hinge.z + d.z * g.width / 2; __viewer.place(mx - 0.6, 3, mz - 1.3, 160, -12); });
