@@ -961,6 +961,22 @@ The model agent's first batch, wired up (viewer only; the-pool untouched, no syn
 - Pass: the page checks, settings, tools, r16, r17 and the phone checks.
 - A `?cam=05…&roller=roller_pit` deep link lands correctly.
 
+## Round 17d
+
+**Time of day:**
+- Every load opens at the current date and time in Perth (AWST, UTC+8, from the clock, so the viewer's timezone doesn't matter).
+- The time and date are no longer remembered; old saved values are ignored and removed.
+- The slider, date and timelapse work as before for the visit, and `?t=`/`?date=` still win.
+- A night-time load opens dark, with the garden lights, flames and the moonlight fill on.
+
+**Kitchen default:** 'No outdoor kitchen' (`kitchen_none`). Returning visitors keep their saved choice.
+
+**`pier_inset` card:** the note says it's meant to go with 'No outdoor kitchen'. While a kitchen is chosen, the card shows a warning: "With a kitchen, the benches would sit 45 mm outside the fence (climbable)". The kitchen isn't changed.
+
+**Tests:** settings-test is rewritten with a mocked clock. It covers a 21:40 Perth load from a London-timezone browser (night: lights and flames), a 10:30 load from New York, old saved times ignored and removed, options remembered while the time goes back to now on reload, `?t=`/`?date=` overriding, and the pier_inset warning. PASS. r16, r17, tools, switch, walk, the page checks and the image check (223, 0 missing) pass.
+
+**Performance:** not measured; Blender was running.
+
 ## Summary
 
 **Round 17:**

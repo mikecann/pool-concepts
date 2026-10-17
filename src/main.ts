@@ -31,6 +31,11 @@ type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?:
   options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
+// the time and date aren't remembered any more (Round 17d): drop what older visits saved
+if (settings.date !== undefined || settings.minutes !== undefined) {
+  delete settings.date; delete settings.minutes;
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* private mode */ }
+}
 const remember = (patch: Settings) => {
   if (fromUrl) return;
   Object.assign(settings, patch);
@@ -44,9 +49,17 @@ const urlMinutes = (() => { const t = Number(params.get('t')); return params.has
 let fromUrl = false;   // true while applying URL values, so remember() leaves them out
 
 // ---------- state ----------
+// Round 17d: every visit opens at the time it is now at the site (Perth, AWST = UTC+8, no daylight saving), whatever
+// the viewer's own timezone. The time and date are never remembered; the slider and date change them for the visit,
+// and ?t= / ?date= (the renders page's links) still win.
+const perthNow = () => {
+  const d = new Date(Date.now() + 8 * 3600e3);
+  return { date: d.toISOString().slice(0, 10), minutes: d.getUTCHours() * 60 + d.getUTCMinutes() };
+};
+const NOW = perthNow();
 const S = {
-  date: urlDate ?? (DATE_RE.test(settings.date ?? '') ? settings.date! : '2027-01-16'),
-  minutes: urlMinutes ?? (Number.isFinite(settings.minutes) ? settings.minutes! : 13 * 60),
+  date: urlDate ?? NOW.date,
+  minutes: urlMinutes ?? NOW.minutes,
   playing: false,
   scenario: 'proposed' as Scenario,
   quality: 'High' as Quality,
@@ -200,17 +213,16 @@ async function main() {
   };
   const setDate = (d: string) => {
     S.date = d;
-    remember({ date: d });
     $<HTMLInputElement>('date').value = d;
     document.querySelectorAll('[data-date]').forEach(b => b.setAttribute('aria-pressed', String((b as HTMLElement).dataset.date === d)));
     drawTicks();
     setTime(S.minutes, true);
   };
-  timeInput.addEventListener('input', () => { setTime(Number(timeInput.value)); remember({ minutes: S.minutes }); });
+  timeInput.addEventListener('input', () => setTime(Number(timeInput.value)));
   document.querySelectorAll<HTMLElement>('[data-date]').forEach(b => (b.onclick = () => setDate(b.dataset.date!)));
   $<HTMLInputElement>('date').addEventListener('change', e => { const v = (e.target as HTMLInputElement).value; if (v) setDate(v); });
   const play = $('play');
-  play.onclick = () => { S.playing = !S.playing; if (!S.playing) remember({ minutes: Math.round(S.minutes) }); play.setAttribute('aria-pressed', String(S.playing)); play.setAttribute('aria-label', S.playing ? 'Pause' : 'Play the day'); };
+  play.onclick = () => { S.playing = !S.playing; play.setAttribute('aria-pressed', String(S.playing)); play.setAttribute('aria-label', S.playing ? 'Pause' : 'Play the day'); };
 
   // ---------- scenario, options ----------
   const setScenario = (s: Scenario) => {
@@ -288,6 +300,15 @@ async function main() {
   group('roller', ROLLER_CHOICES, 'roller', () => (/shallow/.test(model.roller) ? '13_deep_end_to_house' : '05_pool_north_end'));
   group('kitchen', KITCHEN_CHOICES, 'kitchen', () => '16_outdoor_kitchen');
   group('pier', PIER_CHOICES, 'pier', () => '18_pier_fence');
+  // the inset fence is meant to go with no outdoor kitchen: warn on its card while a kitchen is chosen (Round 17d)
+  {
+    const card = [...$('cards-pier').querySelectorAll<HTMLElement>('.card')].find(c => c.querySelector('b')?.textContent === PIER_CHOICES.find(c => c.value === 'pier_inset')?.title);
+    const warn = document.createElement('em'); warn.className = 'card-warn';
+    warn.textContent = 'With a kitchen, the benches would sit 45 mm outside the fence (climbable).';
+    card?.querySelector('span')?.appendChild(warn);
+    const render = () => { warn.hidden = model.kitchen === 'kitchen_none'; };
+    cardGroups.push(render); render();
+  }
   group('spacover', SPA_COVER_CHOICES, 'spaCover', () => '14_spa_to_canal');
   group('play', PLAY_CHOICES, 'play', () => '21_play_area_north');
   group('post', POST_CHOICES, 'post', () => '10_alfresco_corner');

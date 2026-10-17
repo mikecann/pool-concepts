@@ -50,7 +50,7 @@ export const PIER_CHOICES: Choice[] = [
   { value: 'pier_tall', title: '1.8 m section', note: 'The fence and gate are 1.8 m high from the deck past the gate and the pier, so no climbing zone applies there. 1.2 m from the deck elsewhere.', img: 'card_pier_tall.jpg', src: 'options_18_pier_fence_pier_tall.jpg' },
   { value: 'pier_across', title: 'Across the deck', note: 'Instead of going round the pier, the fence leaves the line south of the pier and runs straight across the deck to the house wall, just west of the big pavilion slider, so the pier ends up outside the pool area.', img: 'card_pier_across.jpg', src: 'options_18_pier_fence_pier_across.jpg' },
   { value: 'pier_around', title: 'Round the pier', note: 'The fence steps out onto the deck and round the pier, so the pier is on the pool side. Takes about a 1 m by 1.2 m bite out of the deck.', img: 'card_pier_around.jpg', src: 'options_18_pier_fence_pier_around.jpg' },
-  { value: 'pier_inset', title: 'Inset (Kelsie)', note: "The fence pulled into the alfresco just in front of the kitchen benchtops, so the pier is 1.23 m outside it. It moves the problem: the kitchen ends up outside the pool area (a bench right outside the fence is climbable, so it suits no kitchen best), and the walkway to the spa deck is pinched to about 0.25 m.", img: 'card_pier_inset.jpg', src: 'options_18_pier_fence_pier_inset.jpg' },
+  { value: 'pier_inset', title: 'Inset (Kelsie)', note: "The fence pulled into the alfresco just in front of the kitchen benchtops, so the pier is 1.23 m outside it. Meant to go with No outdoor kitchen: with a kitchen, its benches end up 45 mm outside the fence, which makes them climbable. The walkway to the spa deck is pinched to about 0.25 m.", img: 'card_pier_inset.jpg', src: 'options_18_pier_fence_pier_inset.jpg' },
 ];
 
 export const NFENCE_CHOICES: Choice[] = [
@@ -64,6 +64,6 @@ export const PASSAGE_CHOICES: Choice[] = [
 ];
 
 /** What render.py shows when nothing in a group is picked. */
-export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_split', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
+export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
 
 export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

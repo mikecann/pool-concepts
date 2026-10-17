@@ -211,7 +211,7 @@ export class Model {
   bounds = new Box3();
   scenario: Scenario = 'proposed';
   roller = 'none';
-  kitchen = 'kitchen_split';
+  kitchen = 'kitchen_none';   // Round 17d: undecided, so none by default (saved choices still win)
   /** The east fence beside the pavilion pier: as drawn, a 1.8 m section, or taken round the pier. */
   pier = 'pier_as_drawn';
   /** The north pool fence across the side passage: as drawn, or moved 1.5 m north. */

@@ -307,3 +307,6 @@ ul.assume li::marker { color: var(--accent); }
   .hud-right { justify-content: flex-start; }
   #panel-toggle { margin-left: auto; }
 }
+
+.card-warn { display: block; margin-top: 4px; font-style: normal; font-weight: 600; color: #b5542a; }
+.card-warn[hidden] { display: none; }
