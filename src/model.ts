@@ -50,7 +50,7 @@ function pairUp(defs: LightDef[], prefixes: string[]) {
 /** ?lightswap=1: the old behaviour (night lights made visible at dusk), for A/B. */
 export const LIGHT_SWAP = new URLSearchParams(location.search).has('lightswap');
 
-const INHERIT = ['set', 'option', 'people', 'night', 'collide', 'lod', 'water', 'window'];
+const INHERIT = ['set', 'option', 'hide_option', 'noMerge', 'interact', 'people', 'night', 'collide', 'lod', 'water', 'window'];
 
 /** The export's water bodies are closed solids; keep only the surface you look at (faces pointing up). */
 function topFaces(mesh: Mesh) {
@@ -218,6 +218,9 @@ export class Model {
   nfence = 'nfence_as_drawn';
   /** Side passage surface: existing pavers or new aggregate up to the play area. */
   passage = 'passage_pavers';
+  /** Round 16: the alfresco's post layout (the post and beams exist only in these) and the pump room's front. */
+  post = 'post_as_drawn';
+  pump = 'pump_doors';
   people = true;   // the figures are there to judge scale, so they start on
   showFar = true;
   farReady = false;
@@ -786,9 +789,11 @@ export class Model {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump];
       if (!String(u.option).split('+').every(part => chosen.includes(part))) return false;
     }
+    // the paving that fills a blanket box's cavity: shown unless that box is chosen
+    if (u.hide_option && this.scenario === 'proposed' && this.roller === u.hide_option) return false;
     if (u.people && !this.people) return false;
     if (u.lod === 'far' && (!this.showFar || !this.farReady)) return false;
     return true;
@@ -799,7 +804,7 @@ export class Model {
     this.root.traverse(o => {
       if (o === this.root || (o as any).isLight) return;
       const u = o.userData;
-      if (u.set === undefined && u.option === undefined && u.people === undefined && u.lod === undefined) return;
+      if (u.set === undefined && u.option === undefined && u.hide_option === undefined && u.people === undefined && u.lod === undefined) return;
       o.visible = this.visibleFor(u);
     });
     for (const l of this.shadowLights) l.shadow!.needsUpdate = true;

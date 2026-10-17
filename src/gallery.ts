@@ -6,7 +6,7 @@ import { VIEWS } from './views';
 import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  pier?: string; nfence?: string; passage?: string };
+  post?: string; pump?: string; pier?: string; nfence?: string; passage?: string };
 
 
 const SUN = {
@@ -25,6 +25,8 @@ const ROLLER = [
     <p>Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.</p>`],
   ["roller_pit", "In-ground box", `<b>Blanket box at the deep end</b>
     <p>In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],
+  ["roller_pit_shallow", "In-ground box, shallow end", `<b>Blanket box at the shallow end</b>
+    <p>The same in-ground box behind the shallow-end wall, lids flush with the coping. 1.44 m clear to the north fence as drawn (2.94 m with the fence moved), so there's room to walk behind it with the lids up.</p>`],
   ["roller_lowpro", "Low-profile, deep end", `<b>Low-profile roller at the deep end</b>
     <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`],
 ];
@@ -35,7 +37,26 @@ const KITCHEN = [
     <p>Moves the gate about 1 m south, next to the lounge, so the cabinets run unbroken for 3.3 m: oven at the house end, BBQ towards the gate, bench space in between. The most workspace and the tidiest look. The gate then opens beside the lounge steps.</p>`],
   ["kitchen_freestanding", "Freestanding", `<b>Freestanding, no cabinetry</b>
     <p>A BBQ on its own trolley south of the gate and the oven on a small stainless table by the house wall. The cheapest, and you can move things around before committing to built-ins. The least bench space.</p>`],
+  ["kitchen_none", "No outdoor kitchen", `<b>No outdoor kitchen</b>
+    <p>No kitchen at all: the alfresco stays open, and the gate stays where SK02 has it.</p>`],
 ];
+const POSTS = [
+  ["post_as_drawn", "As drawn (SK02)", `<b>SK02's single post</b>
+    <p>One 100 mm post in the alfresco, south of the table, with a beam along it. 1.35 m to the pool coping, 0.27 m to the lounge coping and 1.1 m from the dining chairs.</p>`],
+  ["post_corner", "Corner post", `<b>One post at the south-west corner</b>
+    <p>A beam along the west edge to the house, and a 310 mm beam along the south side to a short post on the pavilion's pier. The most open alfresco, with the longest beam; an engineer has to say whether the pier can take a second post.</p>`],
+  ["post_west", "West edge, cantilevered", `<b>One post on the west edge</b>
+    <p>The west beam runs over the post and cantilevers 1.65 m to the south edge, so nothing stands on the side facing the pool and lounge. The post sits about where you'd step from the alfresco onto the coping, and the cantilevered corner is the part most exposed to wind uplift.</p>`],
+  ["post_two", "Two posts", `<b>Two posts on the south side</b>
+    <p>Shorter spans than the corner post, with nothing on the pier. Two posts along the lounge's edge, though: the west one 0.11 m from the lounge coping, the east one 1.0 m from the benchtops.</p>`],
+];
+const PUMP = [
+  ["pump_doors", "Slatted doors", `<b>Slatted doors</b>
+    <p>A pair of slatted doors in a charcoal frame, opening out onto the promenade. Inside: 1.94 x 1.04 m with 0.96 m headroom (you kneel), the sand filter, pool and spa pumps, the blower and the chlorinator. The filter's valve is only 0.18 m under the joists, so the deck needs an access hatch over it.</p>`],
+  ["pump_open", "Open bay", `<b>Open bay</b>
+    <p>The same 1.7 m wide, 0.88 m high opening with no doors, under a galvanised angle lintel.</p>`],
+];
+
 const DAY = {
   summer: [["0730", "7:30 am", "Sun 100° (east), 24° up", "Early sun comes in over the east boundary and lights both benches and most of the lounge floor. The steps and the pool side are still in shade."],
            ["1000", "10:00 am", "Sun 78° (east-north-east), 55° up", "The lounge and both benches are in full sun. The alfresco table is in the shade of the skillion."],
@@ -63,6 +84,8 @@ const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
   `side_${f.value.replace('nfence_', '')}_${p.value.replace('passage_', '')}`, `${f.title}, ${p.title.toLowerCase()}`,
   `<b>North fence ${f.title.toLowerCase()}</b><p>${f.note}</p><b>${p.title}</b><p>${p.note}</p>`, f.value, p.value]));
 const SIDE_VIEWS = [['20_pool_north_seating', 'From the spa deck'], ['19_play_area', 'Up the side passage'], ['17_pool_overview', 'From above']];
+const POST_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge']];
+const PUMP_VIEWS = [['22_pump_room', 'Inside'], ['09_promenade_west', 'From the promenade']];
 const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner', 'North-west corner'], ['12_from_pavilion', 'From the pavilion']];
 
 /** Every image the panel can show (used to check nothing 404s after a sync). */
@@ -71,6 +94,8 @@ export function allImageUrls() {
     ...VIEWS.flatMap(([id]) => [`img/${id}__existing.jpg`, `img/${id}__proposed.jpg`, `img/thumb_${id}.jpg`]),
     ...ROLLER.flatMap(([o]) => ROLLER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...POSTS.flatMap(([o]) => POST_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...PUMP.flatMap(([o]) => PUMP_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PIER.flatMap(([o]) => PIER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
@@ -128,6 +153,30 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Kitchen layout" id="k-opts"></div>
   <div class="chips" id="k-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="k-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Alfresco posts and beams</h2>
+  <p>What holds up the new roof's west edge. Every layout flies the beams over the house gutter, with a bracket back to the house framing.</p>
+</div>
+<section class="block" aria-label="Post options">
+  <div class="fstage"><img id="po-img" alt=""><span class="tag l" id="po-tag"></span><button class="fly" id="po-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Post layout" id="po-opts"></div>
+  <div class="chips" id="po-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="po-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>The pump room under the spa deck</h2>
+  <p>SK02 puts the pump shed under the deck's west end, its floor 1.1 m below the deck. It opens onto the promenade through the terrace wall.</p>
+</div>
+<section class="block" aria-label="Pump room options">
+  <div class="fstage"><img id="pu-img" alt=""><span class="tag l" id="pu-tag"></span><button class="fly" id="pu-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Pump room front" id="pu-opts"></div>
+  <div class="chips" id="pu-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="pu-note"></div>
 </section>
 
 <div class="section-head">
@@ -366,6 +415,12 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     views: KITCHEN_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
+  picker({ opts: POSTS, optBox: $('po-opts'), viewBox: $('po-views'), img: 'po-img', tag: 'po-tag', note: 'po-note', flyBtn: 'po-fly',
+    views: POST_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', post: o }) });
+  picker({ opts: PUMP, optBox: $('pu-opts'), viewBox: $('pu-views'), img: 'pu-img', tag: 'pu-tag', note: 'pu-note', flyBtn: 'pu-fly',
+    views: PUMP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pump: o }) });
   picker({ opts: [['dusk', 'Dusk, 7:40 pm']], viewBox: $('n-views'), img: 'n-img', tag: 'n-tag', flyBtn: 'n-fly', views: NIGHTV,
     src: (o, v) => `${I}night_${v}_${o}.jpg`,
     onFly: (_o, v) => fly({ cam: v, scenario: 'proposed', date: '2027-01-16', minutes: 19 * 60 + 40, roller: 'none', kitchen: 'kitchen_split' }) });

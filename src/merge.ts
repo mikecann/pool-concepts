@@ -7,7 +7,7 @@
 import { BufferAttribute, BufferGeometry, Mesh, type Material, type Object3D } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-const TAGS = ['set', 'option', 'people', 'lod', 'collide'] as const;
+const TAGS = ['set', 'option', 'hide_option', 'people', 'lod', 'collide'] as const;
 
 /** A float copy of the geometry in world space (quantised glTF attributes are de-normalised). */
 function worldGeometry(mesh: Mesh) {

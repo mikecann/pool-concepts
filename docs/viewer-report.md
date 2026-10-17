@@ -864,7 +864,56 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 
 **Tests:** tools-test has 7 new checks and passes; the walk test passes.
 
+## Round 16
+
+The model agent's first batch, wired up (viewer only; the-pool untouched, no sync run).
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Alfresco posts** (`post_as_drawn` default, `post_corner`, `post_west`, `post_two`): a new option group in the model, cards under Alfresco (summary shows kitchen and posts), saved and `?post=` links, and a renders-page section with the 10, 04 and 15 renders. Copy from the model README | Exactly one post layout shows; the post collides (`review/round16/test/post_*.png`) |
+| 2 | **Blanket boxes:** `roller_pit_shallow` card and renders section. `hide_option` cavity paving: inherited, kept through the merge, and hidden when its box is chosen | Box and fill swap correctly |
+| 3 | **Hinges fixed for the real tags:** every part has its own pivot and axis (two lid panels, a door pair opening opposite ways). Doors leave the static collider and become moving obstacles like the gates | Lids 105°, doors 100°, as tagged |
+| 4 | **Blanket animation** (`src/blanket.ts`): E at a box opens the lids, then unrolls a translucent blue bubble blanket (22 mm hex bubbles) from the box across the pool. The sheet is cut from the pool water's own top surface, so it follows the shape. The roll in the box shrinks to its core about its own axis, then the lids close. E again reverses it. The prompt reads "unroll the blanket" or "roll the blanket in". Switching the option away resets it | `blanket_half.png`, `blanket_out*.png`, `blanket_shallow_out.png` |
+| 5 | **Pump room:** cards (slatted doors or open bay) under "Under the spa", the 22_pump_room view and a renders-page section. E opens or closes the doors. **Crouch:** C toggles it on land (eye 0.75 m). Walking under anything lower than 1.85 m crouches you by itself: it looks 0.2–0.45 m ahead so you're down before the wall above the 0.88 m opening stops you. The capsule shortens and you move at 55% speed. A note reads "Low headroom: 0.96 m"; you stand again once there's room | `pump_doors_open.png`, `pump_inside.png` |
+| 6 | Kitchen-none card now has its render | — |
+| 7 | **Product link** on the low-profile roller card (Daisy SQ Pool Roller, new tab) | — |
+| 8 | Category renamed **Pool cover** | — |
+
+**Not built yet, as asked:** roll-on covers, the hot tub cover, play_moved, pier_inset, the side gate and the clothesline.
+
+**Tests:**
+- **New `scripts/r16-test.mjs` (PASS):**
+  - Posts: each of the four layouts shows only its own post.
+  - Blanket boxes: the cavity paving hides; then, for the deep box, the prompt, lids opening first, the unroll with the shrinking roll, the lids closing, the reverse, and the shallow box too.
+  - Pump room: the door prompt, E opens both doors, walking in auto-crouches you under 0.88 m headroom with the note, walking out stands you up, shut doors stop you, C crouches by hand, and the open bay.
+  - A clean console.
+- **Other checks:** tools-test, switch-test, walk test, settings, images (192, 0 missing), page checks and phone layouts all pass. The new post and pump choices survive a reload, and the `?post=`/`?pump=` links work.
+- **Frame rate:** Low, Medium and High hold 60 fps at DPR 1 and 2.
+- **Dusk scrub:** max 48 ms, 0 over 50 ms.
+
+**Fixed along the way:** a card with a product link lost its click handler, which the page check caught.
+
+## Round 16b
+
+**Interacting while flying:**
+- E works in fly mode as it does walking: gates, blanket-box lids and pump doors. The prompt and the phone button come up from where you're flying, and only within reach up and down (nothing from high above). Drone mode is unchanged.
+- E is no longer "fly up": up is Space, the right mouse button or the touch ▲.
+- New: a short fly-mode hint, and the help card says E works while flying.
+- On phones the gate button sits beside the fly pad while flying.
+
+**Tests:**
+- r16-test: 5 new fly-mode checks (door prompt, doors open, blanket unrolls, gate prompt, no prompt from high above). PASS.
+- tools-test: "E doesn't fly". PASS.
+- Walk test: passes.
+
 ## Summary
+
+**Round 16:**
+- **New options wired up:** alfresco posts and the shallow-end blanket box, plus the cavity paving that fills a box's spot when it isn't chosen.
+- **Blanket animation:** E unrolls the blanket across the pool and rolls it back.
+- **Pump room:** doors that open with E, and crouching to get in.
+- **Product link:** on the low-profile roller card.
+- **Rename:** 'Pool cover'.
 
 **Round 15:**
 - **Sidebar:** choices in categories.

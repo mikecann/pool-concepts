@@ -16,6 +16,8 @@ const JUMP = 0.45;
 const FLY_R = 0.3, FLY = 4, FLY_FAST = 12;
 /** In the pool: how much slower you wade, and the lowest the eye can duck (below the surface). */
 const WADE = 0.45, DUCK = -1.35;
+/** Crouching (Round 16): eye height, and the headroom under which you crouch by yourself (the pump room: 0.96 m). */
+const CROUCH_EYE = 0.75, STAND_ROOM = 1.85;
 
 /** A moving obstacle the capsule can't pass, as a vertical strip from a to b (e.g. a gate leaf). */
 export type Segment = { a: Vector3; b: Vector3; y0: number; y1: number };
@@ -75,6 +77,19 @@ export class Walker {
   waterTop = -Infinity;
   /** The eye's current height offset while ducking in the pool. */
   private duck = 0;
+  /** Crouching: C toggles it on land; walking under anything low does it for you (autoCrouch), 0..1 eased. */
+  crouchManual = false;
+  autoCrouch = false;
+  private crouchK = 0;
+  get crouching() { return this.crouchManual || this.autoCrouch; }
+  /** Clear height above the feet at (x, z), up to 3 m. */
+  headroomAt(x: number, z: number, feetY: number) {
+    if (!this.walls) return 3;
+    this.ray.origin.set(x, feetY + 0.3, z); this.ray.direction.set(0, 1, 0);
+    const hit = this.walls.raycastFirst(this.ray, DoubleSide);
+    this.ray.direction.set(0, -1, 0);
+    return hit ? Math.min(3, hit.distance + 0.3) : 3;
+  }
   private keys = new Set<string>();
   private stick = { x: 0, y: 0 };
   private ray = new Ray();
@@ -88,6 +103,7 @@ export class Walker {
     addEventListener('keydown', e => {
       if ((e.target as HTMLElement)?.closest?.('input, select, textarea')) return;
       if (e.code === 'Space' && !e.repeat) this.jump();
+      if (e.code === 'KeyC' && !e.repeat && this.mode === 'walk' && !this.inWater) this.crouchManual = !this.crouchManual;
       this.keys.add(e.code);
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && document.activeElement === dom) e.preventDefault();
     });
@@ -118,7 +134,7 @@ export class Walker {
       const m = o as Mesh;
       if (!m.isMesh) return;
       if (m.userData.water) { (m.userData.water === 'canal' ? water : pool).push(m); return; }
-      if (m.userData.gateLeaf) return;   // gates move: handled as segments
+      if (m.userData.gateLeaf || m.userData.interact === 'door') return;   // gates and doors move: handled as segments
       if ((m.userData.collide === false && !m.userData.window) || m.userData.lod === 'far') return;
       walls.push(m);
     });
@@ -189,7 +205,7 @@ export class Walker {
   private push(p: Vector3) {
     if (!this.walls) return;
     _seg.start.set(p.x, p.y + STEP + RADIUS, p.z);
-    _seg.end.set(p.x, p.y + EYE - 0.05, p.z);
+    _seg.end.set(p.x, p.y + (this.crouching ? CROUCH_EYE - 0.25 : EYE - 0.05), p.z);
     _box.makeEmpty(); _box.expandByPoint(_seg.start); _box.expandByPoint(_seg.end);
     _box.min.addScalar(-RADIUS); _box.max.addScalar(RADIUS);
     for (let iter = 0; iter < 3; iter++) {
@@ -229,7 +245,7 @@ export class Walker {
   jump() {
     if (this.mode !== 'walk' || this.glide) return;
     if (this.inWater && this.climbOut()) return;
-    if (!this.grounded) return;
+    if (!this.grounded || this.crouching) return;
     this.vy = Math.sqrt(2 * GRAVITY * JUMP);
     this.grounded = false;
   }
@@ -289,7 +305,8 @@ export class Walker {
     let fx = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0) + this.stick.x;
     let fz = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) + this.stick.y;
     fz += this.mouseFwd;   // Round 15c: left mouse button held flies forward
-    const up = (k.has('Space') || k.has('KeyE') ? 1 : 0) - (k.has('KeyC') || k.has('KeyQ') ? 1 : 0) + this.flyUp + this.mouseUp;
+    // up: Space, the right mouse button or the touch button (E is for opening things, as when walking: Round 16b)
+    const up = (k.has('Space') ? 1 : 0) - (k.has('KeyC') || k.has('KeyQ') ? 1 : 0) + this.flyUp + this.mouseUp;
     const speed = k.has('ShiftLeft') || k.has('ShiftRight') ? FLY_FAST : FLY;
     // forward follows where you look (pitch included), strafe stays level
     const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch), sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
@@ -341,8 +358,15 @@ export class Walker {
     const before = this.feet.clone();
     // walking (or jumping) eases a "go to" view height back to standing height
     if ((dx || dz || this.vy > 0) && this.lift) { this.lift *= Math.exp(-dt * 5); if (Math.abs(this.lift) < 0.005) this.lift = 0; }
+    // headroom here and where you're heading: crouch under anything low, stand again once there's room
+    const roomHere = this.headroomAt(this.feet.x, this.feet.z, this.feet.y);
+    // look past the capsule's front (0.24 m) so you're already down before the wall above a low opening stops you
+    const step = Math.hypot(dx, dz) || 1;
+    const roomAhead = dx || dz ? Math.min(...[0.2, 0.45].map(d => this.headroomAt(this.feet.x + (dx / step) * d, this.feet.z + (dz / step) * d, this.feet.y))) : 3;
+    this.autoCrouch = !this.inWater && Math.min(roomHere, roomAhead) < STAND_ROOM;
+    this.crouchK += ((this.crouching ? 1 : 0) - this.crouchK) * Math.min(1, dt * 8);
     if (dx || dz) {
-      const next = this.feet.clone(); next.x += dx; next.z += dz;
+      const next = this.feet.clone(); next.x += dx * (this.crouching ? 0.55 : 1); next.z += dz * (this.crouching ? 0.55 : 1);
       this.push(next);
       // no walking onto the canal (the pool and spa you can step into): test the spot, then each axis on its own
       const blocked = (p: Vector3) => {
@@ -379,7 +403,8 @@ export class Walker {
   apply() {
     if (this.mode === 'fly' && !this.glide) { this.camera.position.copy(this.fly); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); return; }
     if (this.mode !== 'walk' && !this.glide) return;
-    this.camera.position.set(this.feet.x, this.feet.y + EYE + this.lift + this.duck, this.feet.z);
+    const base = EYE + this.lift;   // crouching blends to the crouch height from wherever the eye is (a seated 'go to' too)
+    this.camera.position.set(this.feet.x, this.feet.y + base + (Math.min(base, CROUCH_EYE) - base) * this.crouchK + this.duck, this.feet.z);
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
   }
 

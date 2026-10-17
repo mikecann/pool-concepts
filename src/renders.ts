@@ -10,6 +10,8 @@ const walkUrl = (f: Fly) => {
   if (f.minutes !== undefined) q.set('t', String(f.minutes));
   if (f.roller) q.set('roller', f.roller);
   if (f.kitchen) q.set('kitchen', f.kitchen);
+  if (f.post) q.set('post', f.post);
+  if (f.pump) q.set('pump', f.pump);
   if (f.pier) q.set('pier', f.pier);
   if (f.nfence) q.set('nfence', f.nfence.replace('nfence_', ''));
   if (f.passage) q.set('passage', f.passage.replace('passage_', ''));

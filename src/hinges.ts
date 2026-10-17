@@ -8,7 +8,10 @@
 import { Group, Quaternion, Vector3, type Object3D } from 'three/webgpu';
 
 export type Hinge = {
-  group: string; kind: 'lid' | 'door'; parts: Object3D[]; pivot: Group; axis: Vector3; openRad: number;
+  /** Each part swings about its own pivot and axis (two lid panels, a pair of doors opening opposite ways). */
+  group: string; kind: 'lid' | 'door'; parts: Object3D[]; pivots: { pivot: Group; axis: Vector3; openRad: number }[];
+  /** The first part's pivot (kept for callers that want one). */
+  pivot: Group; axis: Vector3; openRad: number;
   /** 0 shut, 1 open; eased towards `to` over 0.8 s. */
   angle: number; to: number; from: number; t: number;
   centre: Vector3; extras: Record<string, unknown>;
@@ -38,20 +41,24 @@ export class Hinges {
 
   /** Make a hinge from parts (also used by the tests with a stand-in object). */
   add(group: string, parts: Object3D[]) {
-    const u = parts[0].userData;
-    const pivot = new Group();
-    pivot.name = `hinge_${group}`;
-    pivot.position.fromArray(u.pivot as number[]);
-    parts[0].parent!.add(pivot);
-    pivot.updateMatrixWorld(true);
-    for (const p of parts) { pivot.attach(p); p.traverse(c => { c.userData.hingeGroup = group; }); }
+    const pivots = parts.map(p => {
+      const u = p.userData;
+      const pivot = new Group();
+      pivot.name = `hinge_${group}_${p.name}`;
+      pivot.position.fromArray(u.pivot as number[]);
+      p.parent!.add(pivot);
+      pivot.updateMatrixWorld(true);
+      pivot.attach(p);
+      p.traverse(c => { c.userData.hingeGroup = group; });
+      return { pivot, axis: new Vector3().fromArray(u.axis as number[]).normalize(), openRad: ((u.open_deg as number) ?? 90) * Math.PI / 180 };
+    });
     const centre = new Vector3();
-    let n = 0;
-    for (const p of parts) { centre.add(p.getWorldPosition(new Vector3())); n++; }
-    centre.divideScalar(Math.max(1, n));
+    for (const p of parts) centre.add(p.getWorldPosition(new Vector3()));
+    centre.divideScalar(Math.max(1, parts.length));
+    const u = parts[0].userData;
     const h: Hinge = {
-      group, kind: u.interact as 'lid' | 'door', parts, pivot, axis: new Vector3().fromArray(u.axis as number[]).normalize(),
-      openRad: ((u.open_deg as number) ?? 90) * Math.PI / 180, angle: 0, to: 0, from: 0, t: 1, centre, extras: { ...u },
+      group, kind: u.interact as 'lid' | 'door', parts, pivots, pivot: pivots[0].pivot, axis: pivots[0].axis, openRad: pivots[0].openRad,
+      angle: 0, to: 0, from: 0, t: 1, centre, extras: { ...u },
     };
     this.list.push(h);
     return h;
@@ -64,11 +71,12 @@ export class Hinges {
   }
 
   /** The nearest hinge within reach that you're roughly facing, or null. */
-  nearest(feet: Vector3, yaw: number, reach = 1.8) {
+  nearest(feet: Vector3, yaw: number, reach = 1.8, eyeY = feet.y + 1.65) {
     const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
     let best = reach, out: Hinge | null = null;
     for (const h of this.list) {
       if (!visible(h.parts[0])) continue;
+      if (h.centre.y < eyeY - 2.6 || h.centre.y > eyeY + 0.6) continue;   // within reach up and down too (fly mode)
       const dx = h.centre.x - feet.x, dz = h.centre.z - feet.z, d = Math.hypot(dx, dz);
       if (d < best && (dx * fx + dz * fz) / Math.max(d, 1e-3) > 0.3) { best = d; out = h; }
     }
@@ -84,7 +92,7 @@ export class Hinges {
       h.t = Math.min(1, h.t + dt / 0.8);
       const e = h.t < 0.5 ? 2 * h.t * h.t : 1 - (-2 * h.t + 2) ** 2 / 2;
       h.angle = h.from + (h.to - h.from) * e;
-      h.pivot.quaternion.copy(q.setFromAxisAngle(h.axis, h.angle * h.openRad));
+      for (const p of h.pivots) p.pivot.quaternion.copy(q.setFromAxisAngle(p.axis, h.angle * p.openRad));
       moved = true;
     }
     return moved;

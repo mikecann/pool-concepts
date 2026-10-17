@@ -61,7 +61,7 @@ const y1 = await p.evaluate(() => __viewer.camera.position.y);
 check('Space flies up', y1 > y0 + 1.2, `${y0.toFixed(2)} -> ${y1.toFixed(2)}`);
 await hold('KeyE', 400); await wait(100);
 const y2 = await p.evaluate(() => __viewer.camera.position.y);
-check('E flies up too (no gate in fly mode)', y2 > y1 + 0.8, `-> ${y2.toFixed(2)}`);
+check('E doesn\'t fly (it opens things, Round 16b)', Math.abs(y2 - y1) < 0.05, `-> ${y2.toFixed(2)}`);
 await hold('KeyC', 2500);
 const y3 = await p.evaluate(() => __viewer.camera.position.y);
 const gy = await p.evaluate(() => __viewer.walker.walkableAt(__viewer.camera.position.x, __viewer.camera.position.z, 8) ?? 0);

@@ -207,9 +207,9 @@
   "name": "led_bench_light_0",
   "type": "AREA",
   "position": [
-   0.78025,
+   0.7603,
    2.06,
-   5.90923
+   5.90783
   ],
   "direction": [
    0.0,
@@ -225,23 +225,23 @@
   "dayPower": 0.0,
   "spotAngle": 0,
   "spotBlend": 0,
-  "size": 2.78,
+  "size": 2.74,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
   "set": "proposed",
   "xaxis": [
    0.9976,
    0.0,
-   0.06924
+   0.06923
   ]
  },
  {
   "name": "led_bench_light_1",
   "type": "AREA",
   "position": [
-   1.34207,
+   1.35142,
    2.06,
-   7.34655
+   7.21185
   ],
   "direction": [
    0.0,
@@ -257,12 +257,12 @@
   "dayPower": 0.0,
   "spotAngle": 0,
   "spotBlend": 0,
-  "size": 2.45,
+  "size": 2.18,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
   "set": "proposed",
   "xaxis": [
-   -0.06925,
+   -0.06926,
    0.0,
    0.9976
   ]
@@ -455,5 +455,37 @@
   "sizeY": 0,
   "shape": null,
   "set": "proposed"
+ },
+ {
+  "name": "pump_room_light",
+  "type": "AREA",
+  "position": [
+   -0.76342,
+   2.188,
+   10.81909
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.95,
+   0.88
+  ],
+  "power": 25.0,
+  "dayPower": 25.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.56,
+  "sizeY": 0.05,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ]
  }
 ]

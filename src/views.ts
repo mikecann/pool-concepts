@@ -1,4 +1,4 @@
-// The 18 render viewpoints: id, name, description. Shared by the renders page and the walkthrough.
+// The render viewpoints: id, name, description. Shared by the renders page and the walkthrough.
 export const VIEWS = [
   ["01_canal_view", "From the canal", "From a boat about 20 m off the jetty, looking north at the house."],
   ["02_jetty_to_pool", "From the jetty", "End of the jetty, looking back at the new 1.2 m limestone wall and the pump-shed doors."],
@@ -16,6 +16,7 @@ export const VIEWS = [
   ["19_play_area", "Side passage play area", "At the pool's north gate, looking up the side passage at the trampoline and the climbing frame."],
   ["21_play_area_north", "Play area, looking south down the side passage", "From the play area at the north end of the side passage, looking south past the trampoline to the pool fence."],
   ["20_pool_north_seating", "Pool from the spa deck, looking north", "From the spa deck, looking up the pool to the north fence and the side passage beyond it."],
+  ["22_pump_room", "In the pump room", "Kneeling inside the pump room under the spa deck: 0.96 m headroom, the filter, pumps and blower."],
   ["09_promenade_west", "Along the canal path", "Walking west on the canal-side paving beside the new wall."],
   ["17_pool_overview", "Pool from above", "Drone height above the house, looking down the length of the pool."],
   ["07_aerial_southwest", "Aerial, south-west", "Drone height over the canal, looking north-east."],

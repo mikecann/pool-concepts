@@ -289,3 +289,6 @@ ul.assume li::marker { color: var(--accent); }
 .fly-pad { position: absolute; right: max(18px, env(safe-area-inset-right)); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 130px); z-index: 6; display: grid; gap: 10px; }
 .fly-pad button { width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--on-scrim); color: #172225; font-size: 20px; opacity: .85; touch-action: none; }
 @media (max-width: 820px), (max-height: 500px) { .measure-bar { top: 118px; font-size: 12.5px; } .hud-btn.tool { padding-inline: 9px; } }
+
+.card-link { justify-self: end; margin: -4px 4px 4px; color: var(--accent); text-decoration: underline; font-size: 12.5px; }
+.world.flying .gate-btn { right: calc(max(18px, env(safe-area-inset-right)) + 72px); }   /* Round 16b: beside the fly pad, not under it */

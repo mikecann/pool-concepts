@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-  <script type="module" crossorigin src="/model/assets/walk-B4AYpnxr.js"></script>
-  <link rel="modulepreload" crossorigin href="/model/assets/choices-Bst6Zt67.js">
-  <link rel="stylesheet" crossorigin href="/model/assets/walk-D4tLNXlc.css">
+  <script type="module" crossorigin src="/model/assets/walk-CC6uFpBE.js"></script>
+  <link rel="modulepreload" crossorigin href="/model/assets/choices-BNpa8B9T.js">
+  <link rel="stylesheet" crossorigin href="/model/assets/walk-DrljhaKR.css">
 </head>
 <body>
 <div class="app" id="app">
@@ -55,7 +55,7 @@
         <li><b>Click</b> the view to look around with the mouse</li>
         <li><b>W A S D</b> or the <b>arrow keys</b> to walk</li>
         <li><b>Shift</b> to run</li>
-        <li><b>Fly</b> mode: hold the <b>left mouse button</b> to fly forward, the <b>right</b> to go up; or <b>Space</b>/<b>E</b> up, <b>C</b>/<b>Q</b> down</li>
+        <li><b>Fly</b> mode: hold the <b>left mouse button</b> to fly forward, the <b>right</b> (or <b>Space</b>) to go up, <b>C</b>/<b>Q</b> down; <b>E</b> still opens gates, lids and doors</li>
         <li><b>M</b> for the tape measure: click two points</li>
         <li>In the pool, <b>C</b> ducks under; <b>Space</b> at the wall climbs out</li>
         <li><b>Esc</b> to stop looking and get your mouse back</li>
@@ -66,7 +66,7 @@
         <li><b>Fly</b> mode: the arrows on the right go up and down</li>
         <li><b>&#8596;</b> is a tape measure: tap two points</li>
       </ul>
-      <p class="hint">The slider at the bottom sets the time of day.<span class="desk-only"> Near a gate, press <b>E</b> to open it, and <b>Space</b> hops.</span><span class="phone-only"> Near a gate, tap the button that appears to open it.</span></p>
+      <p class="hint">The slider at the bottom sets the time of day.<span class="desk-only"> Near a gate, lid or door, press <b>E</b> to open it (walking or flying), and <b>Space</b> hops.</span><span class="phone-only"> Near a gate, tap the button that appears to open it.</span></p>
       <button type="button" id="welcome-ok">Got it</button>
     </section>
     <div class="crosshair" id="crosshair" aria-hidden="true"></div>
@@ -129,7 +129,7 @@
       <div class="cat-tabs" role="tablist" aria-label="Design choices" id="cat-tabs"></div>
       <div class="cat-panel" role="tabpanel" data-cat="pool" id="cat-pool">
         <section class="block" aria-labelledby="roller-h">
-          <h3 class="fl" id="roller-h">Pool roller</h3>
+          <h3 class="fl" id="roller-h">Pool cover: roller or blanket box</h3>
           <div class="cards" id="cards-roller"></div>
         </section>
       </div>
@@ -138,7 +138,11 @@
           <h3 class="fl" id="kitchen-h">Outdoor kitchen</h3>
           <div class="cards" id="cards-kitchen"></div>
         </section>
-        <p class="soon">Alfresco post options: coming soon.</p>
+        <section class="block" aria-labelledby="post-h">
+          <h3 class="fl" id="post-h">Alfresco posts and beams</h3>
+          <p class="hint">Where the roof's west edge is held up. Every layout flies the beams over the house gutter.</p>
+          <div class="cards" id="cards-post"></div>
+        </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="fences" id="cat-fences">
         <section class="block" aria-labelledby="pier-h">
@@ -158,9 +162,10 @@
         </section>
       </div>
       <div class="cat-panel" role="tabpanel" data-cat="spa" id="cat-spa">
-        <section class="block">
-          <h3 class="fl">Pump room under the spa deck</h3>
-          <p class="soon">Coming soon: the pump room options are being modelled.</p>
+        <section class="block" aria-labelledby="pump-h">
+          <h3 class="fl" id="pump-h">Pump room under the spa deck</h3>
+          <p class="hint">1.94 x 1.04 m inside with 0.96 m headroom (SK02's floor at −1100). You kneel in it; walk in and you'll crouch.</p>
+          <div class="cards" id="cards-pump"></div>
         </section>
       </div>
 

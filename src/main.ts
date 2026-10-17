@@ -1,5 +1,5 @@
 import * as THREE_NS from 'three/webgpu';
-import { AgXToneMapping, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
+import { AgXToneMapping, Box3, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
 import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
@@ -8,11 +8,12 @@ import { Post, QUALITY, type Quality } from './post';
 import { Walker, type Mode } from './walk';
 import { TapeMeasure } from './measure';
 import { Hinges } from './hinges';
+import { Blankets } from './blanket';
 import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -26,7 +27,7 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number;
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage', string>> };
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 const remember = (patch: Settings) => {
@@ -236,9 +237,11 @@ async function main() {
     render();
     return render;
   };
+  let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
   const optChanged = () => {
+    for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
-    remember({ options: { roller: model.roller, kitchen: model.kitchen, pier: model.pier, nfence: model.nfence, passage: model.passage } });
+    remember({ options: { roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, pier: model.pier, nfence: model.nfence, passage: model.passage } });
   };
   renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
 
@@ -252,6 +255,12 @@ async function main() {
       const pic = b.querySelector('img')!; pic.addEventListener('error', () => pic.classList.add('missing'));   // render not made yet
       b.onclick = () => { pick(c.value); cardGroups.forEach(r => r()); if (mobile.matches) setPanel(false); };
       box.appendChild(b);
+      if (c.link) {
+        // a product page (Round 16): a link under the card, opening in a new tab (not part of the card's button)
+        const a = document.createElement('a');
+        a.className = 'card-link'; a.href = c.link.href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${c.link.label} \u2197`;
+        box.appendChild(a);
+      }
       return b;
     });
     // only the pressed state changes, so the thumbnails never reload
@@ -272,6 +281,12 @@ async function main() {
   cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
     ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
   });
+  cards($('cards-post'), POST_CHOICES, () => model.post, v => {
+    ensureProposed(); model.post = v; optChanged(); goToCam('10_alfresco_corner');
+  });
+  cards($('cards-pump'), PUMP_CHOICES, () => model.pump, v => {
+    ensureProposed(); model.pump = v; optChanged(); goToCam('22_pump_room');
+  });
   cards($('cards-nfence'), NFENCE_CHOICES, () => model.nfence, v => {
     ensureProposed(); model.nfence = v; optChanged(); goToCam('20_pool_north_seating');
   });
@@ -282,11 +297,11 @@ async function main() {
   // design reads at a glance), and only the open category's cards below. The open category is remembered.
   const title = (items: Choice[], v: string) => items.find(c => c.value === v)?.title ?? '';
   const CATS: { id: string; name: string; summary: () => string }[] = [
-    { id: 'pool', name: 'Pool', summary: () => title(ROLLER_CHOICES, model.roller) },
-    { id: 'alfresco', name: 'Alfresco', summary: () => title(KITCHEN_CHOICES, model.kitchen) },
+    { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
+    { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · posts: ${title(POST_CHOICES, model.post).toLowerCase()}` },
     { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · north: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
     { id: 'passage', name: 'Side passage', summary: () => title(PASSAGE_CHOICES, model.passage) },
-    { id: 'spa', name: 'Under the spa', summary: () => 'Coming soon' },
+    { id: 'spa', name: 'Under the spa', summary: () => `Pump room: ${title(PUMP_CHOICES, model.pump).toLowerCase()}` },
   ];
   const catTabs = $('cat-tabs');
   let openCat = CATS.some(c => c.id === store.get('pool-cat')) ? store.get('pool-cat')! : 'pool';
@@ -400,6 +415,8 @@ async function main() {
     } else if (m === 'fly') {
       // Round 15: fly from exactly where you are and where you're looking (from the drone too)
       walker.startFly(camera.position, yaw, Math.max(-1.4, Math.min(1.4, pitch)));
+      if (!isTouch) showHint('Flying<small>Left mouse: forward · Right mouse or Space: up · C: down · E: open gates, lids and doors</small>', 4000);
+      else showHint('Flying<small>The arrows on the right go up and down; the button that appears opens things</small>', 4000);
     } else {
       // land where the drone was looking (or straight below you when flying), if you could stand there; otherwise
       // back where you last stood, or the start spot (Round 13: from the lounge or spa views the drone looks over
@@ -572,6 +589,8 @@ async function main() {
   const valid = (v: string | undefined, list: Choice[]) => (v && list.some(c => c.value === v) ? v : undefined);
   model.roller = valid(o.roller, ROLLER_CHOICES) ?? model.roller;
   model.kitchen = valid(o.kitchen, KITCHEN_CHOICES) ?? model.kitchen;
+  model.post = valid(o.post, POST_CHOICES) ?? model.post;
+  model.pump = valid(o.pump, PUMP_CHOICES) ?? model.pump;
   // Round 15b: the pool fence is decided (perforated); an old saved or linked fence value is ignored
   model.pier = valid(o.pier, PIER_CHOICES) ?? model.pier;
   model.nfence = valid(o.nfence, NFENCE_CHOICES) ?? model.nfence;
@@ -585,10 +604,12 @@ async function main() {
   if (params.get('scenario') === 'existing' || params.get('scenario') === 'proposed') setScenario(params.get('scenario') as Scenario);
   model.roller = fromParam('roller', ROLLER_CHOICES) ?? model.roller;
   model.kitchen = fromParam('kitchen', KITCHEN_CHOICES) ?? model.kitchen;
+  model.post = fromParam('post', POST_CHOICES, 'post_') ?? model.post;
+  model.pump = fromParam('pump', PUMP_CHOICES, 'pump_') ?? model.pump;
   model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
-  if (['roller', 'kitchen', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  if (['roller', 'kitchen', 'post', 'pump', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
@@ -633,26 +654,44 @@ async function main() {
   // Round 15: lids and doors (interact extras), on the same E key and button as the gates
   const hinges = new Hinges();
   hinges.collect(model.root);
-  let nearHinge: ReturnType<Hinges['nearest']> = null;
+  // Round 16: the blanket boxes' lids unroll and roll up their blankets
+  const blankets = new Blankets(); blanketsRef = blankets; hingesRef = hinges;
+  blankets.setup(model.root, hinges, model.waters.filter(w => w.userData.water === 'pool'));
+  model.apply();
+  let nearHinge: ReturnType<Hinges['nearest']> = null, lowNote = false;
   const toggleGate = () => {
-    if (nearGate) model.swingGate(nearGate, nearGate.to === 0);
-    else if (nearHinge) { hinges.toggle(nearHinge); shadowHold = Math.max(shadowHold, 50); }
+    if (nearGate) { model.swingGate(nearGate, nearGate.to === 0); return; }
+    if (!nearHinge) return;
+    const box = blankets.forHinge(nearHinge);
+    if (box) blankets.toggle(box, hinges); else hinges.toggle(nearHinge);
+    shadowHold = Math.max(shadowHold, 50);
   };
   addEventListener('keydown', e => { if (e.code === 'KeyE' && !(e.target as HTMLElement)?.closest?.('input, select, textarea')) toggleGate(); });
   gateBtn.onclick = toggleGate;
-  walker.segments = () => model.gates.filter(g => model.gateVisible(g)).map(g => {
+  // doors (Round 16): each leaf as a strip from its hinge to its far edge, wherever it has swung to
+  const _db = new Box3(), _dc = new Vector3();
+  const doorSegments = () => hinges.list.filter(h => h.kind === 'door' && model.visibleFor(h.parts[0].userData)).flatMap(h => h.pivots.map((pv, i) => {
+    _db.setFromObject(h.parts[i]); _db.getCenter(_dc);
+    const a = pv.pivot.getWorldPosition(new Vector3()), far = a.clone().add(_dc.clone().sub(a).setY(0).multiplyScalar(2));
+    return { a: a.setY(_db.min.y), b: far, y0: _db.min.y, y1: _db.max.y };
+  }));
+  walker.segments = () => [...model.gates.filter(g => model.gateVisible(g)).map(g => {
     const d = model.gateDir(g);
     return { a: g.hinge, b: g.hinge.clone().addScaledVector(d, g.width), y0: g.hinge.y, y1: g.hinge.y + 1.25 };
-  });
+  }), ...doorSegments()];
   const _gd = new Vector3();
   const updateGateUI = (dt: number) => {
     let best = 1.5, near: Gate | null = null;
-    const f = walker.feet, fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
+    // Round 16b: in fly mode you interact from where you're flying, as long as it's within reach up and down too
+    const flying = walker.mode === 'fly', canUse = walker.mode === 'walk' || flying;
+    const f = flying ? walker.fly : walker.feet, eyeY = flying ? walker.fly.y : walker.feet.y + 1.65;
+    const fx = -Math.sin(walker.yaw), fz = -Math.cos(walker.yaw);
     for (const g of model.gates) {
       if (!model.gateVisible(g)) continue;
       model.gateDir(g, _gd);
       const cx = g.hinge.x + _gd.x * g.width / 2 - f.x, cz = g.hinge.z + _gd.z * g.width / 2 - f.z, dist = Math.hypot(cx, cz);
-      if (walker.mode === 'walk' && dist < best && (cx * fx + cz * fz) / Math.max(dist, 1e-3) > 0.45) { best = dist; near = g; }
+      const reachY = eyeY > g.hinge.y - 0.3 && eyeY < g.hinge.y + 2.9;
+      if (canUse && reachY && dist < best && (cx * fx + cz * fz) / Math.max(dist, 1e-3) > 0.45) { best = dist; near = g; }
       // self-closing: once you're clear of the swing for 5 s, it shuts by itself
       if (g.to === 1) {
         const r = Math.hypot(f.x - g.hinge.x, f.z - g.hinge.z);
@@ -661,18 +700,24 @@ async function main() {
       }
     }
     nearGate = near;
-    nearHinge = !near && walker.mode === 'walk' ? hinges.nearest(f, walker.yaw) : null;
+    nearHinge = !near && canUse ? hinges.nearest(f, walker.yaw, 2.4, eyeY) : null;
+    if (blankets.update(dt, hinges)) shadowDirty = true;
     if (hinges.update(dt)) shadowDirty = true;
+    const box = blankets.forHinge(nearHinge);
     const what = near ? 'gate' : nearHinge ? nearHinge.kind : '';
     const open = near ? near.to === 1 : nearHinge ? nearHinge.to === 1 : false;
-    const label = what ? `${open ? 'Close' : 'Open'} the ${what}` : '';
+    const verb = box ? blankets.label(box) : `${open ? 'close' : 'open'} the ${what}`;
+    const label = what && verb ? verb[0].toUpperCase() + verb.slice(1) : '';
+    // the pump room's low headroom: say so while it has you crouching
+    const low = walker.mode === 'walk' && walker.autoCrouch && !walker.crouchManual;
+    if (low !== lowNote) { lowNote = low; if (low) showHint('Low headroom: 0.96 m<small>You kneel in here. Walk back out to stand up.</small>', 3000); }
     if (isTouch) {
-      gateBtn.hidden = !what;
-      if (what && gateBtn.textContent !== label) gateBtn.textContent = label;
+      gateBtn.hidden = !label;
+      if (label && gateBtn.textContent !== label) gateBtn.textContent = label;
       gateTip.hidden = true;
     } else {
-      gateTip.hidden = !what;
-      if (what) { const html = `Press <kbd>E</kbd> to ${open ? 'close' : 'open'} the ${what}`; if (gateTip.innerHTML !== html) gateTip.innerHTML = html; }
+      gateTip.hidden = !label;
+      if (label) { const html = `Press <kbd>E</kbd> to ${verb}`; if (gateTip.innerHTML !== html) gateTip.innerHTML = html; }
     }
   };
 
@@ -835,7 +880,7 @@ async function main() {
     state: () => ({ ...S, feet: walker.feet.toArray(), yaw: walker.yaw, pitch: walker.pitch, sun: atm.state, exposure: renderer.toneMappingExposure }),
     atm, model, renderer, camera, scene, walker, perf, THREE: THREE_NS, gpuTiming: () => gpuTiming,
     get post() { return post; },
-    hinges, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
+    hinges, blankets, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
     setPanel,
   };
 }
