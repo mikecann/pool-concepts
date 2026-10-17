@@ -322,21 +322,26 @@ async function main() {
   group('roller', ROLLER_CHOICES, 'roller', () => (/shallow/.test(model.roller) ? '13_deep_end_to_house' : '05_pool_north_end'));
   group('kitchen', KITCHEN_CHOICES, 'kitchen', () => '16_outdoor_kitchen');
   group('pier', PIER_CHOICES, 'pier', () => '18_pier_fence');
-  // the inset fence is meant to go with no outdoor kitchen: warn on its card while a kitchen is chosen (Round 17d)
-  {
-    const card = [...$('cards-pier').querySelectorAll<HTMLElement>('.card')].find(c => c.querySelector('b')?.textContent === PIER_CHOICES.find(c => c.value === 'pier_inset')?.title);
-    const warn = document.createElement('em'); warn.className = 'card-warn';
-    warn.textContent = 'With a kitchen, the benches would sit 45 mm outside the fence (climbable).';
-    card?.querySelector('span')?.appendChild(warn);
-    const render = () => { warn.hidden = model.kitchen === 'kitchen_none'; };
-    cardGroups.push(render); render();
-  }
   group('spacover', SPA_COVER_CHOICES, 'spaCover', () => '14_spa_to_canal');
   group('play', PLAY_CHOICES, 'play', () => '21_play_area_north');
   group('post', POST_CHOICES, 'post', () => '10_alfresco_corner');
   group('pump', PUMP_CHOICES, 'pump', () => '22_pump_room');
   group('nfence', NFENCE_CHOICES, 'nfence', () => '20_pool_north_seating');
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
+  // inline warnings on a card while a clashing option is chosen (Round 17d, 18). The other option isn't changed.
+  const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean) => {
+    const t = items.find(c => c.value === value)?.title;
+    const card = [...$(box).querySelectorAll<HTMLElement>('.card')].find(c => c.querySelector('b')?.textContent === t);
+    const warn = document.createElement('em'); warn.className = 'card-warn'; warn.textContent = text;
+    card?.querySelector('span')?.appendChild(warn);
+    const render = () => { warn.hidden = !show(); };
+    cardGroups.push(render); render();
+  };
+  warnOn('cards-pier', PIER_CHOICES, 'pier_inset', 'With a kitchen, the benches would sit 45 mm outside the fence (climbable).', () => model.kitchen !== 'kitchen_none');
+  // the lounge kitchen and the two-post roof clash (its east post stands in the bench): warn on both while both are chosen
+  const loungeClash = () => model.kitchen === 'kitchen_lounge' && model.post === 'post_two';
+  warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', "With two roof posts, one post stands in this bench.", loungeClash);
+  warnOn('cards-post', POST_CHOICES, 'post_two', 'With the lounge kitchen, the east post stands in its bench.', loungeClash);
   // Round 15: the choices in categories. A grid of category buttons, each showing its current choice (so the whole
   // design reads at a glance), and only the open category's cards below. The open category is remembered.
   const title = (items: Choice[], v: string) => items.find(c => c.value === v)?.title ?? '';

@@ -43,6 +43,8 @@ const KITCHEN = [
     <p>A BBQ on its own trolley south of the gate and the oven on a small stainless table by the house wall. The cheapest, and you can move things around before committing to built-ins. The least bench space.</p>`],
   ["kitchen_none", "No outdoor kitchen", `<b>No outdoor kitchen</b>
     <p>No kitchen at all: the alfresco stays open, and the gate stays where SK02 has it.</p>`],
+  ["kitchen_lounge", "Facing the lounge", `<b>A bench facing the lounge</b>
+    <p>Mike and Kelsie's idea: a 2.5 m bench along the sunken lounge's north edge, at alfresco level, its back to the lounge. You cook in the alfresco looking over the lounge to the canal, BBQ in the middle and the dome oven at the east end. The walk from the kitchen door to the pool and spa stays open. It clashes with the two-post roof, whose east post stands in the bench. (Shown with SK02's single post; there's no render from the pavilion yet.)</p>`],
 ];
 const POSTS = [
   ["post_as_drawn", "As drawn (SK02)", `<b>SK02's single post</b>
@@ -75,7 +77,7 @@ const DAY = {
 };
 const DAYV = [["15_lounge_from_alfresco", "Over the lounge"], ["06_sunken_lounge", "In the lounge"], ["04_from_kitchen_door", "Kitchen door"]];
 const NIGHTV = [["13_deep_end_to_house", "Deep end"], ["14_spa_to_canal", "Spa deck"], ["16_outdoor_kitchen", "Outdoor kitchen"], ["17_pool_overview", "From above"], ["01_canal_view", "From the canal"]];
-// the main renders are 16 Jan at 2:45 pm with the split kitchen and no roller
+// the main renders are 16 Jan at 2:45 pm, still with the split kitchen (not re-rendered for the no-kitchen default) and no roller
 const RENDER_TIME = { date: "2027-01-16", minutes: 14 * 60 + 45 };
 const SEASON_DATE = { summer: "2027-01-16", winter: "2027-06-21" } as const;
 const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
@@ -95,6 +97,8 @@ const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
 const SIDE_VIEWS = [['20_pool_north_seating', 'From the spa deck'], ['19_play_area', 'Up the side passage'], ['17_pool_overview', 'From above']];
 const POST_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge']];
 const PUMP_VIEWS = [['22_pump_room', 'Inside'], ['09_promenade_west', 'From the promenade']];
+// the lounge kitchen's renders come with the post layout: show it with SK02's post
+const kitchenSrc = (o: string, v: string) => `img/options_${v}_${o === 'kitchen_lounge' ? 'kitchen_lounge_post_as_drawn' : o}.jpg`;
 const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner', 'North-west corner'], ['12_from_pavilion', 'From the pavilion']];
 
 /** Every image the panel can show (used to check nothing 404s after a sync). */
@@ -102,7 +106,7 @@ export function allImageUrls() {
   return [
     ...VIEWS.flatMap(([id]) => [`img/${id}__existing.jpg`, `img/${id}__proposed.jpg`, `img/thumb_${id}.jpg`]),
     ...ROLLER.flatMap(([o]) => ROLLER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
-    ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => kitchenSrc(o, v))),
     ...POSTS.flatMap(([o]) => POST_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PUMP.flatMap(([o]) => PUMP_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PIER.flatMap(([o]) => PIER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
@@ -137,7 +141,7 @@ const HTML = /* html */ `
     <button class="fly" id="v-fly" type="button">Open in 3D</button>
   </div>
   <span class="desc hint" id="vdesc"></span>
-  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm.</p>
+  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. The outdoor kitchen isn't decided: these views show the split-by-the-gate layout, one of the options below.</p>
   <div class="strip" id="strip" role="list"></div>
 </section>
 
@@ -155,8 +159,8 @@ const HTML = /* html */ `
 
 <div class="section-head">
   <span class="label">Options to decide</span>
-  <h2>BBQ and pizza oven</h2>
-  <p>Along the alfresco's east fence, between the house wall and the lounge. Charcoal cabinets 900 mm high with a pale concrete top, a 900 mm built-in BBQ and a dome oven about 0.73 m wide.</p>
+  <h2>Outdoor kitchen</h2>
+  <p>Not decided yet: no kitchen, one of three layouts along the alfresco's east fence, or a bench facing the lounge. The built-in ones are charcoal cabinets 900 mm high with a pale concrete top, a 900 mm BBQ and a dome oven about 0.73 m wide. The main views above still show the split-by-the-gate layout.</p>
 </div>
 <section class="block" aria-label="Kitchen options">
   <div class="fstage"><img id="k-img" alt=""><span class="tag l" id="k-tag"></span><button class="fly" id="k-fly" type="button">Open in 3D</button></div>
@@ -442,7 +446,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     onFly: (o, v) => { const c = SIDE.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', nfence: c[3], passage: c[4] }); } });
   picker({ opts: KITCHEN, optBox: $('k-opts'), viewBox: $('k-views'), img: 'k-img', tag: 'k-tag', note: 'k-note', flyBtn: 'k-fly',
     views: KITCHEN_VIEWS,
-    src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    src: (o, v) => I + kitchenSrc(o, v).replace(/^img\//, ''),
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
   picker({ opts: POSTS, optBox: $('po-opts'), viewBox: $('po-views'), img: 'po-img', tag: 'po-tag', note: 'po-note', flyBtn: 'po-fly',
     views: POST_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,

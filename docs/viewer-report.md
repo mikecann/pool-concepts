@@ -994,6 +994,30 @@ The model agent's first batch, wired up (viewer only; the-pool untouched, no syn
 - `after_desktop_fences.png`
 - `cmp_info_settings.png` (ⓘ and More open, and the settings dialog)
 
+## Round 18
+
+Batch 4 from the model agent.
+
+**`kitchen_lounge`:** an Alfresco card, "Facing the lounge" ("A bench facing the lounge from the alfresco."), with the full description behind More. Its picture is `options_16_…_kitchen_lounge_post_as_drawn.jpg`. With `post_two` chosen too, both cards show an inline warning: "With two roof posts, one post stands in this bench" and "With the lounge kitchen, the east post stands in its bench". Neither choice is changed. The warnings share one helper (`warnOn`) with Round 17d's pier_inset warning.
+
+**`pier_straight`:** a Fences card, "Straight past the pier" ("One straight line just past the pier."). Its `gate_sk02+` / `gate_south+` parts follow the gate like the other pier options, and the renders page lists it with its 18 and 12 renders.
+
+**Default kitchen on the renders page:** the main images haven't been re-rendered without a kitchen; the outdoor-kitchen view, dusk and the post renders still show the split layout. So the copy says what the pictures show:
+- The main-views hint says the kitchen isn't decided and these views show the split layout, one of the options.
+- The kitchen section ("Outdoor kitchen", was "BBQ and pizza oven") opens with "Not decided yet".
+- The Open in 3D links still open with the split kitchen, so 3D matches the picture.
+- The renders page lists the lounge kitchen (with SK02's post); its from-the-pavilion render doesn't exist yet and shows "render to come".
+
+**Tests:** r17-test adds:
+- no kitchen on a fresh visit
+- the lounge bench showing
+- no clash warning with one post, and both warnings with two posts, with nothing changed
+- pier_straight's fence showing and the as-drawn one hidden
+
+r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phone and images (230, 0 missing, 1 awaiting a render).
+
+**Performance:** not measured; Blender was running.
+
 ## Summary
 
 **Round 17:**

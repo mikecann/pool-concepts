@@ -167,6 +167,28 @@ check('spa, flying: E rolls it off again', (await p.evaluate(() => __viewer.mode
 await opt('spaCover', 'spa_cover_none');
 await p.evaluate(() => { __viewer.setMode('walk'); __viewer.place(2.6, 3, 8.4, 140, -25); }); await wait(400);
 check('spa: no cover chosen, no prompt', !(await tipText()).includes('cover'));
+// --- Round 18: the lounge kitchen (and its clash with two posts), the straight fence past the pier, no kitchen by default
+const partsFor = key => p.evaluate(k => { const out = []; __viewer.model.root.traverse(o => { if (o.isMesh && String(o.userData.option ?? '').split('+').includes(k)) { let v = o, ok = true; while (v) { if (!v.visible) ok = false; v = v.parent; } out.push(ok); } }); return out; }, key);
+check('no kitchen by default on a fresh visit', (await p.evaluate(() => JSON.parse(localStorage.getItem('pool-settings') ?? '{}').options?.kitchen)) === undefined ? (await p.evaluate(() => __viewer.model.kitchen)) === 'kitchen_none' : true);
+await opt('kitchen', 'kitchen_lounge'); await opt('post', 'post_as_drawn');
+let kl = await partsFor('kitchen_lounge');
+check('kitchen_lounge: its bench shows', kl.length > 0 && kl.every(Boolean), `${kl.length} parts`);
+await p.evaluate(() => __viewer.setPanel(true));
+await p.locator('#tab-alfresco').click();
+const warnK = () => p.locator('#cards-kitchen .card-warn').isVisible(), warnP = () => p.locator('#cards-post .card-warn').isVisible();
+check('kitchen_lounge with one post: no clash warning', !(await warnK()) && !(await warnP()));
+await opt('post', 'post_two');
+check('kitchen_lounge with two posts: both cards warn', (await warnK()) && (await warnP()));
+check('  and nothing is changed for you', (await p.evaluate(() => __viewer.model.kitchen + ' ' + __viewer.model.post)) === 'kitchen_lounge post_two');
+await p.evaluate(() => __viewer.goToCam('15_lounge_from_alfresco', true)); await wait(1800); await shot('kitchen_lounge_post_two');
+await opt('post', 'post_as_drawn'); await opt('kitchen', 'kitchen_none');
+await opt('pier', 'pier_straight');
+const ps = await partsFor('pier_straight');
+check('pier_straight: its fence shows (with the SK02 gate)', ps.filter(Boolean).length > 0, `${ps.filter(Boolean).length} of ${ps.length} parts`);
+check('pier_straight: the as-drawn east fence is hidden', (await vis('fence_pool_east_sk02_asdrawn_infill')) === false);
+await p.evaluate(() => __viewer.goToCam('18_pier_fence', true)); await wait(1800); await shot('pier_straight');
+await opt('pier', 'pier_as_drawn');
+await p.evaluate(() => __viewer.setPanel(false));
 check('console clean', errs.length === 0, errs[0] ?? '');
 console.log(fail ? `FAIL (${fail})` : 'PASS');
 await b.close();
