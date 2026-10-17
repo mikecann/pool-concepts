@@ -1026,6 +1026,26 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **Ribbed roof cost**: Medium alfresco 537 draws / 2685k tris vs 539 / 2683k in round 17, so no measurable change. Fps skipped (Blender running).
 - r17-test title filters made exact ("Corner post" now has a sibling). Full suite passes; check-images 234, 0 missing, 1 awaiting (pavilion kitchen_lounge).
 
+## Round 18c: perf re-run (Blender idle)
+
+| | Round 14 | Now (84451c2) |
+|---|---|---|
+| Low / Medium / High, DPR 1 and 2, alfresco, lounge, pool edge, play | 60 fps everywhere | 60 fps everywhere |
+| Pump room (new view: doors opened, walked in, crouched), all qualities, DPR 1 and 2 | n/a | 60 fps |
+| Medium alfresco draws / tris / CPU ms | 495 / 2,684k / 4.3 | 537 / 2,685k / 5.8 |
+| High pool edge draws / tris / CPU ms | 529 / 2,912k / 4.9 | 579 / 2,905k / 6.8 |
+| Dusk scrub 17:00↔21:00 ×6, Medium and High | max 21 ms | max 20 ms, 0 over 50 ms |
+| Shaders compiled at load | 178 | 195 |
+| Local warm load: cover lifts / interactive (same script, round 14 build served side by side) | 1.65 / 2.6 s | 2.0 / 3.1 s |
+| Local cold load | 2.1 / 3.1 s | 2.4 / 3.5 s |
+| Live warm load | n/a | 2.6 / 3.7 s |
+| Live cold load | n/a | 3.2 / 4.3 s |
+
+- No fps or scrub regression, so nothing changed. The ribbed roof costs nothing measurable; the pump room's two lights hold 60 fps from inside it.
+- **Load is ~0.35 s slower to the cover and ~0.5 s to interactive than round 14**, from 17 more shaders (pump room 8: treated_pine, batten, pump_grey, valve_red, strainer_lid, pvc, pump_blue, door_backing; plus the Smart Span skin, clothesline 2, obscure glass, spa back, side gate). Each compile stage grows by about the same share. Still well inside the 8 s target.
+- CPU per frame is up ~1.5 ms (more draw calls: noMerge hinge parts, covers, pump room), comfortably inside the 16.7 ms frame.
+- `scripts/perf.mjs` gained a `pump` view and `--shots <dir>`. Logs and DPR 1 screenshots in `review/round18c/`.
+
 ## Summary
 
 **Round 17:**
