@@ -116,6 +116,7 @@ export class Walker {
   }
 
   look(dx: number, dy: number) {
+    this.flyGlide = null;
     this.yaw -= dx;
     this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch - dy));
     this.glide = null;
@@ -272,9 +273,18 @@ export class Walker {
     return false;
   }
 
+  /** In fly mode, glide through the air to a view (Round 17: a card or 'go to' while flying). */
+  flyTo(to: Vector3, yaw: number, pitch: number, dur = 1.4) {
+    let y1 = yaw;
+    while (y1 - this.yaw > Math.PI) y1 -= Math.PI * 2;
+    while (y1 - this.yaw < -Math.PI) y1 += Math.PI * 2;
+    this.flyGlide = { from: this.fly.clone(), to: to.clone(), yaw0: this.yaw, yaw1: y1, p0: this.pitch, p1: pitch, t: 0, dur };
+  }
+  private flyGlide: { from: Vector3; to: Vector3; yaw0: number; yaw1: number; p0: number; p1: number; t: number; dur: number } | null = null;
+
   /** Enter fly mode at the camera's current place and direction. */
   startFly(from: Vector3, yaw: number, pitch: number) {
-    this.fly.copy(from); this.yaw = yaw; this.pitch = pitch; this.glide = null;
+    this.fly.copy(from); this.yaw = yaw; this.pitch = pitch; this.glide = null; this.flyGlide = null;
     this.mode = 'fly';
     this.pushSphere(this.fly);
     this.apply();
@@ -338,6 +348,15 @@ export class Walker {
       if (g.t >= 1) this.glide = null;
       this.apply();
       return;
+    }
+    if (this.mode === 'fly' && this.flyGlide) {
+      const g = this.flyGlide;
+      g.t = Math.min(1, g.t + dt / g.dur);
+      const e = g.t < 0.5 ? 4 * g.t ** 3 : 1 - (-2 * g.t + 2) ** 3 / 2;
+      this.fly.lerpVectors(g.from, g.to, e);
+      this.yaw = g.yaw0 + (g.yaw1 - g.yaw0) * e; this.pitch = g.p0 + (g.p1 - g.p0) * e;
+      if (g.t >= 1) this.flyGlide = null;
+      this.waterTop = this.poolSurfaceAt(this.fly.x, this.fly.z); this.apply(); return;
     }
     if (this.mode === 'fly') { this.updateFly(Math.min(dt, 0.05)); this.waterTop = this.poolSurfaceAt(this.fly.x, this.fly.z); this.apply(); return; }
     if (this.mode !== 'walk') return;

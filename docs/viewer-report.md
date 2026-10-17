@@ -906,7 +906,41 @@ The model agent's first batch, wired up (viewer only; the-pool untouched, no syn
 - tools-test: "E doesn't fly". PASS.
 - Walk test: passes.
 
+## Round 17
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **The mode is kept:** cards, 'go to', the view list and the scenario keep walk, fly or drone. In fly, a card glides through the air to the view's camera (`Walker.flyTo`), at its own height; in drone it orbits the view; walking safe-lands as before. Only the aerial and from-the-canal views take a walker up in the drone (there's nowhere to stand there). The mode is saved in the settings and restored on load, before any deep-linked view | r17-test: fly and drone survive four card, 'go to' and scenario changes; fly 'go to' 06 lands at the seated 2.85 m; a reload comes back flying |
+| 2 | **Play area:** a `play` group (`play_as_is` default, `play_moved`) with cards under Side passage (the summary shows both) and a renders-page section (19, 21) | The trampoline moves 1.75 m north (`play_moved.png`) |
+| 3 | **`pier_inset`:** a card in Fences from the README's notes (the kitchen ends up outside the pool area; the walkway is pinched). It picks up the `+gate` combinations like the other pier options, and the renders page lists it | `pier_inset.png` |
+| 4 | **Side gate:** the leaves' interact/pivot/axis tags go straight into the hinge system. E opens it in both scenarios, walking or flying. It's a moving obstacle like the pump doors. Camera 23_side_gate added to the views list | `side_gate_open.png` |
+| 5 | **Roll-on covers** (`src/covers.ts`): Pool cover gets "Roll-on cover, shallow end" and "…, deep end"; a new Hot tub cover category (no cover, rolled up, on). Both link Australian Spa Covers Roll-On; the spa note says a round spa is custom made. E near the pool or spa (within 1.4 m, walking or flying) rolls the cover on or off piece by piece: the parked roll travels along `unroll_dir`, shrinking and dropping to the cover's level, and the flat cover appears one segment at a time behind it (17 pool, 8 spa). The prompts say "roll the pool cover on/off" or "roll the hot tub cover on/off". The bathers hide only once a cover is fully on; switching the option away puts the pool cover back | `pool_cover_half/on.png`, `spa_cover_half/on.png` |
+| 6 | **`hide_option` everywhere:** any chosen option key (covers count when fully on). INHERIT carries `pool_cover`/`spa_cover`; merged people keep the tag | Bathers hide and come back |
+| 7 | **Alfresco table removed:** nothing in the viewer depended on it. The post copy no longer mentions the table or chairs | — |
+| 8 | **Renders still on their way** show "render to come", on cards and now on the renders page too. check-images counts anything not yet synced as awaiting a render (17 now), and the tests ignore those 404s | — |
+
+**Fixed along the way:** both covers share one vinyl material, and the converted material was shared, so the pool cover took the spa's reveal and vanished. Each cover now has its own material.
+
+**Tests:**
+- **New `scripts/r17-test.mjs` (PASS):**
+  - mode kept and remembered
+  - play_moved and pier_inset
+  - the side gate in Today and Proposed, walking and flying
+  - the pool cover on (walking) and off (flying), and the deep end
+  - the spa cover on (walking) and off (flying)
+  - the bathers, and the no-cover state
+- **Other checks:** r16-test, tools-test, switch-test, the walk test, settings, the page checks and phone layouts all pass. The image check: 213 images, 0 missing, 17 awaiting a render.
+
+**Performance: not measurable this round.** Blender was rendering the model agent's images throughout (about 200% CPU plus the GPU). Frame rates swung between 28 and 60 fps on any quality and view, run to run, and two of six scrub passes stalled (111–140 ms). The Round 16 build, measured in the same minutes, did the same (38 fps at the pool edge, a 117 ms scrub pass), so it's the load, not this round. To re-run once the renders finish.
+
 ## Summary
+
+**Round 17:**
+- **Mode:** kept through cards and views, and remembered across visits.
+- **New options:** play area moved, the inset pier fence, and the side gate (E opens it).
+- **Roll-on covers:** pool and hot tub, which roll on and off piece by piece with E.
+- **hide_option:** respected everywhere.
+- **Performance:** to re-measure once the renders finish.
 
 **Round 16:**
 - **New options wired up:** alfresco posts and the shallow-end blanket box, plus the cavity paving that fills a box's spot when it isn't chosen.

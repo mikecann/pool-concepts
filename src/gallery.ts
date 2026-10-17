@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
-import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES } from './choices';
+import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; pier?: string; nfence?: string; passage?: string };
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string };
 
 
 const SUN = {
@@ -27,6 +27,10 @@ const ROLLER = [
     <p>In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],
   ["roller_pit_shallow", "In-ground box, shallow end", `<b>Blanket box at the shallow end</b>
     <p>The same in-ground box behind the shallow-end wall, lids flush with the coping. 1.44 m clear to the north fence as drawn (2.94 m with the fence moved), so there's room to walk behind it with the lids up.</p>`],
+  ["roller_rollon_shallow", "Roll-on cover, shallow end", `<b>Roll-on cover, rolled at the shallow end</b>
+    <p>Australian Spa Covers' Roll-On: a soft, padded, segmented cover with no frame or roller. It rolls off piece by piece and sits as a 0.8 m roll on the coping, its pool side at the water's edge. In the walkthrough, press E by the pool to roll it on or off.</p>`],
+  ["roller_rollon_deep", "Roll-on cover, deep end", `<b>Roll-on cover, rolled at the deep end</b>
+    <p>The same roll-on cover parked at the canal end.</p>`],
   ["roller_lowpro", "Low-profile, deep end", `<b>Low-profile roller at the deep end</b>
     <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`],
 ];
@@ -42,7 +46,7 @@ const KITCHEN = [
 ];
 const POSTS = [
   ["post_as_drawn", "As drawn (SK02)", `<b>SK02's single post</b>
-    <p>One 100 mm post in the alfresco, south of the table, with a beam along it. 1.35 m to the pool coping, 0.27 m to the lounge coping and 1.1 m from the dining chairs.</p>`],
+    <p>One 100 mm post in the middle of the alfresco with a beam along it. 1.35 m to the pool coping and 0.27 m to the lounge coping.</p>`],
   ["post_corner", "Corner post", `<b>One post at the south-west corner</b>
     <p>A beam along the west edge to the house, and a 310 mm beam along the south side to a short post on the pavilion's pier. The most open alfresco, with the longest beam; an engineer has to say whether the pier can take a second post.</p>`],
   ["post_west", "West edge, cantilevered", `<b>One post on the west edge</b>
@@ -78,6 +82,9 @@ const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
 
 const ROLLER_VIEWS = [['17_pool_overview', 'From above'], ['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence']];
 const PIER = PIER_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const PLAY = PLAY_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const PLAY_VIEWS = [['19_play_area', 'Up the side passage'], ['21_play_area_north', 'From the play area']];
+const playSrc = (o: string, v: string) => (o === 'play_as_is' ? `img/${v}__proposed.jpg` : `img/options_${v}_${o}.jpg`);
 const PIER_VIEWS = [['18_pier_fence', 'At the pier'], ['12_from_pavilion', 'From the pavilion']];
 // the side passage: north fence position x passage surface, as render.py names them (side_<fence>_<surface>)
 const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
@@ -97,6 +104,7 @@ export function allImageUrls() {
     ...POSTS.flatMap(([o]) => POST_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PUMP.flatMap(([o]) => PUMP_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PIER.flatMap(([o]) => PIER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...PLAY.flatMap(([o]) => PLAY_VIEWS.map(([v]) => playSrc(o, v))),
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
@@ -165,6 +173,18 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Post layout" id="po-opts"></div>
   <div class="chips" id="po-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="po-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>The kids' play area</h2>
+  <p>The bark, sandpit, climbing frame and trampoline where they are, or all moved 1.75 m north along the boundary wall.</p>
+</div>
+<section class="block" aria-label="Play area options">
+  <div class="fstage"><img id="pl-img" alt=""><span class="tag l" id="pl-tag"></span><button class="fly" id="pl-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Play area" id="pl-opts"></div>
+  <div class="chips" id="pl-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="pl-note"></div>
 </section>
 
 <div class="section-head">
@@ -392,7 +412,11 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
       if (cfg.optBox) chips(cfg.optBox, cfg.opts, st.o, i => { st.o = i; render(); });
       chips(cfg.viewBox, cfg.views, st.v, i => { st.v = i; render(); });
       const o = cfg.opts[st.o], v = cfg.views[st.v];
-      img(cfg.img).src = cfg.src(o[0], v[0]);
+      // an option render that hasn't been made yet: say so instead of a broken image (Round 17)
+      const im = img(cfg.img);
+      im.classList.remove('missing');
+      im.onerror = () => { im.classList.add('missing'); $(cfg.tag).textContent = `${o[1]}: render to come`; };
+      im.src = cfg.src(o[0], v[0]);
       img(cfg.img).alt = `${v[1]}: ${o[1]}`;
       $(cfg.tag).textContent = o[1];
       if (cfg.note) $(cfg.note).innerHTML = o[2];
@@ -405,6 +429,9 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     views: ROLLER_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_split' }) });
+  picker({ opts: PLAY, optBox: $('pl-opts'), viewBox: $('pl-views'), img: 'pl-img', tag: 'pl-tag', note: 'pl-note', flyBtn: 'pl-fly',
+    views: PLAY_VIEWS, src: (o, v) => I + playSrc(o, v).replace(/^img\//, ''),
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', play: o }) });
   picker({ opts: PIER, optBox: $('p-opts'), viewBox: $('p-views'), img: 'p-img', tag: 'p-tag', note: 'p-note', flyBtn: 'p-fly',
     views: PIER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pier: o }) });

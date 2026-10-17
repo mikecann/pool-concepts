@@ -50,7 +50,7 @@ function pairUp(defs: LightDef[], prefixes: string[]) {
 /** ?lightswap=1: the old behaviour (night lights made visible at dusk), for A/B. */
 export const LIGHT_SWAP = new URLSearchParams(location.search).has('lightswap');
 
-const INHERIT = ['set', 'option', 'hide_option', 'noMerge', 'interact', 'people', 'night', 'collide', 'lod', 'water', 'window'];
+const INHERIT = ['set', 'option', 'hide_option', 'noMerge', 'interact', 'pool_cover', 'spa_cover', 'people', 'night', 'collide', 'lod', 'water', 'window'];
 
 /** The export's water bodies are closed solids; keep only the surface you look at (faces pointing up). */
 function topFaces(mesh: Mesh) {
@@ -221,6 +221,13 @@ export class Model {
   /** Round 16: the alfresco's post layout (the post and beams exist only in these) and the pump room's front. */
   post = 'post_as_drawn';
   pump = 'pump_doors';
+  /** Round 17: the play area where it is or moved north; the hot tub's roll-on cover; the pool's roll-on cover state. */
+  play = 'play_as_is';
+  spaCover = 'spa_cover_none';
+  /** The pool's roll-on cover: 'off' (rolled at its end), 'moving' (being rolled on or off) or 'on' (flat on the pool). */
+  poolCover: 'off' | 'moving' | 'on' = 'off';
+  /** The spa cover while it's being rolled: both the roll and the flat cover show. */
+  spaCoverMoving = false;
   people = true;   // the figures are there to judge scale, so they start on
   showFar = true;
   farReady = false;
@@ -783,17 +790,28 @@ export class Model {
     if (this.flames) this.flames.visible = on && this.visibleFor(this.flames.userData);
   }
 
+  /** Is this option key chosen, for hide_option purposes (a cover counts only once it's fully on)? */
+  private hidden(key: string) {
+    if (key === 'pool_cover_on') return this.poolCover === 'on' && this.roller.startsWith('roller_rollon');
+    if (key === 'spa_cover_on') return this.spaCover === 'spa_cover_on' && !this.spaCoverMoving;
+    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover].includes(key);
+  }
+
   visibleFor(u: Record<string, any>) {
     if (u.set && u.set !== 'both' && u.set !== this.scenario) return false;
     if (u.option) {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover];
+      // the covers while they're rolling on or off: the flat cover (revealed piece by piece) and the roll both show
+      if (this.poolCover !== 'off' && this.roller.startsWith('roller_rollon')) chosen.push('pool_cover_on');
+      if (this.spaCoverMoving) chosen.push('spa_cover_on', 'spa_cover_rolled');
       if (!String(u.option).split('+').every(part => chosen.includes(part))) return false;
     }
-    // the paving that fills a blanket box's cavity: shown unless that box is chosen
-    if (u.hide_option && this.scenario === 'proposed' && this.roller === u.hide_option) return false;
+    // hide_option (Hide_<option> collections): shown unless that option is chosen. The paving that fills a blanket
+    // box's cavity, and the bathers in the pool and spa once a cover is fully on.
+    if (u.hide_option && this.scenario === 'proposed' && this.hidden(u.hide_option)) return false;
     if (u.people && !this.people) return false;
     if (u.lod === 'far' && (!this.showFar || !this.farReady)) return false;
     return true;

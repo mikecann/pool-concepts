@@ -95,7 +95,9 @@ const note = (await p.locator('#hint').innerText().catch(() => '')).toLowerCase(
 check('with the low-headroom note', note.includes('low headroom'), note.slice(0, 40));
 await shot('pump_inside');
 // back out: stand up once there's room
-await p.keyboard.down('KeyS'); await wait(4000); await p.keyboard.up('KeyS'); await wait(800);
+await p.keyboard.down('KeyS');
+await p.waitForFunction(() => { const w = __viewer.walker; return w.headroomAt(w.feet.x, w.feet.z, w.feet.y) > 2.5 && w.feet.z > 12.4; }, null, { timeout: 8000 }).catch(() => {});
+await p.keyboard.up('KeyS'); await wait(800);
 w = await p.evaluate(() => ({ eye: __viewer.camera.position.y - __viewer.walker.feet.y, crouch: __viewer.walker.crouching }));
 check('walking back out stands you up', !w.crouch && w.eye > 1.5, `eye ${w.eye.toFixed(2)}`);
 // with the doors shut you can't get in

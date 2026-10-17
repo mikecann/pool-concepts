@@ -124,3 +124,6 @@ img.missing { visibility: hidden; }
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); }
 .thumb { position: relative; }
 .thumb:has(img.missing)::after { bottom: auto; aspect-ratio: 16 / 9; font-size: 11px; border: 1px solid var(--rule); }
+
+.fstage img.missing { visibility: hidden; }
+.fstage:has(img.missing) { background: var(--rule); }

@@ -8,7 +8,7 @@ const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['-
 for (const [name, w, h] of [['portrait', 390, 844], ['landscape', 844, 390]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
   const p = await ctx.newPage();
-  const errs = []; p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  const errs = []; p.on('console', m => { if (m.type() === 'error' && !/404/.test(m.text())) errs.push(m.text()); });   // 404s: renders still to come
   await p.goto(`http://localhost:4173/model/walk/?nohelp${EXTRA ? '&' + EXTRA : ''}`);
   await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 180000 });
   await p.waitForTimeout(800);

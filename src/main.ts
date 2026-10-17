@@ -9,11 +9,12 @@ import { Walker, type Mode } from './walk';
 import { TapeMeasure } from './measure';
 import { Hinges } from './hinges';
 import { Blankets } from './blanket';
+import { Covers } from './covers';
 import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -26,8 +27,8 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // ---------- remembered settings ----------
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
-type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number;
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump', string>> };
+type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode;
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 const remember = (patch: Settings) => {
@@ -238,10 +239,12 @@ async function main() {
     return render;
   };
   let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
+  let syncCovers = () => {}, coverFinished: (c: any) => void = () => {}, coverToggle: (c: any) => void = () => {};
+  let nearCoverAt: (x: number, z: number, eyeY: number) => any = () => null, coversRef: Covers | null = null, nearCover: any = null;
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
-    model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
-    remember({ options: { roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, pier: model.pier, nfence: model.nfence, passage: model.passage } });
+    model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
+    remember({ options: { roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage } });
   };
   renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
 
@@ -281,6 +284,12 @@ async function main() {
   cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
     ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
   });
+  cards($('cards-spacover'), SPA_COVER_CHOICES, () => model.spaCover, v => {
+    ensureProposed(); model.spaCover = v; optChanged(); goToCam('14_spa_to_canal');
+  });
+  cards($('cards-play'), PLAY_CHOICES, () => model.play, v => {
+    ensureProposed(); model.play = v; optChanged(); goToCam('21_play_area_north');
+  });
   cards($('cards-post'), POST_CHOICES, () => model.post, v => {
     ensureProposed(); model.post = v; optChanged(); goToCam('10_alfresco_corner');
   });
@@ -298,9 +307,10 @@ async function main() {
   const title = (items: Choice[], v: string) => items.find(c => c.value === v)?.title ?? '';
   const CATS: { id: string; name: string; summary: () => string }[] = [
     { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
+    { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
     { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · posts: ${title(POST_CHOICES, model.post).toLowerCase()}` },
     { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · north: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
-    { id: 'passage', name: 'Side passage', summary: () => title(PASSAGE_CHOICES, model.passage) },
+    { id: 'passage', name: 'Side passage', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
     { id: 'spa', name: 'Under the spa', summary: () => `Pump room: ${title(PUMP_CHOICES, model.pump).toLowerCase()}` },
   ];
   const catTabs = $('cat-tabs');
@@ -393,6 +403,7 @@ async function main() {
     if (!hit || !FLOORS.test((hit.object as any).material?.name ?? '') || hit.point.y < 1.5) return null;
     return walker.walkableAt(x, z, hit.point.y + 0.3) !== null ? hit.point.y : null;
   };
+  let restoringMode = false;
   const setMode = (m: Mode) => {
     const from = walker.mode;
     if (m === from && m !== 'walk') return;
@@ -427,6 +438,7 @@ async function main() {
       walker.place(spot.x, spot.y + 0.4, spot.z, yaw, 0);
     }
     flyPad.hidden = !(isTouch && m === 'fly');
+    if (!restoringMode) remember({ mode: m });
     walker.mouseFwd = 0; walker.mouseUp = 0;
     shadowDirty = true;
   };
@@ -474,13 +486,16 @@ async function main() {
     // aerial views, and the one taken from a boat on the canal (there's no ground to stand on out there)
     const aerial = p.y > 8 || /aerial|overview|canal_view/.test(name);
     if (matchLens) targetFov = fovFor(c.lens);
-    if (aerial) {
+    const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
+    // Round 17: keep the mode you're in. Walking can't stand at an aerial or out-on-the-canal view, so only those
+    // take a walker up in the drone; fly and drone go anywhere, at the render camera's own height.
+    if (walker.mode === 'drone' || (aerial && walker.mode === 'walk')) {
       if (walker.mode !== 'drone') setMode('drone');
       camera.position.copy(p); orbit.target.copy(t); orbit.update();
+    } else if (walker.mode === 'fly') {
+      if (instant) walker.startFly(p, yaw, pitch); else walker.flyTo(p, yaw, pitch, 1.4);
     } else {
-      if (walker.mode !== 'walk') setMode('walk');
       // stand where the render camera is (its height says if it's seated or standing)
-      const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
       if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch, p.y); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch, 1.4, p.y);
     }
     void ground;
@@ -590,6 +605,8 @@ async function main() {
   model.roller = valid(o.roller, ROLLER_CHOICES) ?? model.roller;
   model.kitchen = valid(o.kitchen, KITCHEN_CHOICES) ?? model.kitchen;
   model.post = valid(o.post, POST_CHOICES) ?? model.post;
+  model.play = valid(o.play, PLAY_CHOICES) ?? model.play;
+  model.spaCover = valid(o.spaCover, SPA_COVER_CHOICES) ?? model.spaCover;
   model.pump = valid(o.pump, PUMP_CHOICES) ?? model.pump;
   // Round 15b: the pool fence is decided (perforated); an old saved or linked fence value is ignored
   model.pier = valid(o.pier, PIER_CHOICES) ?? model.pier;
@@ -605,12 +622,16 @@ async function main() {
   model.roller = fromParam('roller', ROLLER_CHOICES) ?? model.roller;
   model.kitchen = fromParam('kitchen', KITCHEN_CHOICES) ?? model.kitchen;
   model.post = fromParam('post', POST_CHOICES, 'post_') ?? model.post;
+  model.play = fromParam('play', PLAY_CHOICES, 'play_') ?? model.play;
+  model.spaCover = fromParam('spacover', SPA_COVER_CHOICES, 'spa_cover_') ?? model.spaCover;
   model.pump = fromParam('pump', PUMP_CHOICES, 'pump_') ?? model.pump;
   model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
-  if (['roller', 'kitchen', 'post', 'pump', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
+  // Round 17: back in the mode you were in last time (walk, fly or drone), before any deep-linked view
+  if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
@@ -657,10 +678,54 @@ async function main() {
   // Round 16: the blanket boxes' lids unroll and roll up their blankets
   const blankets = new Blankets(); blanketsRef = blankets; hingesRef = hinges;
   blankets.setup(model.root, hinges, model.waters.filter(w => w.userData.water === 'pool'));
+  // Round 17: the roll-on covers (pool and hot tub): E near them rolls them on or off, piece by piece
+  const covers = new Covers();
+  covers.setup(model.root, (m: any) => renderer.library.fromMaterial(m));
+  const poolCover = covers.list.find(c => c.kind === 'pool') ?? null, spaCover = covers.list.find(c => c.kind === 'spa') ?? null;
+  const poolRoll = () => poolCover?.rolls.find(r => `roller_rollon_${r.end}` === model.roller) ?? null;
+  /** Put the covers where the options say (a card, a reload): the pool's rolled up, the spa's as chosen. */
+  syncCovers = () => {
+    if (poolCover && (model.poolCover !== 'off' && !model.roller.startsWith('roller_rollon'))) model.poolCover = 'off';
+    if (poolCover && !poolCover.moving) covers.set(poolCover, model.poolCover === 'on', poolRoll());
+    if (spaCover && !spaCover.moving) covers.set(spaCover, model.spaCover === 'spa_cover_on', spaCover.rolls[0]);
+  };
+  syncCovers();
+  const toggleCover = (c: NonNullable<typeof poolCover>) => {
+    if (c.moving) return;
+    if (c.kind === 'pool') {
+      const roll = poolRoll(); if (!roll) return;
+      const on = model.poolCover === 'off';
+      model.poolCover = 'moving'; model.apply();
+      covers.start(c, on, roll);
+    } else {
+      if (model.spaCover === 'spa_cover_none') return;
+      const on = model.spaCover === 'spa_cover_rolled';
+      model.spaCoverMoving = true; model.apply();
+      covers.start(c, on, c.rolls[0]);
+    }
+  };
+  coverFinished = (c: NonNullable<typeof poolCover>) => {
+    if (c.kind === 'pool') model.poolCover = c.progress >= 1 ? 'on' : 'off';
+    else { model.spaCover = c.progress >= 1 ? 'spa_cover_on' : 'spa_cover_rolled'; model.spaCoverMoving = false; remember({ options: { ...settings.options, spaCover: model.spaCover } }); cardGroups.forEach(r => r()); }
+    model.apply(); walker.rebuild(model.root); shadowDirty = true;
+  };
+  nearCoverAt = (x: number, z: number, eyeY: number) => {
+    if (S.scenario !== 'proposed') return null;
+    for (const c of covers.list) {
+      if (c.moving) continue;
+      if (c.kind === 'pool' && !poolRoll()) continue;
+      if (c.kind === 'spa' && model.spaCover === 'spa_cover_none') continue;
+      if (eyeY < c.coverY - 0.6 || eyeY > c.coverY + 3.2) continue;
+      if (c.reach(x, z) < 1.4) return c;
+    }
+    return null;
+  };
+  coverToggle = toggleCover; coversRef = covers;
   model.apply();
   let nearHinge: ReturnType<Hinges['nearest']> = null, lowNote = false;
   const toggleGate = () => {
     if (nearGate) { model.swingGate(nearGate, nearGate.to === 0); return; }
+    if (!nearHinge && nearCover) { coverToggle(nearCover); return; }
     if (!nearHinge) return;
     const box = blankets.forHinge(nearHinge);
     if (box) blankets.toggle(box, hinges); else hinges.toggle(nearHinge);
@@ -702,11 +767,15 @@ async function main() {
     nearGate = near;
     nearHinge = !near && canUse ? hinges.nearest(f, walker.yaw, 2.4, eyeY) : null;
     if (blankets.update(dt, hinges)) shadowDirty = true;
+    for (const c of coversRef?.update(dt) ?? []) coverFinished(c);
+    if (coversRef?.list.some(c => c.moving)) shadowDirty = true;
+    nearCover = !near && !nearHinge && canUse ? nearCoverAt(f.x, f.z, eyeY) : null;
     if (hinges.update(dt)) shadowDirty = true;
     const box = blankets.forHinge(nearHinge);
-    const what = near ? 'gate' : nearHinge ? nearHinge.kind : '';
+    const what = near ? 'gate' : nearHinge ? nearHinge.kind : nearCover ? 'cover' : '';
     const open = near ? near.to === 1 : nearHinge ? nearHinge.to === 1 : false;
-    const verb = box ? blankets.label(box) : `${open ? 'close' : 'open'} the ${what}`;
+    const coverOn = nearCover ? (nearCover.kind === 'pool' ? model.poolCover === 'on' : model.spaCover === 'spa_cover_on') : false;
+    const verb = box ? blankets.label(box) : nearCover ? `roll the ${nearCover.kind === 'spa' ? 'hot tub' : 'pool'} cover ${coverOn ? 'off' : 'on'}` : `${open ? 'close' : 'open'} the ${what}`;
     const label = what && verb ? verb[0].toUpperCase() + verb.slice(1) : '';
     // the pump room's low headroom: say so while it has you crouching
     const low = walker.mode === 'walk' && walker.autoCrouch && !walker.crouchManual;
@@ -880,7 +949,8 @@ async function main() {
     state: () => ({ ...S, feet: walker.feet.toArray(), yaw: walker.yaw, pitch: walker.pitch, sun: atm.state, exposure: renderer.toneMappingExposure }),
     atm, model, renderer, camera, scene, walker, perf, THREE: THREE_NS, gpuTiming: () => gpuTiming,
     get post() { return post; },
-    hinges, blankets, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
+    setOption: (k: string, v: string) => { (model as any)[k] = v; optChanged(); cardGroups.forEach(r => r()); },
+    hinges, blankets, covers: () => coversRef, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
     setPanel,
   };
 }
