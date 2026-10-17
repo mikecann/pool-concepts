@@ -32,7 +32,7 @@ for (const m of ['fly', 'drone']) {
   const after1 = await mode();
   await p.locator('#tab-fences').click(); await p.locator('#cards-nfence .card', { hasText: 'Moved' }).click(); await wait(2000);
   const after2 = await mode();
-  await p.selectOption('#goto', '06_sunken_lounge'); await wait(2000);
+  await p.evaluate(() => __viewer.goToCam('06_sunken_lounge')); await wait(2000);
   const after3 = await mode();
   await p.locator('#sc-existing').click(); await wait(400); await p.locator('#sc-proposed').click(); await wait(400);
   const after4 = await mode();
@@ -40,6 +40,34 @@ for (const m of ['fly', 'drone']) {
   check(`${m}: cards, 'go to' and the scenario keep ${m} mode`, [after1, after2, after3, after4].every(x => x === m), [after1, after2, after3, after4].join(','));
   if (m === 'fly') check('fly: "go to" 06 flies to the seated camera height, not walking height', Math.abs(y - 2.85) < 0.2, `y ${y.toFixed(2)}`);
 }
+// --- Round 17b: a card only switches the option: same place, same mode, in walk, fly and drone
+const where = () => p.evaluate(() => ({ m: __viewer.walker.mode, c: __viewer.camera.position.toArray().map(v => +v.toFixed(3)) }));
+for (const m of ['walk', 'fly', 'drone']) {
+  await p.locator(`#mode-${m}`).click(); await wait(800);
+  const a = await where();
+  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card', { hasText: 'Two posts' }).click(); await wait(1200);
+  await p.locator('#tab-pool').click(); await p.locator('#cards-roller .card', { hasText: 'Deep end' }).first().click(); await wait(1200);
+  await p.locator('#sc-existing').click(); await wait(400); await p.locator('#sc-proposed').click(); await wait(800);
+  const b2 = await where();
+  check(`${m}: cards and Today/Proposed leave the camera and mode alone`, a.m === b2.m && a.c.join() === b2.c.join(), `${a.m} ${a.c.join(',')} -> ${b2.m} ${b2.c.join(',')}`);
+  // the View button goes to the suggested viewpoint, keeping the mode
+  await p.locator('#tab-alfresco').click(); await p.locator('#cards-post').locator('xpath=..').locator('.view-btn').click(); await wait(2200);
+  const v2 = await where();
+  check(`${m}: the View button goes there and keeps ${m}`, v2.m === m && v2.c.join() !== b2.c.join(), `${v2.m} ${v2.c.join(',')}`);
+}
+await p.evaluate(() => __viewer.setOption('roller', 'none'));
+// 'go to' an aerial view while walking: still walking, at a safe spot, with a hint
+await p.locator('#mode-walk').click(); await wait(300);
+await p.evaluate(() => __viewer.goToCam('17_pool_overview')); await wait(2000);
+const aw = await p.evaluate(() => ({ m: __viewer.walker.mode, feet: __viewer.walker.feet.y }));
+const hint = (await p.locator('#hint').innerText().catch(() => '')).toLowerCase();
+check("walking: 'go to' an aerial view keeps you walking, standing safely", aw.m === 'walk' && aw.feet >= 1.0, `${aw.m} feet ${aw.feet.toFixed(2)}`);
+check('  with a hint that fly or drone gets the full view', hint.includes('fly or drone'), hint.slice(0, 60));
+await p.locator('#mode-fly').click(); await wait(300);
+await p.evaluate(() => __viewer.goToCam('17_pool_overview')); await wait(2200);
+const af = await p.evaluate(() => ({ m: __viewer.walker.mode, y: __viewer.camera.position.y }));
+check("flying: 'go to' an aerial view flies up there, still flying", af.m === 'fly' && af.y > 8, `${af.m} y ${af.y.toFixed(1)}`);
+
 await p.locator('#mode-fly').click(); await wait(300);
 await load();
 check('the mode is remembered across a reload (fly)', (await mode()) === 'fly');

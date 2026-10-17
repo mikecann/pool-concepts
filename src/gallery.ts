@@ -82,9 +82,11 @@ const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
 
 const ROLLER_VIEWS = [['17_pool_overview', 'From above'], ['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence']];
 const PIER = PIER_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
-const PLAY = PLAY_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
-const PLAY_VIEWS = [['19_play_area', 'Up the side passage'], ['21_play_area_north', 'From the play area']];
-const playSrc = (o: string, v: string) => (o === 'play_as_is' ? `img/${v}__proposed.jpg` : `img/options_${v}_${o}.jpg`);
+// the play area renders come with the passage surface too: options_<view>_<play>_<pavers|aggregate>
+const PLAY = PLAY_CHOICES.flatMap(c => PASSAGE_CHOICES.map(ps => [`${c.value}_${ps.value.replace('passage_', '')}`, `${c.title.replace('Play area ', '')}, ${ps.title.toLowerCase()}`,
+  `<b>${c.title}</b><p>${c.note}</p><b>${ps.title}</b><p>${ps.note}</p>`, c.value, ps.value]));
+const PLAY_VIEWS = [['19_play_area', 'Up the side passage'], ['21_play_area_north', 'From the play area'], ['20_pool_north_seating', 'From the spa deck']];
+const playSrc = (o: string, v: string) => `img/options_${v}_${o}.jpg`;
 const PIER_VIEWS = [['18_pier_fence', 'At the pier'], ['12_from_pavilion', 'From the pavilion']];
 // the side passage: north fence position x passage surface, as render.py names them (side_<fence>_<surface>)
 const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
@@ -431,7 +433,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_split' }) });
   picker({ opts: PLAY, optBox: $('pl-opts'), viewBox: $('pl-views'), img: 'pl-img', tag: 'pl-tag', note: 'pl-note', flyBtn: 'pl-fly',
     views: PLAY_VIEWS, src: (o, v) => I + playSrc(o, v).replace(/^img\//, ''),
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', play: o }) });
+    onFly: (o, v) => { const c = PLAY.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', play: c[3], passage: c[4] }); } });
   picker({ opts: PIER, optBox: $('p-opts'), viewBox: $('p-views'), img: 'p-img', tag: 'p-tag', note: 'p-note', flyBtn: 'p-fly',
     views: PIER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', pier: o }) });

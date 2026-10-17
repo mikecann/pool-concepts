@@ -41,8 +41,8 @@ export const SPA_COVER_CHOICES: Choice[] = [
 ];
 
 export const PLAY_CHOICES: Choice[] = [
-  { value: 'play_as_is', title: 'Play area where it is', note: 'The bark, sandpit, climbing frame and trampoline stay where they are.', img: 'card_play_as_is.jpg', src: '19_play_area__proposed.jpg' },
-  { value: 'play_moved', title: 'Play area moved north', note: 'The whole play area moves 1.75 m north along the boundary wall. With the north fence moved too, the trampoline is 2 m from the fence instead of 0.4 m, clear of the non-climbable zone.', img: 'card_play_moved.jpg', src: 'options_19_play_area_play_moved.jpg' },
+  { value: 'play_as_is', title: 'Play area where it is', note: 'The bark, sandpit, climbing frame and trampoline stay where they are.', img: 'card_play_as_is.jpg', src: 'options_19_play_area_play_as_is_pavers.jpg' },
+  { value: 'play_moved', title: 'Play area moved north', note: 'The whole play area moves 1.75 m north along the boundary wall. With the north fence moved too, the trampoline is 2 m from the fence instead of 0.4 m, clear of the non-climbable zone.', img: 'card_play_moved.jpg', src: 'options_19_play_area_play_moved_pavers.jpg' },
 ];
 
 export const PIER_CHOICES: Choice[] = [

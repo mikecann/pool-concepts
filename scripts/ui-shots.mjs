@@ -48,7 +48,7 @@ await phone.screenshot({ path: `${OUT}/phone_low.png` });
 // layout check: HUD boxes must not overlap each other, and nothing may run off the 390 px screen
 console.log('phone layout', JSON.stringify(await phone.evaluate(() => {
   const r = id => document.querySelector(id).getBoundingClientRect();
-  const boxes = { brand: r('.brand'), scenario: r('.hud.top > .seg'), right: r('.hud-right'), timebar: r('.timebar'), joystick: r('#joystick') };
+  const boxes = { brand: r('.back-btn'), scenario: r('.hud.top > .seg'), right: r('.hud-right'), timebar: r('.timebar'), joystick: r('#joystick') };
   const hit = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
   const names = Object.keys(boxes), overlaps = [];
   for (let i = 0; i < names.length; i++) for (let j = i + 1; j < names.length; j++) if (hit(boxes[names[i]], boxes[names[j]])) overlaps.push(names[i] + '/' + names[j]);

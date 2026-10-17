@@ -933,6 +933,34 @@ The model agent's first batch, wired up (viewer only; the-pool untouched, no syn
 
 **Performance: not measurable this round.** Blender was rendering the model agent's images throughout (about 200% CPU plus the GPU). Frame rates swung between 28 and 60 fps on any quality and view, run to run, and two of six scrub passes stalled (111–140 ms). The Round 16 build, measured in the same minutes, did the same (38 fps at the pool edge, a 117 ms scrub pass), so it's the load, not this round. To re-run once the renders finish.
 
+## Round 17b
+
+**Options no longer move you.**
+- Clicking an option card only switches the option: no camera move, no mode change, no fly-to.
+- Each option section has a small 👁 View button for its suggested viewpoint, which keeps your mode. The pool cover's picks the right end for the chosen cover.
+- Today/Proposed doesn't move you either.
+
+**'Go to' never changes the mode.** In fly or drone it goes anywhere, at the render camera's height. Walking to an aerial or canal view stands you at the nearest safe floor between where that camera looks and the camera, facing the view, with a hint: "… is from the air. Switch to Fly or Drone for the full view".
+
+**Tests:**
+- **r17-test:** new checks that cards and Today/Proposed leave the camera and mode unchanged in walk, fly and drone; that View goes there and keeps the mode; and the aerial 'go to' while walking and flying. PASS.
+- **pages-check:** now checks that each card stays put and View moves.
+- **Other tests:** r16, tools, switch, walk and settings pass.
+
+## Round 17c
+
+**Top bar and sidebar:**
+- Removed the 'Go to…' dropdown and the sidebar's 'Go to a view' grid. The cards' 👁 View buttons and the renders page's Open in 3D links (`?cam=`) still use the camera code.
+- The title block is now one back-arrow button (`../`, aria-label and tooltip), on desktop and phone.
+- The panel button reads "Options".
+- On phones the measure tool sits beside the modes and Options sits on the right.
+
+**Renders:** after the re-sync, make-cards made all 32 thumbnails. The play-area renders are named with the passage surface (`options_<view>_play_<as_is|moved>_<pavers|aggregate>`), so the cards and the renders page now use those, with four combinations at 19, 21 and 20. The image check: 223 images, 0 missing, 0 awaiting.
+
+**Tests:** r17-test uses `__viewer.goToCam` instead of the dropdown, and ui-shots.mjs looks for the back button.
+- Pass: the page checks, settings, tools, r16, r17 and the phone checks.
+- A `?cam=05…&roller=roller_pit` deep link lands correctly.
+
 ## Summary
 
 **Round 17:**

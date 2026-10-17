@@ -272,36 +272,28 @@ async function main() {
     render();
   };
   const ensureProposed = () => { if (S.scenario !== 'proposed') setScenario('proposed'); };
-  cards($('cards-roller'), ROLLER_CHOICES, () => model.roller, v => {
-    ensureProposed(); model.roller = v; optChanged();
-    // look down the pool from the opposite end, as the option renders do
-    // the shallow-end roller sits behind camera 05, so look back up the pool from the deep end for that one
-    goToCam(v === 'roller_shallow' ? '13_deep_end_to_house' : '05_pool_north_end');
-  });
-  cards($('cards-kitchen'), KITCHEN_CHOICES, () => model.kitchen, v => {
-    ensureProposed(); model.kitchen = v; optChanged(); goToCam('16_outdoor_kitchen');
-  });
-  cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
-    ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
-  });
-  cards($('cards-spacover'), SPA_COVER_CHOICES, () => model.spaCover, v => {
-    ensureProposed(); model.spaCover = v; optChanged(); goToCam('14_spa_to_canal');
-  });
-  cards($('cards-play'), PLAY_CHOICES, () => model.play, v => {
-    ensureProposed(); model.play = v; optChanged(); goToCam('21_play_area_north');
-  });
-  cards($('cards-post'), POST_CHOICES, () => model.post, v => {
-    ensureProposed(); model.post = v; optChanged(); goToCam('10_alfresco_corner');
-  });
-  cards($('cards-pump'), PUMP_CHOICES, () => model.pump, v => {
-    ensureProposed(); model.pump = v; optChanged(); goToCam('22_pump_room');
-  });
-  cards($('cards-nfence'), NFENCE_CHOICES, () => model.nfence, v => {
-    ensureProposed(); model.nfence = v; optChanged(); goToCam('20_pool_north_seating');
-  });
-  cards($('cards-passage'), PASSAGE_CHOICES, () => model.passage, v => {
-    ensureProposed(); model.passage = v; optChanged(); goToCam('19_play_area');
-  });
+  // Round 17b: a card only switches its option: you stay where you are, in the mode you're in. Each group has a
+  // small "View" button for its suggested viewpoint, there when you want it (and it keeps your mode, as 'go to' does).
+  const group = (id: string, items: Choice[], key: keyof typeof model & string, view: () => string) => {
+    cards($(`cards-${id}`), items, () => (model as any)[key], v => { ensureProposed(); (model as any)[key] = v; optChanged(); });
+    const box = $(`cards-${id}`), h = box.parentElement!.querySelector('h3');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'view-btn'; btn.title = 'Go to the suggested viewpoint for this choice';
+    btn.innerHTML = '<span aria-hidden="true">&#128065;</span> View';
+    btn.onclick = () => { goToCam(view()); if (mobile.matches) setPanel(false); };
+    h?.appendChild(btn);
+  };
+  // the roller: look down the pool from the opposite end, as the option renders do (the shallow-end ones sit behind
+  // camera 05, so look back up the pool from the deep end for those)
+  group('roller', ROLLER_CHOICES, 'roller', () => (/shallow/.test(model.roller) ? '13_deep_end_to_house' : '05_pool_north_end'));
+  group('kitchen', KITCHEN_CHOICES, 'kitchen', () => '16_outdoor_kitchen');
+  group('pier', PIER_CHOICES, 'pier', () => '18_pier_fence');
+  group('spacover', SPA_COVER_CHOICES, 'spaCover', () => '14_spa_to_canal');
+  group('play', PLAY_CHOICES, 'play', () => '21_play_area_north');
+  group('post', POST_CHOICES, 'post', () => '10_alfresco_corner');
+  group('pump', PUMP_CHOICES, 'pump', () => '22_pump_room');
+  group('nfence', NFENCE_CHOICES, 'nfence', () => '20_pool_north_seating');
+  group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
   // Round 15: the choices in categories. A grid of category buttons, each showing its current choice (so the whole
   // design reads at a glance), and only the open category's cards below. The open category is remembered.
   const title = (items: Choice[], v: string) => items.find(c => c.value === v)?.title ?? '';
@@ -466,12 +458,6 @@ async function main() {
   $('mode-fly').onclick = () => setMode('fly');
   $('mode-drone').onclick = () => setMode('drone');
 
-  const goto = $<HTMLSelectElement>('goto');
-  for (const c of cams) {
-    const o = document.createElement('option'); o.value = c.name;
-    o.textContent = `${c.name.slice(0, 2)} · ${VIEW_NAMES[c.name] ?? c.name}`;
-    goto.appendChild(o);
-  }
   const fovFor = (lens: number) => {
     const hfov = 2 * Math.atan(18 / lens);
     const v = 2 * Math.atan(Math.tan(hfov / 2) / Math.max(camera.aspect, 1)) * 180 / Math.PI;
@@ -487,13 +473,24 @@ async function main() {
     const aerial = p.y > 8 || /aerial|overview|canal_view/.test(name);
     if (matchLens) targetFov = fovFor(c.lens);
     const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
-    // Round 17: keep the mode you're in. Walking can't stand at an aerial or out-on-the-canal view, so only those
-    // take a walker up in the drone; fly and drone go anywhere, at the render camera's own height.
-    if (walker.mode === 'drone' || (aerial && walker.mode === 'walk')) {
-      if (walker.mode !== 'drone') setMode('drone');
+    // Round 17b: 'go to' never changes the mode. Fly and drone go anywhere, at the render camera's own height. Walking
+    // can't stand at an aerial or out-on-the-canal view: stand at the nearest safe spot towards it instead, and say
+    // that fly or drone gets the full view.
+    if (walker.mode === 'drone') {
       camera.position.copy(p); orbit.target.copy(t); orbit.update();
     } else if (walker.mode === 'fly') {
       if (instant) walker.startFly(p, yaw, pitch); else walker.flyTo(p, yaw, pitch, 1.4);
+    } else if (aerial) {
+      // the first floor you could stand on along the line from where the camera looks back towards the camera
+      let spot: Vector3 | null = null;
+      for (let k = 0; k <= 1.0001 && !spot; k += 0.05) {
+        const q = t.clone().lerp(p, k), g = landingAt(q.x, q.z);
+        if (g !== null) spot = new Vector3(q.x, g, q.z);
+      }
+      spot ??= walker.lastStood.clone();
+      const look = t.clone().sub(spot), lookYaw = Math.hypot(look.x, look.z) > 1 ? Math.atan2(-look.x, -look.z) : yaw;
+      if (instant) walker.place(spot.x, spot.y + 0.4, spot.z, lookYaw, 0); else walker.glideTo(spot, lookYaw, 0, 1.4);
+      showHint(`${VIEW_NAMES[name] ?? 'That view'} is from the air<small>Switch to Fly or Drone for the full view</small>`, 3500);
     } else {
       // stand where the render camera is (its height says if it's seated or standing)
       if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch, p.y); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch, 1.4, p.y);
@@ -501,14 +498,7 @@ async function main() {
     void ground;
     shadowDirty = true;
   };
-  goto.onchange = () => { if (goto.value) goToCam(goto.value); goto.value = ''; canvas.focus(); };
-  const viewlist = $('viewlist');
-  for (const c of cams) {
-    const b = document.createElement('button'); b.type = 'button';
-    b.innerHTML = `<b>${c.name.slice(0, 2)}</b>${VIEW_NAMES[c.name] ?? c.name}`;
-    b.onclick = () => { goToCam(c.name); if (mobile.matches) setPanel(false); };
-    viewlist.appendChild(b);
-  }
+  // Round 17c: no 'go to' list any more; the cards' View buttons and the renders page's links use goToCam
 
 
 

@@ -55,10 +55,14 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
     // Round 15: the cards live in category tabs; open the one that holds this group first
     await p.evaluate(b => document.getElementById(b).closest('.cat-panel') && document.getElementById('tab-' + document.getElementById(b).closest('.cat-panel').dataset.cat).click(), box);
     await p.locator(`#${box} .card`).filter({ has: p.locator('b', { hasText: new RegExp(`^${value.replace(/[.]/g, '\\.')}$`) }) }).click();
-    await p.waitForTimeout(2200); await frames(p, 30);
+    await p.waitForTimeout(800); await frames(p, 10);
     const after = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
     const pressed = await p.locator(`#${box} .card[aria-pressed="true"] b`).textContent();
-    console.log(`card ${value.padEnd(15)} pressed: ${pressed}  camera ${before.join(',')} -> ${after.join(',')}`);
+    // Round 17b: a card only switches the option; its section's View button goes to the suggested viewpoint
+    await p.locator(`#${box}`).locator('xpath=..').locator('.view-btn').click();
+    await p.waitForTimeout(2200); await frames(p, 30);
+    const viewed = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
+    console.log(`card ${value.padEnd(15)} pressed: ${pressed}  camera ${before.join(',')} -> ${after.join(',')} (${before.join() === after.join() ? 'stayed' : 'MOVED'}), View -> ${viewed.join(',')}`);
     await p.screenshot({ path: `${OUT}/walk_card_${value.toLowerCase().replace(/ /g, '_')}.png` });
   }
   // the north pool gate: tooltip, then open
