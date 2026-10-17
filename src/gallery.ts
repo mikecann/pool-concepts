@@ -5,7 +5,7 @@
 import { VIEWS } from './views';
 import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES } from './choices';
 
-export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string; fence?: 'perforated' | 'glass';
+export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
   pier?: string; nfence?: string; passage?: string };
 
 
@@ -49,7 +49,6 @@ const DAY = {
            ["1530", "3:30 pm", "Sun 315° (north-west), 17° up", "Low in the north-west. The neighbour's house and the boundary wall put the lounge back in shade."]],
 };
 const DAYV = [["15_lounge_from_alfresco", "Over the lounge"], ["06_sunken_lounge", "In the lounge"], ["04_from_kitchen_door", "Kitchen door"]];
-const FV = [["03_lawn_to_terrace", "Lawn steps"], ["12_from_pavilion", "Pavilion"], ["04_from_kitchen_door", "Kitchen door"], ["13_deep_end_to_house", "Deep end"]];
 const NIGHTV = [["13_deep_end_to_house", "Deep end"], ["14_spa_to_canal", "Spa deck"], ["16_outdoor_kitchen", "Outdoor kitchen"], ["17_pool_overview", "From above"], ["01_canal_view", "From the canal"]];
 // the main renders are 16 Jan at 2:45 pm with the split kitchen and no roller
 const RENDER_TIME = { date: "2027-01-16", minutes: 14 * 60 + 45 };
@@ -76,7 +75,6 @@ export function allImageUrls() {
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
-    ...FV.flatMap(([id]) => [`img/${id}__proposed.jpg`, `img/${id}__glass.jpg`]),
     ...Object.entries(SUN).flatMap(([season, list]) => list.map(([key]) => `img/sun_${season}_${key}.jpg`)),
     'img/15_lounge_from_alfresco__proposed.jpg',
   ];
@@ -196,21 +194,6 @@ const HTML = /* html */ `
 </section>
 
 <div class="section-head">
-  <span class="label">Options to decide</span>
-  <h2>Pool fence: perforated or glass</h2>
-  <p>The 7 Oct estimate prices charcoal perforated aluminium, 1.2 m high with two gates. SK02 and the scope notes still say frameless glass, which the 21 Sep estimate had at about $630 more.</p>
-</div>
-<section class="block" aria-label="Pool fence">
-  <div class="fstage"><img id="f-img" alt=""><span class="tag l" id="f-tag">Perforated aluminium</span><button class="fly" id="f-fly" type="button">Open in 3D</button></div>
-  <p class="hint">From the lawn and the pavilion, glass keeps the pool and spa in view. Perforated panels read as a dark screen with the shapes behind just showing through.</p>
-  <div class="chips" role="group" aria-label="Fence type">
-    <button id="f-perf" aria-pressed="true">Perforated</button>
-    <button id="f-glass" aria-pressed="false">Glass</button>
-  </div>
-  <div class="chips" id="f-views" role="group" aria-label="Viewpoint"></div>
-</section>
-
-<div class="section-head">
   <span class="label">Sun study</span>
   <h2>Where the sun lands</h2>
   <p>Plan view of the proposed design, north up, with shadows from the house, the neighbours, the new skillion and the fences. The neighbour's house is a simplified shape, so treat the late-afternoon shade edge as approximate.</p>
@@ -269,7 +252,7 @@ const HTML = /* html */ `
     <li>Bob's RL 0.00 is taken as AHD 2.37, the current rear paving. No drawing states the conversion.</li>
     <li>The spa rim sits flush with the deck, as Mike asked Bob on 30 Jul. The estimate's wording (a −1100 platform versus a solid deck) still conflicts.</li>
     <li>The shallow end is at the north, by the alfresco. The corner steps go on the bench side, along the boundary.</li>
-    <li>The pool fence is charcoal perforated aluminium, per the 7 Oct estimate. SK02 and the scope notes still say glass.</li>
+    <li>The pool fence is charcoal perforated aluminium, per the 7 Oct estimate, chosen over SK02's frameless glass.</li>
     <li>The skillion matches the existing roof's pale grey and has a flat white ceiling. The concept renders showed charcoal.</li>
     <li>Finishes: <span class="swatch" style="background:#EFEDE8"></span>light exposed aggregate, <span class="swatch" style="background:#99AFC9"></span>Mondo Grey Sparkle shell, <span class="swatch" style="background:#C99A70"></span>warm composite decking, <span class="swatch" style="background:#EEE3CC"></span>cream limestone facebrick, white crushed limestone in the lounge.</li>
     <li>The only new planting is a raised planter in the lawn corner beside the spa deck: limestone to match the walls, 450 mm high and about 1 m wide, with low grasses and shrubs. There's no planting plan yet.</li>
@@ -405,23 +388,6 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   $('d-fly').onclick = () => fly({ cam: DAYV[D.v][0], scenario: 'proposed', date: SEASON_DATE[D.season], minutes: hhmm(DAY[D.season][D.t][0]), roller: 'none', kitchen: 'kitchen_split' });
   renderDay();
   warmNear($('d-img'), Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `${I}times_${v}_${season}_${key}.jpg`))));
-
-  // ---------- fence ----------
-  let fType = 'perf', fView = 0;
-  const renderFence = () => {
-    $('f-perf').setAttribute('aria-pressed', String(fType === 'perf'));
-    $('f-glass').setAttribute('aria-pressed', String(fType === 'glass'));
-    chips($('f-views'), FV, fView, i => { fView = i; renderFence(); });
-    const id = FV[fView][0];
-    img('f-img').src = `${I}${id}__${fType === 'perf' ? 'proposed' : 'glass'}.jpg`;
-    img('f-img').alt = `${FV[fView][1]} view with a ${fType === 'perf' ? 'perforated aluminium' : 'frameless glass'} pool fence`;
-    $('f-tag').textContent = fType === 'perf' ? 'Perforated aluminium' : 'Frameless glass';
-  };
-  $('f-perf').onclick = () => { fType = 'perf'; renderFence(); };
-  $('f-fly').onclick = () => fly({ cam: FV[fView][0], scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_split', fence: fType === 'perf' ? 'perforated' : 'glass' });
-  $('f-glass').onclick = () => { fType = 'glass'; renderFence(); };
-  renderFence();
-  warmNear($('f-img'), FV.flatMap(([id]) => [`${I}${id}__proposed.jpg`, `${I}${id}__glass.jpg`]));
 
   // ---------- sun plan ----------
   let season: keyof typeof SUN = 'summer', tIdx = 2;

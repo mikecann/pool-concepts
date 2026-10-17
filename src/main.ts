@@ -12,7 +12,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { FENCE_CHOICES, KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { KITCHEN_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -238,7 +238,7 @@ async function main() {
   };
   const optChanged = () => {
     model.apply(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
-    remember({ options: { roller: model.roller, kitchen: model.kitchen, fence: model.fence, pier: model.pier, nfence: model.nfence, passage: model.passage } });
+    remember({ options: { roller: model.roller, kitchen: model.kitchen, pier: model.pier, nfence: model.nfence, passage: model.passage } });
   };
   renderScenarioChips = chipRow($('opt-scenario'), [['existing', 'Today'], ['proposed', 'Proposed']], () => S.scenario, v => setScenario(v as Scenario));
 
@@ -269,9 +269,6 @@ async function main() {
   cards($('cards-kitchen'), KITCHEN_CHOICES, () => model.kitchen, v => {
     ensureProposed(); model.kitchen = v; optChanged(); goToCam('16_outdoor_kitchen');
   });
-  cards($('cards-fence'), FENCE_CHOICES, () => model.fence, v => {
-    ensureProposed(); model.fence = v as 'perforated' | 'glass'; optChanged(); goToCam('03_lawn_to_terrace');
-  });
   cards($('cards-pier'), PIER_CHOICES, () => model.pier, v => {
     ensureProposed(); model.pier = v; optChanged(); goToCam('18_pier_fence');
   });
@@ -287,7 +284,7 @@ async function main() {
   const CATS: { id: string; name: string; summary: () => string }[] = [
     { id: 'pool', name: 'Pool', summary: () => title(ROLLER_CHOICES, model.roller) },
     { id: 'alfresco', name: 'Alfresco', summary: () => title(KITCHEN_CHOICES, model.kitchen) },
-    { id: 'fences', name: 'Fences', summary: () => `${title(FENCE_CHOICES, model.fence)} · pier ${title(PIER_CHOICES, model.pier).toLowerCase()} · north ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
+    { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · north: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
     { id: 'passage', name: 'Side passage', summary: () => title(PASSAGE_CHOICES, model.passage) },
     { id: 'spa', name: 'Under the spa', summary: () => 'Coming soon' },
   ];
@@ -413,6 +410,7 @@ async function main() {
       walker.place(spot.x, spot.y + 0.4, spot.z, yaw, 0);
     }
     flyPad.hidden = !(isTouch && m === 'fly');
+    walker.mouseFwd = 0; walker.mouseUp = 0;
     shadowDirty = true;
   };
   const flyPad = $('fly-pad');
@@ -421,6 +419,20 @@ async function main() {
     b.addEventListener('pointerdown', e => { e.preventDefault(); walker.flyUp = v; });
     for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(ev, () => { walker.flyUp = 0; });
   }
+  // Round 15c: in fly mode, hold the left mouse button to fly forward and the right one to fly straight up (both
+  // together do both). The tape measure keeps its clicks; the context menu is suppressed on the view while flying.
+  // (read from the buttons bitmask: pressing a second button while one is held only fires pointermove, not pointerdown)
+  let flyButtons = false;
+  const flyMouse = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
+    if (e.type === 'pointerdown') flyButtons = e.target === canvas && walker.mode === 'fly' && !measuring();
+    const on = flyButtons && walker.mode === 'fly' && !measuring();
+    walker.mouseFwd = on && e.buttons & 1 ? 1 : 0;
+    walker.mouseUp = on && e.buttons & 2 ? 1 : 0;
+    if (!e.buttons) flyButtons = false;
+  };
+  for (const ev of ['pointerdown', 'pointermove', 'pointerup'] as const) addEventListener(ev, flyMouse);
+  canvas.addEventListener('contextmenu', e => { if (walker.mode === 'fly') e.preventDefault(); });
   $('mode-walk').onclick = () => setMode('walk');
   $('mode-fly').onclick = () => setMode('fly');
   $('mode-drone').onclick = () => setMode('drone');
@@ -560,24 +572,23 @@ async function main() {
   const valid = (v: string | undefined, list: Choice[]) => (v && list.some(c => c.value === v) ? v : undefined);
   model.roller = valid(o.roller, ROLLER_CHOICES) ?? model.roller;
   model.kitchen = valid(o.kitchen, KITCHEN_CHOICES) ?? model.kitchen;
-  model.fence = (valid(o.fence, FENCE_CHOICES) as 'perforated' | 'glass' | undefined) ?? model.fence;
+  // Round 15b: the pool fence is decided (perforated); an old saved or linked fence value is ignored
   model.pier = valid(o.pier, PIER_CHOICES) ?? model.pier;
   model.nfence = valid(o.nfence, NFENCE_CHOICES) ?? model.nfence;
   model.passage = valid(o.passage, PASSAGE_CHOICES) ?? model.passage;
   if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
   model.apply(); renderRoller();
-  // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&fence=glass&scenario=existing
+  // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&scenario=existing
   // (unknown values are ignored; the nfence_/passage_ prefixes are optional)
   fromUrl = true;
   const fromParam = (k: string, list: Choice[], prefix = '') => { const v = params.get(k); if (!v) return undefined; return valid(v.startsWith(prefix) ? v : prefix + v, list); };
   if (params.get('scenario') === 'existing' || params.get('scenario') === 'proposed') setScenario(params.get('scenario') as Scenario);
   model.roller = fromParam('roller', ROLLER_CHOICES) ?? model.roller;
   model.kitchen = fromParam('kitchen', KITCHEN_CHOICES) ?? model.kitchen;
-  model.fence = (fromParam('fence', FENCE_CHOICES) as 'perforated' | 'glass' | undefined) ?? model.fence;
   model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
-  if (['roller', 'kitchen', 'fence', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  if (['roller', 'kitchen', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into

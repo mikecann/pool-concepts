@@ -1,5 +1,5 @@
 // The design choices shown as cards in the walkthrough panel. Notes are trimmed from the renders page copy
-// (ROLLER, KITCHEN and the fence comparison in gallery.ts). Thumbnails are small card_*.jpg files made from
+// (ROLLER and KITCHEN in gallery.ts). Thumbnails are small card_*.jpg files made from
 // the option renders by scripts/make-cards.mjs, so the walkthrough doesn't pull in full-size renders.
 export type Choice = { value: string; title: string; note: string; img: string; src: string; /** The part of the render the card shows: [left, top, width, height] as fractions. */ crop?: [number, number, number, number] };
 
@@ -16,11 +16,6 @@ export const KITCHEN_CHOICES: Choice[] = [
   { value: 'kitchen_continuous', title: 'One long bench', note: 'The gate moves about 1 m south so the cabinets run unbroken for 3.3 m. The most workspace.', img: 'card_kitchen_continuous.jpg', src: 'options_16_outdoor_kitchen_kitchen_continuous.jpg' },
   { value: 'kitchen_freestanding', title: 'Freestanding', note: 'A BBQ on a trolley and the oven on a stainless table. The cheapest, and the least bench space.', img: 'card_kitchen_freestanding.jpg', src: 'options_16_outdoor_kitchen_kitchen_freestanding.jpg' },
   { value: 'kitchen_none', title: 'No outdoor kitchen', note: 'No kitchen at all: the alfresco stays open, and the gate stays where SK02 has it.', img: 'card_kitchen_none.jpg', src: 'options_16_outdoor_kitchen_kitchen_none.jpg' },
-];
-
-export const FENCE_CHOICES: Choice[] = [
-  { value: 'perforated', title: 'Perforated', note: 'Charcoal perforated aluminium, 1.2 m, as priced on 7 Oct. Reads as a dark screen.', img: 'card_fence_perforated.jpg', src: '03_lawn_to_terrace__proposed.jpg' },
-  { value: 'glass', title: 'Glass', note: 'Frameless glass, as SK02 draws it. Keeps the pool and spa in view, for about $630 more.', img: 'card_fence_glass.jpg', src: '03_lawn_to_terrace__glass.jpg' },
 ];
 
 export const PIER_CHOICES: Choice[] = [
@@ -41,6 +36,6 @@ export const PASSAGE_CHOICES: Choice[] = [
 ];
 
 /** What render.py shows when nothing in a group is picked. */
-export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_split', fence: 'perforated', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
+export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_split', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
 
-export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...FENCE_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));
+export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

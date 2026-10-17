@@ -92,7 +92,7 @@ export class Walker {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code) && document.activeElement === dom) e.preventDefault();
     });
     addEventListener('keyup', e => this.keys.delete(e.code));
-    addEventListener('blur', () => this.keys.clear());
+    addEventListener('blur', () => { this.keys.clear(); this.mouseFwd = 0; this.mouseUp = 0; });
     dom.addEventListener('mousemove', e => {
       if (document.pointerLockElement !== dom || this.mode === 'drone') return;
       this.look(e.movementX * 0.0022, e.movementY * 0.0022);
@@ -288,7 +288,8 @@ export class Walker {
     const k = this.keys;
     let fx = (k.has('KeyD') || k.has('ArrowRight') ? 1 : 0) - (k.has('KeyA') || k.has('ArrowLeft') ? 1 : 0) + this.stick.x;
     let fz = (k.has('KeyW') || k.has('ArrowUp') ? 1 : 0) - (k.has('KeyS') || k.has('ArrowDown') ? 1 : 0) + this.stick.y;
-    const up = (k.has('Space') || k.has('KeyE') ? 1 : 0) - (k.has('KeyC') || k.has('KeyQ') ? 1 : 0) + this.flyUp;
+    fz += this.mouseFwd;   // Round 15c: left mouse button held flies forward
+    const up = (k.has('Space') || k.has('KeyE') ? 1 : 0) - (k.has('KeyC') || k.has('KeyQ') ? 1 : 0) + this.flyUp + this.mouseUp;
     const speed = k.has('ShiftLeft') || k.has('ShiftRight') ? FLY_FAST : FLY;
     // forward follows where you look (pitch included), strafe stays level
     const cp = Math.cos(this.pitch), sp = Math.sin(this.pitch), sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
@@ -304,6 +305,9 @@ export class Walker {
   }
   /** Touch: the up/down buttons in fly mode (-1, 0 or 1). */
   flyUp = 0;
+  /** Fly mode's mouse buttons (Round 15c): left held = forward along the view, right held = straight up. */
+  mouseFwd = 0;
+  mouseUp = 0;
 
   update(dt: number) {
     if (this.glide) {

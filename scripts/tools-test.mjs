@@ -77,6 +77,32 @@ await hold('KeyW', 2500);
 const zw = await p.evaluate(() => __viewer.camera.position.z);
 check('the house wall stops you', zw > 0.3, `z -> ${zw.toFixed(2)}`);
 await p.screenshot({ path: `${OUT}/fly.png` });
+// mouse buttons in fly mode: left forward along the view, right straight up, both together both
+await p.evaluate(() => { __viewer.setMode('fly'); __viewer.walker.startFly(new __viewer.THREE.Vector3(-10, 4, 6), Math.PI / 2, 0); }); await wait(200);
+const mb = async (buttons, ms) => { for (const btn of buttons) await p.mouse.down({ button: btn }); await wait(ms); for (const btn of buttons) await p.mouse.up({ button: btn }); await wait(100); return p.evaluate(() => __viewer.camera.position.toArray()); };
+await p.mouse.move(cx, cy);
+let a0 = await p.evaluate(() => __viewer.camera.position.toArray());
+let a1 = await mb(['left'], 700);
+check('left button flies forward (west, level)', a1[0] < a0[0] - 1.5 && Math.abs(a1[1] - a0[1]) < 0.2, `x ${a0[0].toFixed(2)} -> ${a1[0].toFixed(2)}`);
+let a2 = await mb(['right'], 700);
+check('right button flies straight up', a2[1] > a1[1] + 1.5 && Math.abs(a2[0] - a1[0]) < 0.1, `y ${a1[1].toFixed(2)} -> ${a2[1].toFixed(2)}`);
+let a3 = await mb(['left', 'right'], 700);
+check('both buttons: forward and up', a3[0] < a2[0] - 0.8 && a3[1] > a2[1] + 0.8, `dx ${(a3[0] - a2[0]).toFixed(2)} dy ${(a3[1] - a2[1]).toFixed(2)}`);
+await p.keyboard.down('ShiftLeft'); const a4 = await mb(['left'], 500); await p.keyboard.up('ShiftLeft');
+check('Shift makes the left button fast', a3[0] - a4[0] > 4, `${(a3[0] - a4[0]).toFixed(2)} m in 0.5 s`);
+const a5 = await p.evaluate(() => __viewer.camera.position.toArray()); await wait(400);
+const a6 = await p.evaluate(() => __viewer.camera.position.toArray());
+check('releasing stops', Math.hypot(a6[0] - a5[0], a6[1] - a5[1], a6[2] - a5[2]) < 0.01);
+check('no context menu on the view in fly mode', await p.evaluate(() => { const e = new MouseEvent('contextmenu', { bubbles: true, cancelable: true }); document.getElementById('canvas').dispatchEvent(e); return e.defaultPrevented; }));
+// with the tape out, a left click measures instead of flying
+await p.evaluate(() => { __viewer.tape().clear(); __viewer.walker.startFly(new __viewer.THREE.Vector3(-1.5, 4.5, 3.5), 0, -1.5707); __viewer.setMeasure(true); }); await wait(300);
+const b0 = await p.evaluate(() => __viewer.camera.position.toArray());
+await p.mouse.click(cx, cy); await p.mouse.click(cx + 80, cy); await wait(300);
+const b1 = await p.evaluate(() => __viewer.camera.position.toArray());
+const nm = await p.evaluate(() => __viewer.tape().list().length);
+check('with the tape out, clicks measure and don\'t fly', nm === 1 && Math.hypot(b1[0] - b0[0], b1[1] - b0[1], b1[2] - b0[2]) < 0.01, `measurements ${nm}`);
+await p.evaluate(() => { __viewer.tape().clear(); __viewer.setMeasure(false); });
+
 // mode switches, all six
 for (const [a, c] of [['fly', 'drone'], ['drone', 'fly'], ['fly', 'walk'], ['walk', 'drone'], ['drone', 'walk'], ['walk', 'fly']]) {
   await p.evaluate(m => __viewer.setMode(m), a); await wait(300);

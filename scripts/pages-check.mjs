@@ -40,7 +40,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   }
   await ctx.close();
 }
-// walkthrough with the panel open: cards, a card click moving the camera, glass fence, the gate
+// walkthrough with the panel open: cards, a card click moving the camera, the gate
 {
   const ctx = await b.newContext({ viewport: { width: 1600, height: 900 } }); const p = await ctx.newPage(); const urls = track(p);
   await p.goto(BASE + 'walk/?q=High&nohelp');
@@ -50,7 +50,7 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
   await p.evaluate(() => { __viewer.setPanel(true); __viewer.setTime(15 * 60); });
   await frames(p, 30);
   await p.screenshot({ path: `${OUT}/walk_panel.png` });
-  for (const [box, value] of [['cards-roller', 'Low-profile, deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-fence', 'Glass'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'Aggregate to the play area']]) {
+  for (const [box, value] of [['cards-roller', 'Low-profile, deep end'], ['cards-roller', 'Shallow end'], ['cards-kitchen', 'One long bench'], ['cards-nfence', 'Moved 1.5 m north'], ['cards-passage', 'Aggregate to the play area']]) {
     const before = await p.evaluate(() => __viewer.state().feet.map(v => +v.toFixed(1)));
     // Round 15: the cards live in category tabs; open the one that holds this group first
     await p.evaluate(b => document.getElementById(b).closest('.cat-panel') && document.getElementById('tab-' + document.getElementById(b).closest('.cat-panel').dataset.cat).click(), box);
@@ -62,8 +62,6 @@ for (const [label, opts] of [['desktop', { viewport: { width: 1440, height: 900 
     await p.screenshot({ path: `${OUT}/walk_card_${value.toLowerCase().replace(/ /g, '_')}.png` });
   }
   // the north pool gate: tooltip, then open
-  await p.locator('#tab-fences').click();
-  await p.locator('#cards-fence .card', { hasText: 'Perforated' }).click();
   await p.locator('#tab-pool').click();
   await p.locator('#cards-roller .card', { hasText: 'No roller' }).click();
   await p.locator('#tab-fences').click();

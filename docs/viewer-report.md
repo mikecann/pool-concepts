@@ -837,6 +837,33 @@ So our sky was too dim as light, not only as a backdrop, and raising its radianc
 - **Dusk scrub:** 24 passes; 23 max out at 18–23 ms, and one frame hit 51 ms.
 - **Other checks:** switch-test, walk test, settings, images (165 plus 1 awaiting its render), page checks and phone layouts all pass.
 
+## Round 15b
+
+**Change:** the pool fence is decided: perforated.
+- **Removed from the walkthrough:**
+  - the perforated-vs-glass cards (`FENCE_CHOICES`, `CARD_IMAGES`, the `card_fence_*` thumbnails)
+  - the fence from the Fences category summary, which now shows only pier and north fence
+  - the saved setting and the `?fence=` link parameter: old `glass` values are ignored silently
+- **Removed from the renders page:** the fence comparison section and its glass renders. The assumptions now say the perforated fence was chosen over SK02's glass.
+- **The model:** the fence stays perforated.
+
+**Checks:**
+- **Old values:** a saved `fence: glass` plus `?fence=glass` both load perforated, with no console messages.
+- **Tests:** settings, switch-test and tools-test pass. The page checks pass, as does the image check (160 images, 1 awaiting its render).
+- **Frame rate:** Medium and High hold 60 fps at DPR 2.
+
+## Round 15c
+
+**Fly mode mouse buttons:**
+- Hold the left button to fly forward along the view, the right to go straight up; both together do both.
+- Shift still makes it fast, and the keys still work.
+- They're read from the pointer's buttons bitmask, because a second button pressed while one is held only fires pointermove, not pointerdown. This also works under pointer lock.
+- The context menu is suppressed on the view while flying.
+- Clicks still go to the tape measure while it's out.
+- The help card is updated.
+
+**Tests:** tools-test has 7 new checks and passes; the walk test passes.
+
 ## Summary
 
 **Round 15:**
