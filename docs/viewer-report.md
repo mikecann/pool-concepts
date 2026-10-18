@@ -1097,6 +1097,20 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **Dusk scrub:** max 20 ms.
 - **Load, local:** warm 1.95 / 3.07 s, cold 2.66 / 3.82 s.
 
+## Round 22
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** Layout B's lounge runs east to the garden bed (75 B images) | Done |
+| 2 | **Layout B copy:** the card's short line is "A wider lounge in line with the house; pool moved". More and the renders-page text cover the 3.75 m lounge, the east walkway gone (reach the spa deck along the pool side, 0.90 m, or through the lounge), the 2.72 m north bench, and pier_inset not possible | r22-test |
+| 3 | **pier_inset in B:** the card is greyed out and disabled, with "Not possible in Layout B: it would run through the lounge's new corner." If it's chosen when B loads (setting, swap or link), B shows the drawn fence and a short message says so. Your choice is held (remembered, and handed over on a swap) until you pick another pier fence, so SK02's layout gets it back | r22-test |
+| 4 | **kitchen_lounge in B:** its More text says the 1.05 m gap at its east end now leads nowhere. No warning | r22-test |
+| 5 | **Checks after the sync:** B's dims show 56 by default (lounge width 3.75 m). The pump room crawl in B is 6.2 m, still round the spa. New B kitchen renders (views 10 and 16) sit beside A's in the kitchen picker, and the Layout B section gains the pump room view | `review/round22/test/` |
+
+**Checks:**
+- **New `scripts/r22-test.mjs`:** PASS.
+- **Other checks:** settings, r16, r17, r19, r20, r21, tools, switch, walk, pages and phone all pass. check-images: 339 checked, 0 missing, 1 awaiting.
+
 ## Summary
 
 **Round 17:**

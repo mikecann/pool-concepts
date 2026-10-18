@@ -207,9 +207,9 @@
   "name": "led_bench_light_0",
   "type": "AREA",
   "position": [
-   1.19925,
+   1.5793,
    2.06,
-   5.93828
+   5.96463
   ],
   "direction": [
    0.0,
@@ -225,23 +225,23 @@
   "dayPower": 0.0,
   "spotAngle": 0,
   "spotBlend": 0,
-  "size": 1.86,
+  "size": 2.6219,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
   "set": "proposed",
   "xaxis": [
    0.9976,
    0.0,
-   0.06923
+   0.06922
   ]
  },
  {
   "name": "led_bench_light_1",
   "type": "AREA",
   "position": [
-   1.35142,
+   2.11157,
    2.06,
-   7.21185
+   7.2646
   ],
   "direction": [
    0.0,
@@ -257,12 +257,12 @@
   "dayPower": 0.0,
   "spotAngle": 0,
   "spotBlend": 0,
-  "size": 2.18,
+  "size": 2.1801,
   "sizeY": 0.03,
   "shape": "RECTANGLE",
   "set": "proposed",
   "xaxis": [
-   -0.06926,
+   -0.06921,
    0.0,
    0.9976
   ]
@@ -271,9 +271,9 @@
   "name": "led_firepit_light",
   "type": "POINT",
   "position": [
-   0.13613,
+   0.52307,
    2.22,
-   7.63874
+   7.5663
   ],
   "direction": [
    0.0,

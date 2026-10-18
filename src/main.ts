@@ -270,7 +270,10 @@ async function main() {
   let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
   let syncCovers = () => {}, coverFinished: (c: any) => void = () => {}, coverToggle: (c: any) => void = () => {};
   let nearCoverAt: (x: number, z: number, eyeY: number) => any = () => null, coversRef: Covers | null = null, nearCover: any = null;
-  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence });
+  // Round 22: pier_inset can't be built in Layout B. There it falls back to the drawn fence, but your choice is held
+  // (remembered, and handed to SK02's layout on a swap) until you pick another pier fence
+  let heldPier: string | null = null;
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
@@ -343,6 +346,8 @@ async function main() {
   group('roller', ROLLER_CHOICES, 'roller', () => (/shallow/.test(model.roller) ? '13_deep_end_to_house' : '05_pool_north_end'));
   group('kitchen', KITCHEN_CHOICES, 'kitchen', () => '16_outdoor_kitchen');
   group('pier', PIER_CHOICES, 'pier', () => '18_pier_fence');
+  // picking a pier fence yourself lets go of a held pier_inset
+  $('cards-pier').addEventListener('click', () => { heldPier = null; }, true);
   group('spacover', SPA_COVER_CHOICES, 'spaCover', () => '14_spa_to_canal');
   group('play', PLAY_CHOICES, 'play', () => '21_play_area_north');
   group('post', POST_CHOICES, 'post', () => '10_alfresco_corner');
@@ -359,6 +364,21 @@ async function main() {
     const render = () => { warn.hidden = !show(); };
     cardGroups.push(render); render();
   };
+  // Round 22: unavailable in Layout B, greyed out with the reason (Layout B's lounge reaches the garden bed)
+  if (LAYOUT === 'b') {
+    const t = PIER_CHOICES.find(c => c.value === 'pier_inset')!.title;
+    const card = [...$('cards-pier').querySelectorAll<HTMLButtonElement>('.card')].find(c => c.querySelector('b')?.textContent === t);
+    if (card) {
+      card.disabled = true; card.classList.add('unavailable'); card.title = "Not possible in Layout B";
+      const why = document.createElement('em'); why.className = 'card-note'; why.textContent = "Not possible in Layout B: it would run through the lounge's new corner.";
+      card.querySelector('span')?.appendChild(why);
+    }
+    // and the lounge kitchen's More: the gap at its east end used to lead onto the east walkway
+    const kt = KITCHEN_CHOICES.find(c => c.value === 'kitchen_lounge')!.title;
+    const kwrap = [...$('cards-kitchen').querySelectorAll<HTMLElement>('.card-wrap')].find(w => w.querySelector('.card b')?.textContent === kt);
+    const more = kwrap?.querySelector('.card-more p');
+    if (more) more.insertAdjacentHTML('beforeend', ' <b>In Layout B</b> it starts clear of the north-west steps, so it\'s 1.85 m long, and the 1.05 m gap between its east end and the fence now leads nowhere: the walkway down the lounge\'s east side is gone.');
+  }
   warnOn('cards-pier', PIER_CHOICES, 'pier_inset', 'With a kitchen, the benches would sit 45 mm outside the fence (climbable).', () => model.kitchen !== 'kitchen_none');
   // the lounge kitchen and the two-post roof clash (its east post stands in the bench): warn on both while both are chosen
   const loungeClash = () => model.kitchen === 'kitchen_lounge' && model.post === 'post_two';
@@ -816,6 +836,12 @@ async function main() {
     // Round 17: back in the mode you were in last time (walk, fly or drone), before any deep-linked view
     if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
     if (params.get('cam')) goToCam(params.get('cam')!, true, true);
+  }
+  // Round 22: pier_inset in Layout B (remembered, linked or handed over): the drawn fence instead, and say so
+  if (LAYOUT === 'b' && model.pier === 'pier_inset') {
+    heldPier = 'pier_inset'; model.pier = 'pier_as_drawn'; model.apply(); syncCovers(); walker.rebuild(model.root); renderRoller();
+    const note = `<small>The fence pulled into the alfresco isn't possible in Layout B, so it's as drawn here. It comes back in SK02's layout.</small>`;
+    swapHint = swapHint ? swapHint + note : `Fence by the pier: as drawn${note}`;
   }
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.

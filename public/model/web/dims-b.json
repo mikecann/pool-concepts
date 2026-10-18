@@ -268,11 +268,11 @@
    7.019
   ],
   "b": [
-   2.132,
+   2.893,
    1.67,
-   7.226
+   7.279
   ],
-  "value_m": 2.99,
+  "value_m": 3.752,
   "set": "proposed"
  },
  {
@@ -319,11 +319,11 @@
    5.092
   ],
   "b": [
-   2.231,
+   2.991,
    2.12,
-   5.228
+   5.281
   ],
-  "value_m": 1.96,
+  "value_m": 2.722,
   "set": "proposed"
  },
  {
@@ -331,14 +331,14 @@
   "label": "East bench length",
   "group": "lounge",
   "a": [
-   2.208,
+   2.969,
    2.12,
-   6.129
+   6.181
   ],
   "b": [
-   2.051,
+   2.811,
    2.12,
-   8.403
+   8.456
   ],
   "value_m": 2.28,
   "set": "proposed"
@@ -399,16 +399,16 @@
   "label": "Fire pit to the north bench's front",
   "group": "lounge",
   "a": [
-   0.169,
+   0.556,
    1.97,
-   7.17
+   7.097
   ],
   "b": [
-   0.25,
+   0.63,
    1.97,
-   5.993
+   6.019
   ],
-  "value_m": 1.18,
+  "value_m": 1.081,
   "set": "proposed"
  },
  {
@@ -416,16 +416,16 @@
   "label": "Fire pit to the east bench's front",
   "group": "lounge",
   "a": [
-   0.605,
+   0.992,
    1.97,
-   7.671
+   7.599
   ],
   "b": [
-   1.196,
+   1.963,
    1.97,
-   7.712
+   7.666
   ],
-  "value_m": 0.593,
+  "value_m": 0.974,
   "set": "proposed"
  },
  {
@@ -896,11 +896,11 @@
    4.22
   ],
   "b": [
-   2.81,
+   2.817,
    3.27,
-   5.118
+   5.008
   ],
-  "value_m": 0.9,
+  "value_m": 0.79,
   "set": "proposed",
   "option": "kitchen_split"
  },
@@ -959,22 +959,22 @@
   "option": "kitchen_lounge"
  },
  {
-  "id": "corridor_east",
-  "label": "Walkway east of the lounge (lounge wall to the drawn east fence, over the terrace wall's cap)",
-  "group": "alfresco",
+  "id": "access_pool_side",
+  "label": "Way to the spa deck past the pool: water's edge to the lounge wall",
+  "group": "lounge",
   "a": [
-   2.363,
-   2.42,
-   6.941
+   -2.171,
+   2.376,
+   9.745
   ],
   "b": [
-   3.081,
-   2.42,
-   6.991
+   -1.268,
+   2.376,
+   9.81
   ],
-  "value_m": 0.72,
+  "value_m": 0.905,
   "set": "proposed",
-  "note": "the paving is 0.50 m, the wall cap the rest"
+  "note": "the 0.50 m paving strip plus the 0.40 m coping"
  },
  {
   "id": "align_lounge_house",

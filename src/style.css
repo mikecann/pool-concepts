@@ -363,3 +363,7 @@ ul.assume li::marker { color: var(--accent); }
 .dim-label.named small { display: block; }
 .kbd-hint { opacity: .6; font-size: 12px; }
 .chips.small button { min-height: 28px; padding: 3px 8px; font-size: 12.5px; }
+
+/* Round 22: an option that can't be built in this layout */
+.card.unavailable { opacity: .55; cursor: not-allowed; filter: grayscale(1); }
+.card.unavailable:hover { background: inherit; }

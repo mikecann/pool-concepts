@@ -114,7 +114,7 @@ const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner',
 // corner post too where that render exists (10, 06, 15), otherwise SK02's own post
 const LAYOUTB_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['06_sunken_lounge', 'In the lounge'], ['15_lounge_from_alfresco', 'Over the lounge'],
   ['05_pool_north_end', 'Pool, north end'], ['20_pool_north_seating', 'From the spa deck'], ['13_deep_end_to_house', 'Deep end to the house'],
-  ['17_pool_overview', 'Pool from above'], ['07_aerial_southwest', 'From the air']];
+  ['17_pool_overview', 'Pool from above'], ['07_aerial_southwest', 'From the air'], ['22_pump_room', 'Pump room']];
 const A_CORNER = new Set(['10_alfresco_corner', '06_sunken_lounge', '15_lounge_from_alfresco']);
 const layoutASrc = (v: string) => (A_CORNER.has(v) ? `img/options_${v}_post_corner_steps.jpg` : `img/${v}__proposed.jpg`);
 
@@ -127,9 +127,16 @@ const LAYOUTB_OPTION_RENDERS = new Set([
   ...['15_lounge_from_alfresco', '16_outdoor_kitchen'].flatMap(v => ['post_as_drawn', 'post_corner_steps'].map(o => `${v}_kitchen_lounge_${o}`)),
   ...['12_from_pavilion', '16_outdoor_kitchen', '18_pier_fence'].map(v => `${v}_pier_straight_edge`),
   '22_pump_room_pump_doors', '22_pump_room_pump_open',
+  // Round 22: the kitchens (the lounge kitchen's plain name is with SK02's post, as A's pictures are)
+  ...['10_alfresco_corner', '16_outdoor_kitchen'].flatMap(v => ['kitchen_split', 'kitchen_continuous', 'kitchen_freestanding', 'kitchen_none', 'kitchen_lounge'].map(o => `${v}_${o}`)),
 ].map(k => `layoutb_${k}.jpg`));
 /** Layout B's file for an SK02 option render's URL, or '' if B has no render of it. */
-const layoutBName = (aUrl: string) => { const n = aUrl.split('/').pop()!; const b = n.startsWith('options_') ? 'layoutb_' + n.slice(8) : ''; return LAYOUTB_OPTION_RENDERS.has(b) ? b : ''; };
+const layoutBName = (aUrl: string) => {
+  const n = aUrl.split('/').pop()!, b = n.startsWith('options_') ? 'layoutb_' + n.slice(8) : '';
+  // A's lounge-kitchen pictures are named with their post; B's may not be
+  for (const c of [b, b.replace('_post_as_drawn.jpg', '.jpg')]) if (LAYOUTB_OPTION_RENDERS.has(c)) return c;
+  return '';
+};
 const BFENCE = BFENCE_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
 const BFENCE_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence'], ['17_pool_overview', 'From above'], ['07_aerial_southwest', 'From the air']];
 
@@ -219,7 +226,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Options to decide</span>
   <h2>Layout B: lounge wall in line, pool moved</h2>
-  <p>A second build of the whole yard. The sunken lounge's pool-side wall moves 0.88 m east, in line with the house's west wall and the alfresco's corner post, and the pool moves 0.5 m east. Left: SK02's layout. Right: Layout B, both from the same camera.</p>
+  <p>A second build of the whole yard: the sunken lounge lines up with the house's west wall and runs east to the garden bed, and the pool moves 0.5 m east. Left: SK02's layout. Right: Layout B, both from the same camera.</p>
 </div>
 <section class="block" aria-label="SK02's layout beside Layout B">
   <div class="pair">
@@ -228,9 +235,10 @@ const HTML = /* html */ `
   </div>
   <div class="chips" id="lb-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="lb-note">
-    <p>The lounge's pool-side wall moves 0.88 m east, onto the house's west wall line: the lounge is 2.99 m wide inside instead of 3.87 m. The house wall, the lounge wall, the corner post and the roof's west edge all line up. The north-west steps sit in the corner, the north bench is 1.96 m long, the steps up to the spa deck are 1.36 m wide, and the fire pit moves 0.39 m east (snug: about 0.56 m to the west wall).</p>
-    <p>The pool moves 0.5 m east with its coping, water, lights and covers: 0.50 m of paving between the coping and the lounge wall, 0.57 m from the coping to the boundary wall at its closest. The north fence stays 1.66 m from the coping.</p>
-    <p><b>Watch for</b> SK02's own post: in Layout B it stands 0.35 m in front of the west half of the north-west steps. The lounge kitchen starts clear of the steps, so it's 1.85 m long, with the BBQ and oven closer together.</p>
+    <p>The lounge's pool-side wall moves 0.88 m east, onto the house's west wall line, and its east wall moves out to the garden bed: the lounge is 3.75 m wide inside (3.87 m in SK02). The house wall, the lounge wall, the corner post and the roof's west edge all line up. The north bench is 2.72 m long and the fire pit is re-centred.</p>
+    <p>The walkway down the lounge's east side is gone. You reach the spa deck along the pool side (0.90 m from the water to the lounge wall) or through the lounge, down the north-west steps and up the south steps (1.36 m wide).</p>
+    <p>The pool moves 0.5 m east with its coping, water, lights and covers: 0.50 m of paving between the coping and the lounge wall, 0.57 m from the coping to the boundary wall at its closest.</p>
+    <p><b>Watch for</b> SK02's own post: it stands 0.35 m in front of the west half of the north-west steps. The lounge kitchen starts clear of the steps, so it's 1.85 m long, and the gap at its east end now leads nowhere. The fence pulled into the alfresco can't be built in this layout: it would run through the lounge's new corner.</p>
   </div>
 </section>
 
