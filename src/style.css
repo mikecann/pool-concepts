@@ -372,3 +372,23 @@ ul.assume li::marker { color: var(--accent); }
 .light-hint { grid-column: 1 / -1; justify-content: center; margin: 6px 0 0; font-size: 13px; color: var(--on-scrim); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .light-hint[hidden] { display: none; }
 .light-hint button { border: 1px solid var(--on-scrim-muted); background: transparent; color: var(--on-scrim); padding: 3px 9px; font: inherit; cursor: pointer; min-height: 30px; }
+
+/* ---------- Round 26: the lighting Adjust panel ---------- */
+.adjust-btn { border: 1px solid var(--accent); color: var(--accent); background: transparent; padding: 3px 10px; font: inherit; font-size: 12.5px; cursor: pointer; min-height: 28px; }
+.adjust-btn[hidden] { display: none; }
+.adjust-btn[aria-expanded="true"] { background: var(--accent); color: #fff; }
+.light-adjust { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--rule); background: var(--sheet, transparent); display: grid; gap: 10px; }
+.light-adjust[hidden] { display: none; }
+.adj-head { display: grid; gap: 2px; }
+.adj-head b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.adj-note { font-size: 12px; opacity: .7; }
+.adj-row { display: grid; gap: 4px; padding-top: 8px; border-top: 1px solid var(--rule); }
+.adj-on { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: 13.5px; }
+.adj-on input { width: 18px; height: 18px; }
+.adj-slider { display: grid; grid-template-columns: 74px 1fr 44px; gap: 8px; align-items: center; font-size: 12.5px; }
+.adj-slider input { width: 100%; min-height: 28px; }
+.adj-slider output { text-align: right; font-family: var(--font-mono); font-size: 12px; }
+.adj-colour { display: flex; gap: 8px; align-items: center; font-size: 12.5px; }
+.adj-colour input { width: 44px; height: 28px; padding: 0; border: 1px solid var(--rule); background: none; }
+.adj-foot { display: flex; gap: 8px; justify-content: space-between; }
+.adj-foot button { border: 1px solid var(--rule); background: transparent; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; min-height: 32px; }

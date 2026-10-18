@@ -31,6 +31,55 @@ type LightSpec = {
   w?: number; h?: number; distance?: number; angle?: number; penumbra?: number; shadow: boolean; role: 'pool' | 'spa' | null;
 };
 type Slot = { light: AnyLight; type: LightSpec['type']; shadow: boolean; spec: LightSpec | null; base: number; def: LightDef | null };
+/**
+ * Round 26: the lighting adjust panel's groups. Lights are grouped by their lights.json name, glowing fittings by
+ * their mesh name, so a group's lights and fittings dim and recolour together (all by uniforms: no recompiles).
+ *   pool        lights pool_light*                     (no fittings: the glow in the water follows the light)
+ *   spa         lights led_spa_light*                  (the hot tub's own glow follows it too)
+ *   bench       lights led_bench_light*                fittings led_bench_strips*
+ *   steps       (no lights)                            fittings led_strips* (step nosings), led_wall_lights (terrace step lights)
+ *   uplights    lights led_uplight*, terrace_washer*   fittings led_bed_uplight_lenses
+ *   downlights  lights alfresco_downlight*, eave_downlight*  fittings led_garden_lenses (the eave lights); the ceiling's wash follows
+ *   festoon     lights festoon_light*                  fittings led_festoon_bulbs
+ *   cove        lights cove_light*                     fittings led_cove_strips
+ *   inground    (no lights)                            fittings led_inground_markers, led_arch_inground_lenses
+ *   coping      (no lights)                            fittings led_resort_coping_strips
+ *   bollards    lights bollard_light*                  fittings led_bollard_heads
+ *   firepit     lights led_firepit_light               fittings firepit_flames
+ * The pump room's battens and the house's lights aren't adjustable.
+ */
+export const LIGHT_GROUPS: { id: string; name: string; white: boolean }[] = [
+  { id: 'pool', name: 'Pool light', white: true }, { id: 'spa', name: 'Spa light', white: true },
+  { id: 'bench', name: 'Bench strips', white: true }, { id: 'steps', name: 'Step lights', white: true },
+  { id: 'uplights', name: 'Plant and wall uplights', white: true }, { id: 'downlights', name: 'Downlights', white: true },
+  { id: 'festoon', name: 'Festoon', white: true }, { id: 'cove', name: 'Roof cove', white: true },
+  { id: 'inground', name: 'In-ground lights', white: true }, { id: 'coping', name: 'Coping strips', white: true },
+  { id: 'bollards', name: 'Bollards', white: true }, { id: 'firepit', name: 'Fire pit', white: false },
+];
+export const lightGroupOf = (n: string) =>
+  /^pool_light/.test(n) ? 'pool' : /^led_spa_light/.test(n) ? 'spa' : /^led_bench_light/.test(n) ? 'bench'
+  : /^(led_uplight|terrace_washer)/.test(n) ? 'uplights' : /^(alfresco_downlight|eave_downlight)/.test(n) ? 'downlights'
+  : /^festoon/.test(n) ? 'festoon' : /^cove_light/.test(n) ? 'cove' : /^bollard_light/.test(n) ? 'bollards' : /^led_firepit/.test(n) ? 'firepit' : null;
+export const fittingGroupOf = (n: string) =>
+  /^led_bench_strips/.test(n) ? 'bench' : /^(led_strips|led_wall_lights)/.test(n) ? 'steps' : /^led_bed_uplight/.test(n) ? 'uplights'
+  : /^led_garden_lenses/.test(n) ? 'downlights' : /^led_festoon/.test(n) ? 'festoon' : /^led_cove/.test(n) ? 'cove'
+  : /^(led_inground_markers|led_arch_inground)/.test(n) ? 'inground' : /^led_resort_coping/.test(n) ? 'coping'
+  : /^led_bollard/.test(n) ? 'bollards' : /^firepit_flames/.test(n) ? 'firepit' : null;
+export type GroupAdjust = { level: number; on: boolean; temp?: 'warm' | 'neutral' | 'cool' | null; color?: string | null };
+/** One scheme's adjustments: a master dimmer and per-group settings (missing groups are as designed). */
+export type LightAdjust = { master: number; groups: Record<string, GroupAdjust> };
+export const TEMPS = { warm: 2700, neutral: 3000, cool: 4000 } as const;
+/** A colour temperature as RGB with its largest channel 1 (Tanner Helland's fit). */
+export function kelvinColor(k: number) {
+  const t = k / 100, c = (v: number) => Math.min(255, Math.max(0, v)) / 255;
+  const r = t <= 66 ? 1 : c(329.698727446 * Math.pow(t - 60, -0.1332047592));
+  const g = t <= 66 ? c(99.4708025861 * Math.log(t) - 161.1195681661) : c(288.1221695283 * Math.pow(t - 60, -0.0755148492));
+  const b = t >= 66 ? 1 : t <= 19 ? 0 : c(138.5177312231 * Math.log(t - 10) - 305.0447927307);
+  // in the same terms as the export's light colours, which write warm white as plain RGB (its 3000 K strips are
+  // 1, 0.78, 0.52): converted to linear, 4000 K came out warmer than the designed downlights
+  return new Color(r, g, b);
+}
+const LUM = [0.2126, 0.7152, 0.0722];
 /** Round 24: the slot pool's size per type (16 in all), raised at load if any one scheme needs more of a type. */
 const SLOTS = { SPOT: 6, AREA: 6, POINT: 4 };
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
@@ -203,6 +252,70 @@ function tileJoints(base: any, j: { tile: number; width: number; grout: [number,
 
 export class Model {
   readonly root = new Group();
+  /** Round 26: where the camera is (the viewer sets it each frame), for lights that only matter up close. */
+  readonly eye = new Vector3();
+  /** Round 26: the adjust panel's settings for the scheme shown, and each group's level and colour as uniforms. */
+  private adjust: LightAdjust | null = null;
+  private groupU = new Map<string, { level: any; col: any; mix: any }>();
+  private gU(g: string) {
+    let u = this.groupU.get(g);
+    if (!u) { u = { level: uniform(1), col: uniform(new Color(1, 1, 1)), mix: uniform(0) }; this.groupU.set(g, u); }
+    return u;
+  }
+  /** A group's brightness factor now (0 when it's switched off). */
+  groupLevel(g: string | null) {
+    if (!g || !this.adjust) return 1;
+    const a = this.adjust.groups[g];
+    return (a && !a.on ? 0 : a?.level ?? 1) * (this.adjust.master ?? 1);
+  }
+  /** A group's chosen colour (temperature or RGB), or null for as designed. */
+  private groupColor(g: string | null) {
+    const a = g && this.adjust?.groups[g];
+    if (!a) return null;
+    if (a.color) return new Color(a.color);
+    if (a.temp) return kelvinColor(TEMPS[a.temp]);
+    return null;
+  }
+  /** A colour moved to the group's chosen hue, keeping its brightness (luminance). */
+  private tinted(c: Color, g: string | null) {
+    const t = this.groupColor(g);
+    if (!t) return c.clone();
+    const l = c.r * LUM[0] + c.g * LUM[1] + c.b * LUM[2], lt = t.r * LUM[0] + t.g * LUM[1] + t.b * LUM[2];
+    return t.clone().multiplyScalar(l / Math.max(lt, 1e-4));
+  }
+  /** Apply one scheme's adjustments (null: as designed). Uniforms and light colours only: nothing recompiles. */
+  setAdjust(a: LightAdjust | null) {
+    this.adjust = a;
+    for (const g of LIGHT_GROUPS) {
+      const u = this.gU(g.id), t = this.groupColor(g.id);
+      u.level.value = this.groupLevel(g.id);
+      u.mix.value = t ? 1 : 0;
+      if (t) (u.col.value as Color).copy(t);
+    }
+    for (const sl of this.nightLights) if (sl.spec) (sl.light as any).color.copy(this.tinted(sl.spec.color, lightGroupOf(sl.spec.def.name)));
+    this.updateGlows();
+  }
+  /** The adjustable groups the scheme shown uses (its lights on now, and its glowing fittings that show). */
+  lightGroupsInUse() {
+    const gs = new Set<string>();
+    for (const sl of this.nightLights) { const g = sl.def && lightGroupOf(sl.def.name); if (g) gs.add(g); }
+    for (const f of this.fittings) { let q: Object3D | null = f.mesh, vis = true; while (q) { if (!q.visible) vis = false; q = q.parent; } if (vis) gs.add(f.group); }
+    return LIGHT_GROUPS.filter(g => gs.has(g.id)).map(g => g.id);
+  }
+  /** The glowing fittings with a group (for lightGroupsInUse). */
+  private fittings: { mesh: Mesh; group: string }[] = [];
+  /** A group's designed colour in this scheme (for the colour picker's starting value). */
+  designedColor(g: string) {
+    const sp = this.nightLights.find(sl => sl.def && lightGroupOf(sl.def.name) === g)?.spec;
+    return sp ? sp.color.clone() : null;
+  }
+  /** Round 26: a fitting's glow moved to its group's chosen hue (keeping its luminance) and scaled by its level. */
+  private groupTint(c: any, g: string | null) {
+    if (!g) return c;
+    const u = this.gU(g), L = vec3(...(LUM as [number, number, number]));
+    const target = u.col.mul(dot(c, L).div(max(dot(u.col, L), float(1e-4))));
+    return mix(c, target, u.mix).mul(u.level);
+  }
   /** Round 24: the fixed pool of light slots (see setupLights); a slot with no light assigned has def null. */
   readonly nightLights: Slot[] = [];
   private lightSpecs: LightSpec[] = [];
@@ -447,6 +560,7 @@ export class Model {
     this.openSpaCabinet();
     const converted = new Map<Material, MeshStandardNodeMaterial>();
     const conv = (m: Material) => { let n = converted.get(m); if (!n) { n = this.toNode(m); converted.set(m, n); } return n; };
+    const fitConverted = new Map<string, any>();
     const maxAniso = this.renderer.getMaxAnisotropy?.() ?? 8;
     this.root.traverse(o => {
       const mesh = o as Mesh;
@@ -486,11 +600,17 @@ export class Model {
         // the brick lights in the canal wall share the markers' material but should read as small, low-glare
         // step lights rather than headlights: their own copy, a much lower level, under the bloom threshold
         const wallLights = o.name.startsWith('led_wall_lights');
-        const n = wallLights ? this.toNode(mats[0]) : conv(mats[0]);
+        // Round 26: each adjust group gets its own copy of a shared material (the arch in-ground lenses and the garden's
+        // eave lenses share one), so dimming one group never dims another
+        const group = fittingGroupOf(o.name);
+        const key = `${mats[0]?.uuid}|${group}`;
+        let n = wallLights ? this.toNode(mats[0]) : fitConverted.get(key);
+        if (!n) { n = this.toNode(mats[0]); fitConverted.set(key, n); }
+        if (group) this.fittings.push({ mesh, group });
         const e = (mats[0] as any).emissive as Color | undefined;
         const col = e && (e.r + e.g + e.b) > 0 ? e.clone() : new Color(1, 0.72, 0.45);
         const level = wallLights ? 1.1 : mats[0]?.userData?.ledLevel ?? (o.name.includes('flame') ? 1.6 : 9);
-        n.emissiveNode = vec3(col.r, col.g, col.b).mul(float(level)).mul(this.atm.nightU).mul(o.name.includes('flame') ? this.fireFlicker : float(1));
+        n.emissiveNode = this.groupTint(vec3(col.r, col.g, col.b), group).mul(float(level)).mul(this.atm.nightU).mul(o.name.includes('flame') ? this.fireFlicker : float(1));
         n.color = new Color(0x2a2a2a);
         mesh.material = n;
         mesh.castShadow = false;
@@ -854,18 +974,23 @@ export class Model {
       if (!slot) { console.warn(`lights: no free ${sp.type} slot for ${sp.def.name}`); continue; }
       this.setSlot(slot, sp);
     }
-    // the pool and spa glow take their light's colour and level; the ceiling wash follows the downlights' watts
+    this.updateGlows();
+  }
+
+  /** The pool and spa glow take their light's colour and level, the ceiling wash the downlights' watts (Rounds 25-26). */
+  private updateGlows() {
     const on = this.nightLights.map(sl => sl.spec).filter(Boolean) as LightSpec[];
     const pool = on.find(sp => sp.role === 'pool'), spa = on.find(sp => sp.role === 'spa');
-    this.glowLevel.pool = pool ? pool.def.power / 90 : 0;
-    this.glowLevel.spa = spa ? spa.def.power / 25 : 0;
-    if (pool) (this.poolGlowColor.value as Color).copy(Model.wetGlow('pool', pool.def.color));
-    if (spa) (this.spaGlowColor.value as Color).copy(Model.wetGlow('spa', spa.def.color));
+    const hue = (sp: LightSpec) => { const c = this.tinted(new Color(...(sp.def.color as [number, number, number])), lightGroupOf(sp.def.name)); return [c.r, c.g, c.b]; };
+    this.glowLevel.pool = pool ? pool.def.power / 90 * this.groupLevel('pool') : 0;
+    this.glowLevel.spa = spa ? spa.def.power / 25 * this.groupLevel('spa') : 0;
+    if (pool) (this.poolGlowColor.value as Color).copy(Model.wetGlow('pool', hue(pool)));
+    if (spa) (this.spaGlowColor.value as Color).copy(Model.wetGlow('spa', hue(spa)));
     // the tub's glow: Round 15's cyan for the specced 25 W light, tinted and scaled for the scheme's own
-    const ref = Model.wetGlow('spa', [0.75, 0.9, 1.0]), own = spa ? Model.wetGlow('spa', spa.def.color) : ref;
-    (this.tubGlow.value as Color).setRGB(0.1 * own.r / ref.r, 0.55 * own.g / ref.g, 0.62 * own.b / ref.b).multiplyScalar(spa ? spa.def.power / 25 : 0);
+    const ref = Model.wetGlow('spa', [0.75, 0.9, 1.0]), own = spa ? Model.wetGlow('spa', hue(spa)) : ref;
+    (this.tubGlow.value as Color).setRGB(0.1 * own.r / ref.r, 0.55 * own.g / ref.g, 0.62 * own.b / ref.b).multiplyScalar(spa ? spa.def.power / 25 * this.groupLevel('spa') : 0);
     const down = on.filter(sp => sp.def.name.startsWith('alfresco_downlight')).reduce((w, sp) => w + sp.def.power, 0);
-    this.ceilingLevel.value = down / 120;
+    this.ceilingLevel.value = down / 120 * this.groupLevel('downlights');
   }
 
   private setSlot(slot: Slot, sp: LightSpec | null) {
@@ -874,7 +999,7 @@ export class Model {
     l.userData.def = sp?.def.name ?? null;
     if (!sp) { l.intensity = 0; l.position.set(0, -50, 0); if (l.target) l.target.position.set(0, -51, 0); return; }
     l.position.copy(sp.pos);
-    l.color.copy(sp.color);
+    l.color.copy(this.tinted(sp.color, lightGroupOf(sp.def.name)));
     if (slot.type === 'SPOT') { l.target.position.copy(sp.target!); l.angle = sp.angle; l.penumbra = sp.penumbra; l.distance = sp.distance; }
     else if (slot.type === 'AREA') { l.quaternion.copy(sp.quat!); l.width = sp.w; l.height = sp.h; }
     else l.distance = sp.distance;
@@ -898,7 +1023,7 @@ export class Model {
     // emission is scaled by the night uniform. Their visibility only follows the scenario and options.
     const swap = LIGHT_SWAP || !this.lightsConstant;
     const on = night > 0.004;
-    for (const { light, base, def } of this.nightLights) {
+    for (const { light, base, def, spec } of this.nightLights) {
       // Round 13: the scenario and options only change a light's intensity, never its visibility. A light that
       // appears changes every material's lighting; three recompiles them, and on the way disposed the shadow map the
       // other materials were still drawing with ("Destroyed ShadowDepthTexture", no sun shadows after Today ->
@@ -909,7 +1034,10 @@ export class Model {
       if (light.visible !== vis) { light.visible = vis; if (light.castShadow) light.shadow!.needsUpdate = true; }
       // on Low (no TRAA or SSGI) the bench strips' floor wash clips to a white flare: about 0.6x there (Round 13)
       const low = this.lowQuality && def?.name.startsWith('led_bench') ? BENCH_LOW : 1;
-      light.intensity = (here ? base * night * low : 0) * (def?.name.startsWith('led_firepit') ? flick : 1);
+      // Round 26: the adjust panel's group level; and the pump room's battens only near it (area lights cast no shadows,
+      // so from outside they lit the canal through the room's walls: two bright blobs in the water from the canal)
+      const near = def?.name.startsWith('pump_room_light') && spec ? 1 - Math.min(1, Math.max(0, (this.eye.distanceTo(spec.pos) - 6) / 4)) : 1;
+      light.intensity = (here ? base * night * low * near * this.groupLevel(def && lightGroupOf(def.name)) : 0) * (def?.name.startsWith('led_firepit') ? flick : 1);
     }
     this.poolGlow.value = night * GLOW * this.glowLevel.pool;
     this.spaGlow.value = night * GLOW * SPA_GAIN * this.glowLevel.spa;

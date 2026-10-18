@@ -1,9 +1,9 @@
 import * as THREE_NS from 'three/webgpu';
-import { AgXToneMapping, Box3, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
+import { AgXToneMapping, Box3, type Object3D, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
 import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
-import { LIGHT_SWAP, MODEL_FILES, Model, type CameraDef, type Gate, type Layout, type Scenario } from './model';
+import { LIGHT_GROUPS, LIGHT_SWAP, MODEL_FILES, Model, type CameraDef, type Gate, type Layout, type LightAdjust, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
 import { Walker, type Mode } from './walk';
 import { TapeMeasure } from './measure';
@@ -29,6 +29,8 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
+  /** Round 26: the lighting adjust panel's settings, per scheme. */ lightAdjust?: Record<string, LightAdjust>;
+  /** Round 26: a pillar fence was picked on purpose (so Layout B's own default doesn't replace it). */ pierChosen?: boolean;
   options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
@@ -286,6 +288,7 @@ async function main() {
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
+    model.setAdjust(settings.lightAdjust?.[model.lighting] ?? null);   // Round 26: the scheme's own adjustments
     remember({ options: currentOptions() });
   };
 
@@ -356,7 +359,7 @@ async function main() {
   group('kitchen', KITCHEN_CHOICES, 'kitchen', () => '16_outdoor_kitchen');
   group('pier', PIER_CHOICES, 'pier', () => '18_pier_fence');
   // picking a pier fence yourself lets go of a held pier_inset
-  $('cards-pier').addEventListener('click', () => { heldPier = null; }, true);
+  $('cards-pier').addEventListener('click', e => { if (!(e.target as HTMLElement).closest('.card')) return; heldPier = null; remember({ pierChosen: true }); }, true);
   group('spacover', SPA_COVER_CHOICES, 'spaCover', () => '14_spa_to_canal');
   group('play', PLAY_CHOICES, 'play', () => '21_play_area_north');
   group('post', POST_CHOICES, 'post', () => '10_alfresco_corner');
@@ -368,6 +371,87 @@ async function main() {
   // Round 25: the lighting's View goes to the lounge at 20:30 (keeping your mode); picked by day, a hint offers 20:30
   const LIGHTS_AT = 20 * 60 + 30;
   group('lighting', lightingChoices, 'lighting', () => '15_lounge_from_alfresco', () => setTime(LIGHTS_AT, true));
+  // ---------- Round 26: Adjust: a master dimmer and the scheme's groups (brightness, on/off, colour), per scheme ----------
+  const adjustBox = $('light-adjust');
+  const lightTitle = () => lightingChoices.find(c => c.value === model.lighting)?.title ?? '';
+  const designed = (): LightAdjust => ({ master: 1, groups: {} });
+  let adjustScheme = '';
+  const saveAdjust = (a: LightAdjust, persist: boolean) => {
+    const all = { ...(settings.lightAdjust ?? {}) };
+    if (a.master === 1 && !Object.keys(a.groups).length) delete all[model.lighting]; else all[model.lighting] = a;
+    if (persist) remember({ lightAdjust: all }); else settings.lightAdjust = all;
+    model.setAdjust(all[model.lighting] ?? null);
+  };
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  const renderAdjust = () => {
+    adjustScheme = model.lighting;
+    const a: LightAdjust = structuredClone(settings.lightAdjust?.[model.lighting] ?? designed());
+    const rgb = model.lighting === 'lights_colour' ? new Set(['pool', 'spa', 'bench', 'uplights']) : new Set<string>();
+    const groups = model.lightGroupsInUse();
+    adjustBox.innerHTML = '';
+    const head = document.createElement('div'); head.className = 'adj-head';
+    head.innerHTML = `<b>Adjust: ${lightTitle()}</b><span class="adj-note">Live; remembered for this scheme. It shows after dusk.</span>`;
+    adjustBox.appendChild(head);
+    const slider = (label: string, value: number, max: number, onInput: (v: number) => void, id: string) => {
+      const wrap = document.createElement('label'); wrap.className = 'adj-slider';
+      wrap.innerHTML = `<span>${label}</span><input type="range" min="0" max="${max}" step="0.05" value="${value}" id="${id}" aria-label="${label}"><output>${pct(value)}</output>`;
+      const r = wrap.querySelector('input')!, out = wrap.querySelector('output')!;
+      r.addEventListener('input', () => { out.textContent = pct(Number(r.value)); onInput(Number(r.value)); saveAdjust(a, false); });
+      r.addEventListener('change', () => saveAdjust(a, true));
+      return wrap;
+    };
+    adjustBox.appendChild(slider('Master', a.master, 1.5, v => { a.master = v; }, 'adj-master'));
+    for (const id of groups) {
+      const g = LIGHT_GROUPS.find(x => x.id === id)!;
+      const ga = () => (a.groups[id] ??= { level: 1, on: true });
+      const cur = a.groups[id] ?? { level: 1, on: true };
+      const row = document.createElement('div'); row.className = 'adj-row'; row.dataset.group = id;
+      const on = document.createElement('label'); on.className = 'adj-on';
+      on.innerHTML = `<input type="checkbox" ${cur.on ? 'checked' : ''} aria-label="${g.name} on"> ${g.name}`;
+      on.querySelector('input')!.addEventListener('change', e => { ga().on = (e.target as HTMLInputElement).checked; saveAdjust(a, true); });
+      row.appendChild(on);
+      row.appendChild(slider('Brightness', cur.level, 2, v => { ga().level = v; }, `adj-${id}`));
+      if (rgb.has(id)) {
+        // the Colour scheme's RGB groups: any colour
+        const c = document.createElement('label'); c.className = 'adj-colour';
+        const start = cur.color ?? `#${model.designedColor(id)?.getHexString() ?? 'ffffff'}`;
+        c.innerHTML = `<span>Colour</span><input type="color" value="${start}" aria-label="${g.name} colour">`;
+        const inp = c.querySelector('input')!;
+        inp.addEventListener('input', () => { ga().color = inp.value; ga().temp = null; saveAdjust(a, false); });
+        inp.addEventListener('change', () => saveAdjust(a, true));
+        row.appendChild(c);
+      } else if (g.white) {
+        // white groups: as designed, or warm, neutral or cool white
+        const chips = document.createElement('div'); chips.className = 'chips small adj-temp'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', `${g.name} colour temperature`);
+        const opts: [string, string][] = [['', 'Designed'], ['warm', '2700K'], ['neutral', '3000K'], ['cool', '4000K']];
+        const draw = () => { chips.innerHTML = ''; for (const [v, t] of opts) {
+          const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = t;
+          btn.setAttribute('aria-pressed', String((a.groups[id]?.temp ?? '') === v));
+          btn.onclick = () => { ga().temp = (v || null) as any; ga().color = null; saveAdjust(a, true); draw(); };
+          chips.appendChild(btn); } };
+        draw(); row.appendChild(chips);
+      }
+      adjustBox.appendChild(row);
+    }
+    const foot = document.createElement('div'); foot.className = 'adj-foot';
+    foot.innerHTML = '<button type="button" id="adj-reset">Reset to designed</button><button type="button" id="adj-done">Done</button>';
+    foot.querySelector('#adj-reset')!.addEventListener('click', () => { const d = designed(); saveAdjust(d, true); renderAdjust(); });
+    foot.querySelector('#adj-done')!.addEventListener('click', () => { adjustBox.hidden = true; cardGroups.forEach(r => r()); });
+    adjustBox.appendChild(foot);
+  };
+  // an Adjust button on the selected scheme's card
+  for (const w of $('cards-lighting').querySelectorAll<HTMLElement>('.card-wrap')) {
+    const card = w.querySelector<HTMLElement>('.card')!;
+    let extra = w.querySelector('.card-extra');
+    if (!extra) { extra = document.createElement('div'); extra.className = 'card-extra'; w.appendChild(extra); }
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'adjust-btn'; b.textContent = 'Adjust';
+    b.setAttribute('aria-controls', 'light-adjust');
+    b.onclick = () => { const open = adjustBox.hidden || adjustScheme !== model.lighting; adjustBox.hidden = !open; if (open) renderAdjust(); cardGroups.forEach(r => r()); };
+    extra.appendChild(b);
+    cardGroups.push(() => { const sel = card.getAttribute('aria-pressed') === 'true'; b.hidden = !sel; b.setAttribute('aria-expanded', String(sel && !adjustBox.hidden)); });
+  }
+  // switching scheme with the panel open shows the new scheme's settings
+  cardGroups.push(() => { if (!adjustBox.hidden && adjustScheme !== model.lighting) renderAdjust(); });
   const lightHint = $('light-hint');
   let lightHintT = 0;
   $('light-hint-go').onclick = () => { setTime(LIGHTS_AT, true); lightHint.hidden = true; };
@@ -870,6 +954,13 @@ async function main() {
     if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
     if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   }
+  // Round 26: Layout B's own default pillar fence is "Deck edge, then past the pillar" (Mike, 18 Oct); SK02's stays as
+  // drawn. A fence picked on purpose (or linked) wins; one that only came along as the other layout's default doesn't.
+  if (!(settings.pierChosen === true || params.has('pier') || params.has('pillar'))) {
+    const def = LAYOUT === 'b' ? 'pier_straight_edge' : 'pier_as_drawn', other = LAYOUT === 'b' ? 'pier_as_drawn' : 'pier_straight_edge';
+    if (model.pier === other) { model.pier = def; model.apply(); renderRoller(); }
+  }
+  model.setAdjust(settings.lightAdjust?.[model.lighting] ?? null);
   // Round 22: pier_inset in Layout B (remembered, linked or handed over): the drawn fence instead, and say so
   if (LAYOUT === 'b' && model.pier === 'pier_inset') {
     heldPier = 'pier_inset'; model.pier = 'pier_as_drawn'; model.apply(); syncCovers(); walker.rebuild(model.root); renderRoller();
@@ -1073,6 +1164,32 @@ async function main() {
     $('loading').classList.add('done'); requestAnimationFrame(() => (swapHint ? showHint(swapHint, 4500) : firstVisitHelp()));
   }
 
+  /**
+   * Round 26: each lighting scheme's own fittings (festoon bulbs, the cove, bollards, the other schemes' bench strips)
+   * are hidden at load, so a first switch to a scheme compiled them on the spot: 11 to 14 pipelines, a 400 to 700 ms
+   * stall on a busy machine. So each scheme is shown just for the synchronous start of a compile (compileAsync collects
+   * its objects before its first await), with culling off so fittings out of view are included, then put back before
+   * any frame draws; the compile itself finishes in the background. Mirrors too, as they draw the fittings as well.
+   */
+  async function precompileSchemes(target: any, mrt: any) {
+    const was = model.lighting, fittings: Object3D[] = [];
+    model.root.traverse(o => { const u = o.userData; if ((o as any).isMesh && /lights_/.test(`${u.option ?? ''}${u.hide_option ?? ''}`)) fittings.push(o); });
+    // one compile at a time: each holds the renderer's target and MRT until it's done
+    const passes: [any, any, any][] = [[camera, target, mrt], ...model.mirrors.filter(m => m.ready).map(m => [m.cam, m.target, null] as [any, any, any])];
+    for (const sc of model.lightSchemes) {
+      if (sc === was) continue;
+      for (const [cam, tgt, m] of passes) {
+        model.lighting = sc; model.apply();
+        const culled = fittings.map(o => o.frustumCulled); fittings.forEach(o => (o.frustumCulled = false));
+        const job = compileFor(renderer, scene, cam, tgt, m);
+        fittings.forEach((o, i) => (o.frustumCulled = culled[i]));
+        model.lighting = was; model.apply();
+        await job;
+      }
+    }
+    model.setAdjust(settings.lightAdjust?.[model.lighting] ?? null);
+  }
+
   async function finishLoading() {
     const { target, mrt } = post.target;
     try {
@@ -1109,6 +1226,7 @@ async function main() {
         await compileFor(renderer, scene, c, target, mrt);
       }
       for (const m of model.mirrors) { m.prepare(camera, db.x, db.y); await compileFor(renderer, scene, m.cam, m.target, null); }
+      await precompileSchemes(target, mrt);
       if (LIGHT_SWAP && atm.state.night < 0.004) {
         // (old behaviour only) the night lights change every material's lighting, so compile that variant too
         const lights = model.nightLights.map(l => l.light);
@@ -1156,6 +1274,7 @@ async function main() {
     }
     if (world.classList.contains('underwater') !== underwater) world.classList.toggle('underwater', underwater);
     if (Math.abs(camera.fov - targetFov) > 0.05) { camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 4); camera.updateProjectionMatrix(); }
+    model.eye.copy(camera.position);
     model.update(atm.state.night, now / 1000, dt);
     updateGateUI(dt);
     model.grass.update(camera, QUALITY[S.quality].grass > 0);

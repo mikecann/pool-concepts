@@ -1159,6 +1159,21 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
   - Side by side under that same load, the live round 24 site (17 lights) and this build (21 lights) both ran at 32 fps, with median GPU 57.0 vs 49.8 ms. So the slowdown is the machine, not the bigger pool.
 - **Known, not from this round:** at night from the canal, two bright blobs in the canal under the terrace where Cycles shows thin streaks. Round 24's build has them too.
 
+## Round 26
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Adjust panel for the lighting:** an "Adjust" button on the selected scheme's card opens a compact panel under the cards.<br>It has a master dimmer (0 to 150%) and, for each group the scheme uses, an on/off switch and brightness (0 to 200%). White groups also get a colour temperature: Designed, 2700K, 3000K or 4000K (Tanner Helland's fit, in the export's own RGB terms). The Colour scheme's pool, spa, bench strips and uplights get colour pickers instead.<br>It's live: lights and their glowing fittings scale and recolour together through uniforms and light colours. The pool and spa glow, the hot tub's glow and the ceiling wash follow too. Nothing compiles.<br>Settings are remembered per scheme (`lightAdjust`), with "Reset to designed", and the panel works in the phone drawer | `review/round26/adjust_*.png`, `adjust_sheet.jpg` |
+| 2 | **Grouping:** documented at `LIGHT_GROUPS` in `src/model.ts`.<br>Lights are grouped by name: pool_light*, led_spa_light*, led_bench_light*, led_uplight* + terrace_washer*, alfresco_ and eave_downlight*, festoon_*, cove_*, bollard_*, led_firepit_light.<br>Fittings are grouped by mesh: led_bench_strips*, led_strips* + led_wall_lights (steps), led_bed_uplight_lenses, led_garden_lenses (the eave lights), led_festoon_bulbs, led_cove_strips, led_inground_markers + led_arch_inground_lenses, led_resort_coping_strips (a "Coping strips" group), led_bollard_heads, firepit_flames.<br>Fittings that share a material across groups (the arch in-ground and garden lenses) get their own copy. The pump room's battens and the house's lights aren't adjustable | |
+| 3 | **Layout B defaults to "Deck edge, then past the pillar";** SK02's layout stays "As drawn". A fence picked on purpose (`pierChosen`, or a `?pier=`/`?pillar=` link) wins; one that only came over as the other layout's default doesn't | r26-test |
+| 4 | **The canal blobs:** they were the pump room's two area lights. Three's area lights cast no shadows, so they lit the canal's surface through the room's walls, and it reflected them as bright rectangles. They now fade with distance from the camera (full within 6 m, off by 10 m) | `canal_blobs_before_after.png` |
+| 5 | **Found and fixed: a scheme's first switch compiled its fittings** (11 to 14 pipelines; 400 to 700 ms on a busy machine). Round 25's test visited every scheme before timing, so it missed this. Each scheme's fittings are now compiled in the background after load: each scheme is shown only for the synchronous start of a compile, with culling off, then put back before any frame draws | A fresh page's first visit to each scheme: +1 pipeline in SK02's layout, +0 in B, worst frames 36 and 35 ms |
+
+**Checks:**
+- **New `scripts/r26-test.mjs`:** PASS. It covers groups, dimming, on/off, temperature, colour, master, three drag runs (worst 23, 19 and 19 ms, no new pipelines), reload, per-scheme settings, reset, phone, the B default, the pump-room fade and the first visit to each scheme.
+- **Other checks:** the full suite passes. During the suite run (Blender rendering), r24 and r25 hit stalls on their first scheme switches. That was the compile above: they pass after the fix and when re-run.
+- **Perf:** skipped, as the machine wasn't quiet (Blender, then WindowServer and 1Password busy).
+
 ## Summary
 
 **Round 17:**
