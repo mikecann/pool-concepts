@@ -24,7 +24,8 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
   "name": "alfresco_downlight_1",
@@ -51,7 +52,8 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
   "name": "alfresco_downlight_2",
@@ -78,7 +80,8 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
   "name": "alfresco_downlight_3",
@@ -105,7 +108,578 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
+ },
+ {
+  "name": "alfresco_downlight_resort_0",
+  "type": "SPOT",
+  "position": [
+   0.19091,
+   5.04349,
+   1.97895
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "alfresco_downlight_resort_1",
+  "type": "SPOT",
+  "position": [
+   2.18611,
+   5.11333,
+   2.11742
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "alfresco_downlight_resort_2",
+  "type": "SPOT",
+  "position": [
+   0.05244,
+   5.04349,
+   3.97415
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "alfresco_downlight_resort_3",
+  "type": "SPOT",
+  "position": [
+   2.04765,
+   5.11333,
+   4.11262
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "alfresco_downlight_rgb_0",
+  "type": "SPOT",
+  "position": [
+   0.19091,
+   5.04349,
+   1.97895
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 12.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "alfresco_downlight_rgb_1",
+  "type": "SPOT",
+  "position": [
+   2.18611,
+   5.11333,
+   2.11742
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.75,
+   0.5
+  ],
+  "power": 12.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.39626,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "bollard_light_0",
+  "type": "POINT",
+  "position": [
+   -0.48795,
+   1.62,
+   12.32336
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 8.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.05,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "bollard_light_1",
+  "type": "POINT",
+  "position": [
+   4.9,
+   1.62,
+   11.4
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 8.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.05,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "bollard_light_2",
+  "type": "POINT",
+  "position": [
+   4.8,
+   1.62,
+   13.5
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 8.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.05,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "cove_light_south",
+  "type": "AREA",
+  "position": [
+   0.79972,
+   5.03195,
+   4.9783
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.86,
+   0.7
+  ],
+  "power": 60.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 4.17,
+  "sizeY": 0.04,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ],
+  "option": "lights_architectural"
+ },
+ {
+  "name": "cove_light_west",
+  "type": "AREA",
+  "position": [
+   -1.19342,
+   4.9539,
+   2.86022
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.86,
+   0.7
+  ],
+  "power": 45.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 3.85,
+  "sizeY": 0.04,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.06923,
+   0.0,
+   -0.9976
+  ],
+  "option": "lights_architectural"
+ },
+ {
+  "name": "eave_downlight_0",
+  "type": "SPOT",
+  "position": [
+   -0.79851,
+   4.6,
+   -1.09693
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.86,
+   0.91,
+   1.0
+  ],
+  "power": 40.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.7,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "eave_downlight_1",
+  "type": "SPOT",
+  "position": [
+   -0.5908,
+   4.6,
+   -4.08973
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.86,
+   0.91,
+   1.0
+  ],
+  "power": 40.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.7,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "eave_downlight_2",
+  "type": "SPOT",
+  "position": [
+   5.0779,
+   5.12,
+   5.22509
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.86,
+   0.91,
+   1.0
+  ],
+  "power": 40.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.7,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "eave_downlight_3",
+  "type": "SPOT",
+  "position": [
+   8.27022,
+   5.12,
+   5.44664
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.86,
+   0.91,
+   1.0
+  ],
+  "power": 40.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.7,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "festoon_light_0",
+  "type": "POINT",
+  "position": [
+   -0.84082,
+   4.42655,
+   7.78509
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.42
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.6,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "festoon_light_1",
+  "type": "POINT",
+  "position": [
+   0.15063,
+   4.45542,
+   7.61469
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.42
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.6,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "festoon_light_2",
+  "type": "POINT",
+  "position": [
+   1.86381,
+   4.53862,
+   7.16277
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.42
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.6,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "festoon_light_3",
+  "type": "POINT",
+  "position": [
+   2.62347,
+   4.60419,
+   7.00944
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.42
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.6,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "festoon_light_4",
+  "type": "POINT",
+  "position": [
+   1.17745,
+   4.50927,
+   9.42942
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.42
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.6,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
  },
  {
   "name": "int_light_0",
@@ -234,7 +808,7 @@
    0.0,
    0.06923
   ],
-  "hide_option": "post_corner_steps"
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_resort|post_corner_steps"
  },
  {
   "name": "led_bench_light_1",
@@ -267,7 +841,409 @@
    0.0,
    0.9976
   ],
-  "hide_option": "post_corner_steps"
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_resort|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_arch_0",
+  "type": "AREA",
+  "position": [
+   0.7603,
+   2.06,
+   5.90783
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.74,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ],
+  "hide_option": "lights_colour|lights_festoon|lights_garden|lights_resort|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_arch_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "hide_option": "lights_colour|lights_festoon|lights_garden|lights_resort|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_arch_steps_0",
+  "type": "AREA",
+  "position": [
+   0.9997,
+   2.06,
+   5.92443
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.2601,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06924
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_colour|lights_festoon|lights_garden|lights_resort|lights_specced"
+ },
+ {
+  "name": "led_bench_light_arch_steps_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.8,
+   0.58
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_colour|lights_festoon|lights_garden|lights_resort|lights_specced"
+ },
+ {
+  "name": "led_bench_light_resort_0",
+  "type": "AREA",
+  "position": [
+   0.7603,
+   2.06,
+   5.90783
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.7,
+   0.42
+  ],
+  "power": 22.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.74,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ],
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_resort_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.7,
+   0.42
+  ],
+  "power": 22.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_resort_steps_0",
+  "type": "AREA",
+  "position": [
+   0.9997,
+   2.06,
+   5.92443
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.7,
+   0.42
+  ],
+  "power": 22.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.2601,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06924
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_specced"
+ },
+ {
+  "name": "led_bench_light_resort_steps_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.7,
+   0.42
+  ],
+  "power": 22.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_specced"
+ },
+ {
+  "name": "led_bench_light_rgb_0",
+  "type": "AREA",
+  "position": [
+   0.7603,
+   2.06,
+   5.90783
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.25,
+   0.8,
+   1.0
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.74,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06923
+  ],
+  "hide_option": "lights_architectural|lights_festoon|lights_garden|lights_resort|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_rgb_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.25,
+   0.8,
+   1.0
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "hide_option": "lights_architectural|lights_festoon|lights_garden|lights_resort|lights_specced|post_corner_steps"
+ },
+ {
+  "name": "led_bench_light_rgb_steps_0",
+  "type": "AREA",
+  "position": [
+   0.9997,
+   2.06,
+   5.92443
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.25,
+   0.8,
+   1.0
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.2601,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   0.9976,
+   0.0,
+   0.06924
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_festoon|lights_garden|lights_resort|lights_specced"
+ },
+ {
+  "name": "led_bench_light_rgb_steps_1",
+  "type": "AREA",
+  "position": [
+   1.35142,
+   2.06,
+   7.21185
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.25,
+   0.8,
+   1.0
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 2.18,
+  "sizeY": 0.03,
+  "shape": "RECTANGLE",
+  "set": "proposed",
+  "xaxis": [
+   -0.06926,
+   0.0,
+   0.9976
+  ],
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_festoon|lights_garden|lights_resort|lights_specced"
  },
  {
   "name": "led_bench_light_steps_0",
@@ -300,7 +1276,8 @@
    0.0,
    0.06924
   ],
-  "option": "post_corner_steps"
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_resort"
  },
  {
   "name": "led_bench_light_steps_1",
@@ -333,7 +1310,8 @@
    0.0,
    0.9976
   ],
-  "option": "post_corner_steps"
+  "option": "post_corner_steps",
+  "hide_option": "lights_architectural|lights_colour|lights_festoon|lights_garden|lights_resort"
  },
  {
   "name": "led_firepit_light",
@@ -387,20 +1365,581 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
-  "name": "led_uplight_0",
-  "type": "SPOT",
+  "name": "led_spa_light_arch",
+  "type": "POINT",
   "position": [
-   -6.46656,
-   2.4,
-   2.0
+   1.59,
+   1.84,
+   9.69
   ],
   "direction": [
-   -0.33035,
-   0.94386,
+   0.0,
+   -1.0,
    -0.0
+  ],
+  "color": [
+   0.8,
+   0.92,
+   1.0
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "led_spa_light_festoon",
+  "type": "POINT",
+  "position": [
+   1.59,
+   1.84,
+   9.69
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.75,
+   0.9,
+   1.0
+  ],
+  "power": 10.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "led_spa_light_resort",
+  "type": "POINT",
+  "position": [
+   1.59,
+   1.84,
+   9.69
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.76,
+   0.5
+  ],
+  "power": 18.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "led_spa_light_rgb",
+  "type": "POINT",
+  "position": [
+   1.59,
+   1.84,
+   9.69
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.6,
+   0.25,
+   1.0
+  ],
+  "power": 35.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "led_uplight_architectural_0",
+  "type": "SPOT",
+  "position": [
+   -7.0814,
+   2.39,
+   5.4398
+  ],
+  "direction": [
+   -0.2567,
+   0.96453,
+   -0.06154
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 26.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.48869,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "led_uplight_architectural_1",
+  "type": "SPOT",
+  "position": [
+   -7.3522,
+   2.39,
+   6.5692
+  ],
+  "direction": [
+   -0.2567,
+   0.96453,
+   -0.06154
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 26.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.48869,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "led_uplight_architectural_2",
+  "type": "SPOT",
+  "position": [
+   -7.6338,
+   2.39,
+   7.7438
+  ],
+  "direction": [
+   -0.2567,
+   0.96453,
+   -0.06154
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 26.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.48869,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "led_uplight_architectural_3",
+  "type": "SPOT",
+  "position": [
+   -7.9045,
+   2.39,
+   8.8732
+  ],
+  "direction": [
+   -0.2567,
+   0.96453,
+   -0.06154
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 26.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.48869,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "led_uplight_colour_0",
+  "type": "SPOT",
+  "position": [
+   -7.0814,
+   2.39,
+   5.4398
+  ],
+  "direction": [
+   -0.35558,
+   0.93075,
+   -0.08524
+  ],
+  "color": [
+   0.45,
+   0.35,
+   1.0
+  ],
+  "power": 20.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "led_uplight_colour_1",
+  "type": "SPOT",
+  "position": [
+   -7.3522,
+   2.39,
+   6.5692
+  ],
+  "direction": [
+   -0.35558,
+   0.93075,
+   -0.08524
+  ],
+  "color": [
+   0.45,
+   0.35,
+   1.0
+  ],
+  "power": 20.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "led_uplight_colour_2",
+  "type": "SPOT",
+  "position": [
+   -7.6338,
+   2.39,
+   7.7438
+  ],
+  "direction": [
+   -0.35558,
+   0.93075,
+   -0.08524
+  ],
+  "color": [
+   0.45,
+   0.35,
+   1.0
+  ],
+  "power": 20.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "led_uplight_colour_3",
+  "type": "SPOT",
+  "position": [
+   -7.9045,
+   2.39,
+   8.8732
+  ],
+  "direction": [
+   -0.35558,
+   0.93075,
+   -0.08524
+  ],
+  "color": [
+   0.45,
+   0.35,
+   1.0
+  ],
+  "power": 20.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.0472,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
+ },
+ {
+  "name": "led_uplight_garden_0",
+  "type": "SPOT",
+  "position": [
+   -7.0814,
+   2.39,
+   5.4398
+  ],
+  "direction": [
+   -0.29006,
+   0.95448,
+   -0.06953
+  ],
+  "color": [
+   1.0,
+   0.85,
+   0.65
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.87266,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "led_uplight_garden_1",
+  "type": "SPOT",
+  "position": [
+   -7.3522,
+   2.39,
+   6.5692
+  ],
+  "direction": [
+   -0.29006,
+   0.95448,
+   -0.06953
+  ],
+  "color": [
+   1.0,
+   0.85,
+   0.65
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.87266,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "led_uplight_garden_2",
+  "type": "SPOT",
+  "position": [
+   -7.6338,
+   2.39,
+   7.7438
+  ],
+  "direction": [
+   -0.29006,
+   0.95448,
+   -0.06953
+  ],
+  "color": [
+   1.0,
+   0.85,
+   0.65
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.87266,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "led_uplight_garden_3",
+  "type": "SPOT",
+  "position": [
+   -7.9045,
+   2.39,
+   8.8732
+  ],
+  "direction": [
+   -0.29006,
+   0.95448,
+   -0.06953
+  ],
+  "color": [
+   1.0,
+   0.85,
+   0.65
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.87266,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "led_uplight_resort_0",
+  "type": "SPOT",
+  "position": [
+   -7.0814,
+   2.39,
+   5.4398
+  ],
+  "direction": [
+   -0.4024,
+   0.91037,
+   -0.09647
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.45
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.22173,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "led_uplight_resort_1",
+  "type": "SPOT",
+  "position": [
+   -7.3522,
+   2.39,
+   6.5692
+  ],
+  "direction": [
+   -0.4024,
+   0.91037,
+   -0.09647
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.45
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.22173,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "led_uplight_resort_2",
+  "type": "SPOT",
+  "position": [
+   -7.6338,
+   2.39,
+   7.7438
+  ],
+  "direction": [
+   -0.4024,
+   0.91037,
+   -0.09647
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.45
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.22173,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "led_uplight_resort_3",
+  "type": "SPOT",
+  "position": [
+   -7.9045,
+   2.39,
+   8.8732
+  ],
+  "direction": [
+   -0.4024,
+   0.91037,
+   -0.09647
+  ],
+  "color": [
+   1.0,
+   0.72,
+   0.45
+  ],
+  "power": 14.0,
+  "dayPower": 0.0,
+  "spotAngle": 1.22173,
+  "spotBlend": 0.6,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "led_uplight_specced_0",
+  "type": "SPOT",
+  "position": [
+   -7.0814,
+   2.39,
+   5.4398
+  ],
+  "direction": [
+   -0.35558,
+   0.93075,
+   -0.08524
   ],
   "color": [
    1.0,
@@ -414,20 +1953,21 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
-  "name": "led_uplight_1",
+  "name": "led_uplight_specced_1",
   "type": "SPOT",
   "position": [
-   -7.04191,
-   2.4,
-   4.4
+   -7.3522,
+   2.39,
+   6.5692
   ],
   "direction": [
-   -0.33035,
-   0.94386,
-   -0.0
+   -0.35558,
+   0.93075,
+   -0.08524
   ],
   "color": [
    1.0,
@@ -441,20 +1981,21 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
-  "name": "led_uplight_2",
+  "name": "led_uplight_specced_2",
   "type": "SPOT",
   "position": [
-   -7.61725,
-   2.4,
-   6.8
+   -7.6338,
+   2.39,
+   7.7438
   ],
   "direction": [
-   -0.33035,
-   0.94386,
-   -0.0
+   -0.35558,
+   0.93075,
+   -0.08524
   ],
   "color": [
    1.0,
@@ -468,20 +2009,21 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
-  "name": "led_uplight_3",
+  "name": "led_uplight_specced_3",
   "type": "SPOT",
   "position": [
-   -8.1926,
-   2.4,
-   9.2
+   -7.9045,
+   2.39,
+   8.8732
   ],
   "direction": [
-   -0.33035,
-   0.94386,
-   -0.0
+   -0.35558,
+   0.93075,
+   -0.08524
   ],
   "color": [
    1.0,
@@ -495,7 +2037,8 @@
   "size": 0.0,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
  },
  {
   "name": "pool_light",
@@ -522,7 +2065,148 @@
   "size": 0.1,
   "sizeY": 0,
   "shape": null,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "lights_specced"
+ },
+ {
+  "name": "pool_light_arch",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.8,
+   0.92,
+   1.0
+  ],
+  "power": 25.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "pool_light_festoon",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.7,
+   0.88,
+   1.0
+  ],
+  "power": 35.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_festoon"
+ },
+ {
+  "name": "pool_light_garden",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.7,
+   0.88,
+   1.0
+  ],
+  "power": 8.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_garden"
+ },
+ {
+  "name": "pool_light_resort",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   1.0,
+   0.74,
+   0.48
+  ],
+  "power": 60.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_resort"
+ },
+ {
+  "name": "pool_light_rgb",
+  "type": "POINT",
+  "position": [
+   -4.66362,
+   1.77,
+   9.55005
+  ],
+  "direction": [
+   0.0,
+   -1.0,
+   -0.0
+  ],
+  "color": [
+   0.05,
+   0.85,
+   0.75
+  ],
+  "power": 150.0,
+  "dayPower": 0.0,
+  "spotAngle": 0,
+  "spotBlend": 0,
+  "size": 0.1,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_colour"
  },
  {
   "name": "pump_room_light",
@@ -587,5 +2271,89 @@
    0.0,
    0.06923
   ]
+ },
+ {
+  "name": "terrace_washer_0",
+  "type": "SPOT",
+  "position": [
+   -2.05095,
+   1.11,
+   11.81509
+  ],
+  "direction": [
+   0.01557,
+   0.97384,
+   -0.2267
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.55851,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "terrace_washer_1",
+  "type": "SPOT",
+  "position": [
+   0.22105,
+   1.11,
+   11.9711
+  ],
+  "direction": [
+   0.01557,
+   0.97384,
+   -0.2267
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.55851,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
+ },
+ {
+  "name": "terrace_washer_2",
+  "type": "SPOT",
+  "position": [
+   3.27661,
+   1.11,
+   11.4566
+  ],
+  "direction": [
+   -0.14892,
+   0.97384,
+   -0.17163
+  ],
+  "color": [
+   1.0,
+   0.93,
+   0.85
+  ],
+  "power": 30.0,
+  "dayPower": 0.0,
+  "spotAngle": 0.55851,
+  "spotBlend": 0.5,
+  "size": 0.0,
+  "sizeY": 0,
+  "shape": null,
+  "set": "proposed",
+  "option": "lights_architectural"
  }
 ]

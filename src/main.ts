@@ -325,7 +325,7 @@ async function main() {
   const ensureProposed = () => { if (S.scenario !== 'proposed') setScenario('proposed'); };
   // Round 17b: a card only switches its option: you stay where you are, in the mode you're in. Each group has a
   // small "View" button for its suggested viewpoint, there when you want it (and it keeps your mode, as 'go to' does).
-  const group = (id: string, items: Choice[], key: keyof typeof model & string, view: () => string) => {
+  const group = (id: string, items: Choice[], key: keyof typeof model & string, view: () => string, onView?: () => void) => {
     cards($(`cards-${id}`), items, () => (model as any)[key], v => { ensureProposed(); (model as any)[key] = v; optChanged(); });
     const box = $(`cards-${id}`), h = box.parentElement!.querySelector('h3');
     const btn = document.createElement('button');
@@ -333,7 +333,7 @@ async function main() {
     btn.setAttribute('aria-label', 'Show me this from a good spot');
     btn.title = 'Show me this from a good spot';
     btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 9.4 1.5 12c1.2 2.6 5 7 10.5 7s9.3-4.4 10.5-7C21.3 9.4 17.5 5 12 5Zm0 11.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0-2.3a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z"/></svg>';
-    btn.onclick = () => { goToCam(view()); if (mobile.matches) setPanel(false); };
+    btn.onclick = () => { goToCam(view()); onView?.(); if (mobile.matches) setPanel(false); };
     // the section's longer note (the WA rules, sizes) opens from a small i in the heading, next to the eye
     const info = box.parentElement!.querySelector<HTMLDetailsElement>('.sec-info');
     if (info && h) {
@@ -365,9 +365,16 @@ async function main() {
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
   group('bfence', BFENCE_CHOICES, 'bfence', () => '13_deep_end_to_house');
   group('bplant', BPLANT_CHOICES, 'bplant', () => '13_deep_end_to_house');
-  group('lighting', lightingChoices, 'lighting', () => '15_lounge_from_alfresco');
-  // a scheme only shows after dark: say so if it's picked by day
-  $('cards-lighting').addEventListener('click', () => { if (atm.state.night < 0.2) showHint('Lighting shows after dusk<small>Slide the time past about 19:30 to see it</small>', 3500); });
+  // Round 25: the lighting's View goes to the lounge at 20:30 (keeping your mode); picked by day, a hint offers 20:30
+  const LIGHTS_AT = 20 * 60 + 30;
+  group('lighting', lightingChoices, 'lighting', () => '15_lounge_from_alfresco', () => setTime(LIGHTS_AT, true));
+  const lightHint = $('light-hint');
+  let lightHintT = 0;
+  $('light-hint-go').onclick = () => { setTime(LIGHTS_AT, true); lightHint.hidden = true; };
+  $('cards-lighting').addEventListener('click', e => {
+    if (!(e.target as HTMLElement).closest('.card') || atm.state.night >= 0.2) return;
+    lightHint.hidden = false; clearTimeout(lightHintT); lightHintT = window.setTimeout(() => (lightHint.hidden = true), 8000);
+  });
   // inline warnings on a card while a clashing option is chosen (Round 17d, 18). The other option isn't changed.
   const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean, cls = 'card-warn') => {
     const t = items.find(c => c.value === value)?.title;

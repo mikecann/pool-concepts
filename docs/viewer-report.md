@@ -1139,6 +1139,26 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
   - The dusk scrub was still clean (max 19 ms).
   - Side by side under the same load, the old per-light build and the slot build were indistinguishable: 14 vs 17 lights in the scene, median GPU 30.7 vs 28.5 ms.
 
+## Round 25: lighting schemes
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** batch 12, both layouts (lights.json now 80 lights in A, 72 in B; 323 images plus 148 Layout B) | Done |
+| 2 | **Cards:** six schemes in Lighting (As specced, Resort, Festoon, Architectural, Colour, Garden), one line each, with the README's description behind More. Card pictures come from the 19:40 renders over the lounge. The i lists what every scheme keeps and what the electrician needs. View goes to the lounge at 20:30 in your mode. Picked by day, a hint under the time bar says "Lighting shows after dusk" with a "Show it at 20:30" button. `?lighting=festoon` works, and the choice is remembered | r25-test |
+| 3 | **Slots:** sized once at load by counting each scheme, with every combination of the options its lights depend on (the corner post's bench strips in A): 20 slots (6 spot, 6 area, 8 point; festoon needs the points). One shadow-casting spot, which goes to each scheme's main downlight pair. The per-light tuning is generalised to the scheme variants: `pool_light_*` and `led_spa_light_*` get the underwater colour, and only the specced bench strips keep round 9's 2700 K override, so the colour scheme's cyan stays cyan | 24 switches at night per layout: the same set of lights, worst frame 29 to 30 ms |
+| 4 | **Look:** the pool and spa glow now take the scheme's light colour and level (teal and violet in Colour, amber in Resort, almost nothing in Garden). The hot tub's own night glow follows the spa light, so it's off in Garden. The alfresco ceiling's warm wash follows the scheme's downlights (none in Festoon or Garden). Festoon bulbs, the cove, the bollards and the terrace washers are the export's glowing fittings plus their lights | `review/round25/<scheme>_{15,17,01}_2100.png`, `schemes_3d_vs_render.jpg` (3D beside Cycles, views 15, 17 and 01), `closeups.jpg` |
+| 5 | **Renders page:** a "Lighting at night" section: six schemes, at dusk and 9 pm, from 17, 15 and 01, with Layout B beside where it was rendered (17 and 15) | `test/renders_lighting.png` |
+
+**Checks:**
+- **New `scripts/r25-test.mjs`:** PASS.
+- **r24-test:** its synthetic scheme now lives inside the real specced scheme. A made-up scheme name turns on every scheme's shared bench strips at once, which only a test can do.
+- **Other checks:** the full suite passes. check-images: 449 checked, 0 missing, 1 awaiting.
+- **Perf: not clean.** Blender was idle, but Backblaze was at 100% CPU and a visible Chrome was busy on the GPU (load average about 7).
+  - Low and Medium held 60. High at DPR 2 fell to 30 to 45, and the dusk scrub had five frames over 50 ms.
+  - Load: warm 3.6 / 5.7 s, cold 4.0 / 5.6 s (cover lifts / interactive).
+  - Side by side under that same load, the live round 24 site (17 lights) and this build (21 lights) both ran at 32 fps, with median GPU 57.0 vs 49.8 ms. So the slowdown is the machine, not the bigger pool.
+- **Known, not from this round:** at night from the canal, two bright blobs in the canal under the terrace where Cycles shows thin streaks. Round 24's build has them too.
+
 ## Summary
 
 **Round 17:**

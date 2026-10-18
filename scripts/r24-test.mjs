@@ -81,7 +81,7 @@ for (const L of ['a', 'b']) {
   const lightSet = () => p.evaluate(() => { const ids = []; __viewer.scene.traverse(o => { if (o.isLight) ids.push(o.uuid); }); return ids.sort().join(); });
   const slots = await p.evaluate(() => __viewer.model.lightSlots());
   const used = slots.filter(s => s.light);
-  check(`${L}: 16 light slots, the current lights assigned`, slots.length === 16 && used.length >= 10, `${used.length} of ${slots.length} in use: ${used.map(s => s.light).join(', ')}`);
+  check(`${L}: the light slots (16 or more), the current lights assigned`, slots.length >= 16 && used.length >= 10, `${used.length} of ${slots.length} in use: ${used.map(s => s.light).join(', ')}`);
   check(`${L}:   a downlight in the shadow-casting slot`, slots.some(s => s.shadow && /alfresco_downlight/.test(s.light ?? '')));
   await p.evaluate(() => { window.__openCategory('lighting'); });
   check(`${L}: Lighting: an "As specced" card, chosen`, (await p.locator('#cards-lighting .card[aria-pressed="true"] b').textContent()) === 'As specced');
@@ -96,31 +96,32 @@ for (const L of ['a', 'b']) {
   const today = await p.evaluate(() => __viewer.model.lightSlots().filter(s => s.light).length);
   await p.evaluate(() => __viewer.setScenario('proposed'));
   check(`${L}:   Today: the slots go dark (no garden lighting)`, today === 0, `${today} in use`);
-  // a second scheme, as the export will tag them: two moved downlights and a coloured pool light
+  // (Round 25: the schemes are real now) two extra spots in the specced scheme, then switch to festoon and back
   await p.evaluate(() => {
     const m = __viewer.model;
     m.addLights([
-      { name: 'test_spot_a', type: 'SPOT', position: [-1, 4.9, 1], direction: [0, -1, 0], color: [0.6, 0.8, 1], power: 60, spotAngle: 1.2, spotBlend: 0.3, set: 'proposed', option: 'lights_test' },
-      { name: 'test_spot_b', type: 'SPOT', position: [2, 4.9, 3], direction: [0, -1, 0], color: [0.6, 0.8, 1], power: 60, spotAngle: 1.2, spotBlend: 0.3, set: 'proposed', option: 'lights_test' },
+      { name: 'test_spot_a', type: 'SPOT', position: [-1, 4.9, 1], direction: [0, -1, 0], color: [0.6, 0.8, 1], power: 60, spotAngle: 1.2, spotBlend: 0.3, set: 'proposed', option: 'lights_specced' },
+      { name: 'test_spot_b', type: 'SPOT', position: [2, 4.9, 3], direction: [0, -1, 0], color: [0.6, 0.8, 1], power: 60, spotAngle: 1.2, spotBlend: 0.3, set: 'proposed', option: 'lights_specced' },
     ]);
   });
   const frames = await p.evaluate(() => new Promise(res => {
     const ft = []; let last = performance.now(), n = 0;
     const f = () => { const now = performance.now(); ft.push(now - last); last = now; n++;
-      if (n === 10) __viewer.setOption('lighting', 'lights_test');
+      if (n === 10) __viewer.setOption('lighting', 'lights_festoon');
       if (n === 40) __viewer.setOption('lighting', 'lights_specced');
-      if (n === 70) __viewer.setOption('lighting', 'lights_test');
+      if (n === 70) __viewer.setOption('lighting', 'lights_festoon');
       if (n < 100) requestAnimationFrame(f); else res(ft.slice(3)); };
     requestAnimationFrame(f);
   }));
+  await opt(p, 'lighting', 'lights_specced');
   const onTest = await p.evaluate(() => __viewer.model.lightSlots().filter(s => s.light).map(s => s.light));
   check(`${L}: switching schemes reassigns slots`, onTest.includes('test_spot_a') && onTest.includes('test_spot_b'), `${onTest.length} in use`);
   check(`${L}:   the set of lights never changes`, (await lightSet()) === set0);
   const worst = Math.max(...frames);
   check(`${L}:   and no frame hitches (three switches at night)`, worst < 50, `worst ${worst.toFixed(0)} ms`);
   await p.locator('#canvas').screenshot({ path: `${OUT}/${L}_lights_test_scheme_night.png` });
-  await opt(p, 'lighting', 'lights_specced');
-  check(`${L}:   back: the test lights are off again`, !(await p.evaluate(() => __viewer.model.lightSlots().some(s => /test_/.test(s.light ?? '')))));
+  await opt(p, 'lighting', 'lights_festoon');
+  check(`${L}:   in festoon, the specced test lights are off`, !(await p.evaluate(() => __viewer.model.lightSlots().some(s => /test_/.test(s.light ?? '')))));
   await p.close();
 }
 check('console clean (and no "no free slot")', errs.length === 0, errs.slice(0, 3).join(' | '));

@@ -367,3 +367,8 @@ ul.assume li::marker { color: var(--accent); }
 /* Round 22: an option that can't be built in this layout */
 .card.unavailable { opacity: .55; cursor: not-allowed; filter: grayscale(1); }
 .card.unavailable:hover { background: inherit; }
+
+/* Round 25: picking a lighting scheme by day */
+.light-hint { grid-column: 1 / -1; justify-content: center; margin: 6px 0 0; font-size: 13px; color: var(--on-scrim); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.light-hint[hidden] { display: none; }
+.light-hint button { border: 1px solid var(--on-scrim-muted); background: transparent; color: var(--on-scrim); padding: 3px 9px; font: inherit; cursor: pointer; min-height: 30px; }

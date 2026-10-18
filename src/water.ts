@@ -125,7 +125,7 @@ function hotTub(tub: { cx: number; cz: number; r: number }) {
   return { foam, slopeAdd };
 }
 
-export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror | null, tub?: { cx: number; cz: number; r: number }) {
+export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror | null, tub?: { cx: number; cz: number; r: number }, tubGlow: any = vec3(0.1, 0.55, 0.62)) {
   const P = PRESETS[kind];
   const m = new MeshStandardNodeMaterial();
   m.transparent = true;   // drawn after the opaque scene so the viewport buffer holds what's underneath
@@ -198,8 +198,9 @@ export function waterMaterial(kind: WaterKind, atm: Atmosphere, mirror: Mirror |
     }
     let through = seen.mul(float(1).sub(F));
     if (T0) {
-      // foam hides the water below; at dusk and night the spa light glows cyan through the clear water
-      through = through.mul(float(1).sub(T0.foam.mul(0.9))).add(vec3(0.1, 0.55, 0.62).mul(atm.nightU).mul(TUB_GLOW).mul(float(1).sub(T0.foam.mul(0.6))));
+      // foam hides the water below; at dusk and night the spa light glows through the clear water (Round 25: in the
+      // lighting scheme's spa colour, and not at all when the scheme has no spa light)
+      through = through.mul(float(1).sub(T0.foam.mul(0.9))).add(tubGlow.mul(atm.nightU).mul(TUB_GLOW).mul(float(1).sub(T0.foam.mul(0.6))));
     }
     // the canal mirror's sky is a touch dimmer than the real one, as Cycles shows it (the far bank stays the brightest)
     // Round 11: murky canal water tints what it reflects (Cycles' canal_water absorbs into #17463F), rather than

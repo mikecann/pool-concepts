@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
-import { BFENCE_CHOICES, BPLANT_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -118,6 +118,14 @@ const LAYOUTB_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['06_sunken_
 const A_CORNER = new Set(['10_alfresco_corner', '06_sunken_lounge', '15_lounge_from_alfresco']);
 const layoutASrc = (v: string) => (A_CORNER.has(v) ? `img/options_${v}_post_corner_steps.jpg` : `img/${v}__proposed.jpg`);
 
+// Round 25: the lighting schemes at dusk (19:40) and night (21:00), from 17, 15 and 01 (Layout B: 17 and 15)
+const LIGHTS = LIGHTING_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const LIGHTS_VIEWS = ['17_pool_overview|From above', '15_lounge_from_alfresco|Over the lounge', '01_canal_view|From the canal'].flatMap(x => {
+  const [v, name] = x.split('|');
+  return [[`${v}_1940`, `${name}, dusk`], [`${v}_2100`, `${name}, 9 pm`]];
+});
+/** "17_pool_overview_2100" + "lights_resort" -> night_17_pool_overview_lights_resort_2100.jpg */
+const lightsSrc = (o: string, v: string) => `img/night_${v.slice(0, -5)}_${o}_${v.slice(-4)}.jpg`;
 const DECK_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge'], ['16_outdoor_kitchen', 'East fence'], ['18_pier_fence', 'At the pillar'], ['08_aerial_southeast', 'From the air']];
 const BPLANT = BPLANT_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
 const BPLANT_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence'], ['17_pool_overview', 'From above'], ['07_aerial_southwest', 'From the air']];
@@ -133,12 +141,14 @@ const LAYOUTB_OPTION_RENDERS = new Set([
   // Round 24: the deck under the roof (with no kitchen, and plain at the pillar), and the planting by the boundary wall
   ...DECK_VIEWS.map(([v]) => `${v}_pier_straight_deck_kitchen_none`), '18_pier_fence_pier_straight_deck', '12_from_pavilion_pier_straight_deck',
   ...BPLANT_VIEWS.flatMap(([v]) => BPLANT_CHOICES.map(c => `${v}_${c.value}`)),
+  // Round 25: the lighting schemes
+  ...['15_lounge_from_alfresco', '17_pool_overview'].flatMap(v => LIGHTING_CHOICES.flatMap(c => ['1940', '2100'].map(t => `${v}_${c.value}_${t}`))),
   // Round 22: the kitchens (the lounge kitchen's plain name is with SK02's post, as A's pictures are)
   ...['10_alfresco_corner', '16_outdoor_kitchen'].flatMap(v => ['kitchen_split', 'kitchen_continuous', 'kitchen_freestanding', 'kitchen_none', 'kitchen_lounge'].map(o => `${v}_${o}`)),
 ].map(k => `layoutb_${k}.jpg`));
 /** Layout B's file for an SK02 option render's URL, or '' if B has no render of it. */
 const layoutBName = (aUrl: string) => {
-  const n = aUrl.split('/').pop()!, b = n.startsWith('options_') ? 'layoutb_' + n.slice(8) : '';
+  const n = aUrl.split('/').pop()!, b = n.startsWith('options_') ? 'layoutb_' + n.slice(8) : n.startsWith('night_') ? 'layoutb_' + n.slice(6) : '';
   // A's lounge-kitchen pictures are named with their post; B's may not be
   for (const c of [b, b.replace('_post_as_drawn.jpg', '.jpg')]) if (LAYOUTB_OPTION_RENDERS.has(c)) return c;
   return '';
@@ -160,6 +170,7 @@ export function allImageUrls() {
     ...LAYOUTB_VIEWS.flatMap(([v]) => [layoutASrc(v), `img/layoutb_${v}.jpg`]),
     ...BFENCE.flatMap(([o]) => BFENCE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...DECK_VIEWS.map(([v]) => `img/options_${v}_pier_straight_deck_kitchen_none.jpg`),
+    ...LIGHTS.flatMap(([o]) => LIGHTS_VIEWS.map(([v]) => lightsSrc(o, v))),
     ...BPLANT.flatMap(([o]) => BPLANT_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...[...LAYOUTB_OPTION_RENDERS].map(n => `img/${n}`),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
@@ -351,6 +362,18 @@ const HTML = /* html */ `
     <span class="mono" id="d-pos"></span>
     <p id="d-note" class="hint"></p>
   </div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Lighting at night</h2>
+  <p>Six ways to light the yard after dark, one at a time. Every one keeps the fire pit, the house's lights, the step nosing strips and the terrace step lights. Rendered at dusk (7:40 pm) and at 9 pm on 16 January; Layout B beside, where it was rendered.</p>
+</div>
+<section class="block" aria-label="Lighting schemes">
+  <div class="fstage"><img id="li-img" alt=""><span class="tag l" id="li-tag"></span><button class="fly" id="li-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Lighting scheme" id="li-opts"></div>
+  <div class="chips" id="li-views" role="group" aria-label="Viewpoint and time"></div>
+  <div class="optnote" id="li-note"></div>
 </section>
 
 <div class="section-head">
@@ -568,6 +591,9 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: BPLANT, optBox: $('bp-opts'), viewBox: $('bp-views'), img: 'bp-img', tag: 'bp-tag', note: 'bp-note', flyBtn: 'bp-fly',
     views: BPLANT_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', bplant: o }) });
+  picker({ opts: LIGHTS, optBox: $('li-opts'), viewBox: $('li-views'), img: 'li-img', tag: 'li-tag', note: 'li-note', flyBtn: 'li-fly',
+    views: LIGHTS_VIEWS, src: (o, v) => I + lightsSrc(o, v).replace(/^img\//, ''),
+    onFly: (o, v, go = fly) => go({ cam: v.slice(0, -5), scenario: 'proposed', date: '2027-01-16', minutes: v.endsWith('1940') ? 19 * 60 + 40 : 21 * 60, roller: 'none', kitchen: 'kitchen_none', lighting: o }) });
   picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
     views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => { const c = SIDE.find(x => x[0] === o)!; go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });
