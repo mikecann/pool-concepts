@@ -120,11 +120,20 @@ export class Covers {
     c.edgeU.value = p >= 1 ? 1e3 : c.sMin + (c.sMax - c.sMin) * laid;
     for (const r of c.rolls) {
       if (r !== roll) { r.group.position.copy(r.centre); r.group.scale.set(1, 1, 1); r.group.visible = true; continue; }
-      // the roll travels from its parking spot to the far edge, getting thinner, and drops to the cover's level
+      // the roll travels from its parking spot to the far edge, getting thinner, and drops to the cover's level.
+      // Rolled up it sits exactly where the export parks it; over the first segment it moves on to the near rim, where
+      // the cover starts (it used to be drawn at the rim even when parked: 0.35 m off its spot in A, 0.53 m in B, on
+      // the spa's rim beside the bather)
       const k = Math.sqrt(Math.max(0.0025, 1 - p * 0.9975));
-      const travel = Math.max(0, c.sMin + (c.sMax - c.sMin) * p);
+      const travel = Math.max(0, c.sMin * Math.min(1, p * c.segments) + (c.sMax - c.sMin) * p);
       r.group.position.copy(r.centre).addScaledVector(r.dir, travel);
       r.group.position.y = c.coverY + (r.centre.y - c.coverY) * k;
+      if (c.kind === 'spa' && c.sMin > 0) {
+        // the spa's rim stands above the deck: rest the roll on the rim and cover (its bottom at the rim's top) rather
+        // than sink it 5 cm into them, rising from its parked height as it slides over from the deck
+        const rest = c.coverY + r.radius * k;
+        r.group.position.y = travel < c.sMin ? r.centre.y + (rest - r.centre.y) * (travel / c.sMin) : rest;
+      }
       r.group.scale.set(1, k, k);
       r.group.visible = p < 0.999;
     }

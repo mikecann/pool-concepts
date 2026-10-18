@@ -552,16 +552,16 @@
   "label": "Rolled spa cover to the spa's rim",
   "group": "spa",
   "a": [
-   2.631,
+   2.858,
    2.57,
-   10.047
+   9.775
   ],
   "b": [
-   2.535,
+   2.588,
    2.57,
-   10.016
+   9.755
   ],
-  "value_m": 0.101,
+  "value_m": 0.271,
   "set": "proposed",
   "option": "spa_cover_rolled"
  },
