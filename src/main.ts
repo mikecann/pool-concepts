@@ -202,7 +202,7 @@ async function main() {
   new ResizeObserver(resize).observe(world);
 
   // ---------- time ----------
-  const timeInput = $<HTMLInputElement>('time'), clock = $('clock'), sunread = $('sunread');
+  const timeInput = $<HTMLInputElement>('time'), clock = $('clock');
   const todayNote = $('today-note');
   const updateTodayNote = () => { todayNote.hidden = !(S.scenario === 'existing' && atm.state.el < -2); };
   const fmt = (m: number) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;
@@ -221,9 +221,8 @@ async function main() {
     timeInput.value = String(Math.round(S.minutes));
     clock.textContent = fmt(S.minutes);
     renderClean(renderer, () => atm.set(S.date, S.minutes, force));   // the sky env map renders too
-    const { az, el } = atm.state;
+
     updateTodayNote();
-    sunread.textContent = el > -0.8 ? `sun ${Math.round(az)}° ${compass(az)}, ${Math.round(el)}° up` : el > -6 ? 'after sunset' : el > -12 ? 'twilight' : 'night';
     fogColor.value.copy(atm.fogColor);
     renderer.toneMappingExposure = atm.exposure;
     if (post) post.exposureU.value = atm.exposure;
