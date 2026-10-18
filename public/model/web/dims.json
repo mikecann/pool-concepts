@@ -486,6 +486,40 @@
   "set": "proposed"
  },
  {
+  "id": "spa_deck_ew",
+  "label": "Spa deck (timber), west end to east end",
+  "group": "spa",
+  "a": [
+   -1.948,
+   2.38,
+   10.07
+  ],
+  "b": [
+   3.512,
+   2.38,
+   10.449
+  ],
+  "value_m": 5.473,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_deck_ns",
+  "label": "Spa deck (timber), north edge to the terrace wall, east of the spa",
+  "group": "spa",
+  "a": [
+   3.108,
+   2.38,
+   9.05
+  ],
+  "b": [
+   2.975,
+   2.38,
+   10.977
+  ],
+  "value_m": 1.932,
+  "set": "proposed"
+ },
+ {
   "id": "spa_diameter",
   "label": "Spa diameter",
   "group": "spa",
