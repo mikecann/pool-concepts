@@ -553,16 +553,16 @@
   "label": "Alfresco roof, west edge to east edge",
   "group": "alfresco",
   "a": [
-   -0.776,
-   5.032,
-   2.914
+   -1.275,
+   5.015,
+   2.88
   ],
   "b": [
    3.164,
    5.17,
    3.188
   ],
-  "value_m": 3.952,
+  "value_m": 4.453,
   "set": "proposed"
  },
  {
@@ -587,16 +587,16 @@
   "label": "Roof top above the paving, low (west) side",
   "group": "alfresco",
   "a": [
-   -0.776,
+   -1.275,
    2.37,
-   2.914
+   2.88
   ],
   "b": [
-   -0.776,
-   5.232,
-   2.914
+   -1.275,
+   5.215,
+   2.88
   ],
-  "value_m": 2.862,
+  "value_m": 2.845,
   "set": "proposed"
  },
  {
@@ -604,16 +604,16 @@
   "label": "Ceiling above the paving, low side",
   "group": "alfresco",
   "a": [
-   -0.408,
+   -0.906,
    2.37,
-   1.937
+   1.903
   ],
   "b": [
-   -0.408,
-   5.043,
-   1.937
+   -0.906,
+   5.025,
+   1.903
   ],
-  "value_m": 2.673,
+  "value_m": 2.655,
   "set": "proposed"
  },
  {
@@ -999,16 +999,16 @@
   "label": "Roof's west edge vs the lounge wall's outer face",
   "group": "alignment",
   "a": [
-   -0.915,
-   5.232,
-   4.909
+   -1.413,
+   5.215,
+   4.875
   ],
   "b": [
    -0.915,
-   5.232,
+   5.215,
    4.909
   ],
-  "value_m": 0.0,
+  "value_m": 0.5,
   "set": "proposed",
   "note": "0 means in line"
  },
@@ -1438,6 +1438,221 @@
   ],
   "value_m": 1.8,
   "set": "existing"
+ },
+ {
+  "id": "strip_east_width",
+  "label": "East strip (where the planter was), aggregate between the copings",
+  "group": "lounge",
+  "a": [
+   3.136,
+   2.38,
+   7.095
+  ],
+  "b": [
+   3.816,
+   2.38,
+   7.142
+  ],
+  "value_m": 0.682,
+  "set": "proposed"
+ },
+ {
+  "id": "strip_east_clear_straight",
+  "label": "East strip, lounge coping to the straight fence",
+  "group": "lounge",
+  "a": [
+   3.136,
+   2.42,
+   7.095
+  ],
+  "b": [
+   4.001,
+   2.42,
+   7.155
+  ],
+  "value_m": 0.867,
+  "set": "proposed",
+  "option": "pier_straight",
+  "note": "the way from the alfresco to the spa deck with a straight fence"
+ },
+ {
+  "id": "fence_straight_strip_height_strip",
+  "label": "Straight east fence by the strip, height above the strip's edge coping (inside)",
+  "group": "fences",
+  "a": [
+   4.04,
+   2.39,
+   7.459
+  ],
+  "b": [
+   4.04,
+   3.67,
+   7.459
+  ],
+  "value_m": 1.28,
+  "set": "proposed",
+  "option": "pier_straight"
+ },
+ {
+  "id": "fence_straight_strip_height_lawn",
+  "label": "Straight east fence by the strip, height above the lawn (outside)",
+  "group": "fences",
+  "a": [
+   4.04,
+   1.78,
+   7.459
+  ],
+  "b": [
+   4.04,
+   3.67,
+   7.459
+  ],
+  "value_m": 1.89,
+  "set": "proposed",
+  "option": "pier_straight"
+ },
+ {
+  "id": "strip_east_clear_straight_edge",
+  "label": "East strip, lounge coping to the straight fence",
+  "group": "lounge",
+  "a": [
+   3.136,
+   2.42,
+   7.095
+  ],
+  "b": [
+   4.001,
+   2.42,
+   7.155
+  ],
+  "value_m": 0.867,
+  "set": "proposed",
+  "option": "pier_straight_edge",
+  "note": "the way from the alfresco to the spa deck with a straight fence"
+ },
+ {
+  "id": "fence_straight_edge_strip_height_strip",
+  "label": "Straight east fence by the strip, height above the strip's edge coping (inside)",
+  "group": "fences",
+  "a": [
+   4.04,
+   2.39,
+   7.459
+  ],
+  "b": [
+   4.04,
+   3.67,
+   7.459
+  ],
+  "value_m": 1.28,
+  "set": "proposed",
+  "option": "pier_straight_edge"
+ },
+ {
+  "id": "fence_straight_edge_strip_height_lawn",
+  "label": "Straight east fence by the strip, height above the lawn (outside)",
+  "group": "fences",
+  "a": [
+   4.04,
+   1.78,
+   7.459
+  ],
+  "b": [
+   4.04,
+   3.67,
+   7.459
+  ],
+  "value_m": 1.89,
+  "set": "proposed",
+  "option": "pier_straight_edge"
+ },
+ {
+  "id": "fence_drawn_strip_height",
+  "label": "Drawn east fence on the lounge wall, height above the strip (outside it)",
+  "group": "fences",
+  "a": [
+   3.173,
+   2.37,
+   7.398
+  ],
+  "b": [
+   3.173,
+   3.57,
+   7.398
+  ],
+  "value_m": 1.2,
+  "set": "proposed",
+  "option": "pier_as_drawn",
+  "note": "the strip is outside the pool fence with the drawn line"
+ },
+ {
+  "id": "roof_vs_eave",
+  "label": "Roof's west edge vs the house's eave line (fascia face)",
+  "group": "alignment",
+  "a": [
+   -1.137,
+   5.215,
+   0.884
+  ],
+  "b": [
+   -1.137,
+   5.215,
+   0.884
+  ],
+  "value_m": 0.0,
+  "set": "proposed",
+  "note": "0 means in line"
+ },
+ {
+  "id": "roof_past_post",
+  "label": "Roof overhang past the corner post's west face",
+  "group": "alfresco",
+  "a": [
+   -0.915,
+   4.965,
+   4.909
+  ],
+  "b": [
+   -1.413,
+   4.965,
+   4.875
+  ],
+  "value_m": 0.5,
+  "set": "proposed"
+ },
+ {
+  "id": "post_to_coping",
+  "label": "Corner post to the pool coping (the walkway down the pool)",
+  "group": "alfresco",
+  "a": [
+   -0.915,
+   2.42,
+   4.909
+  ],
+  "b": [
+   -1.433,
+   2.42,
+   4.873
+  ],
+  "value_m": 0.52,
+  "set": "proposed"
+ },
+ {
+  "id": "post_to_nw_steps",
+  "label": "Corner post to the north-west steps' west edge",
+  "group": "alfresco",
+  "a": [
+   -0.818,
+   2.42,
+   4.966
+  ],
+  "b": [
+   -0.709,
+   2.42,
+   4.974
+  ],
+  "value_m": 0.11,
+  "set": "proposed"
  },
  {
   "id": "passage_at_trampoline_as_is",
