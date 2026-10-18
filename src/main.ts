@@ -3,7 +3,7 @@ import { AgXToneMapping, Box3, Raycaster, BasicShadowMap, PCFShadowMap, VSMShado
 import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
-import { LIGHT_SWAP, Model, type CameraDef, type Gate, type Scenario } from './model';
+import { LIGHT_SWAP, MODEL_FILES, Model, type CameraDef, type Gate, type Layout, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
 import { Walker, type Mode } from './walk';
 import { TapeMeasure } from './measure';
@@ -14,7 +14,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, OPTION_DEFAULTS, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -27,7 +27,7 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // ---------- remembered settings ----------
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
-type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode;
+type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout;
   options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
@@ -48,6 +48,22 @@ const urlDate = DATE_RE.test(params.get('date') ?? '') && !isNaN(Date.parse(para
 const urlMinutes = (() => { const t = Number(params.get('t')); return params.has('t') && Number.isFinite(t) && t >= 0 && t < 1440 ? t : null; })();
 let fromUrl = false;   // true while applying URL values, so remember() leaves them out
 
+// Round 19: the layout (SK02's, or B with the lounge wall in line and the pool moved) is a whole model of its own, so
+// switching loads the page again with the other one. What you had going (where you were and where you looked, the
+// mode, the time and date, Today or Proposed, every option) is handed to that load through sessionStorage.
+type Handoff = { layout: Layout; at: number; mode: Mode; feet: number[]; cam: number[]; target: number[]; yaw: number; pitch: number;
+  minutes: number; date: string; scenario: Scenario; people: boolean; options: NonNullable<Settings['options']> };
+const HANDOFF_KEY = 'pool-layout-swap';
+const urlLayout = params.get('layout') === 'a' || params.get('layout') === 'b' ? params.get('layout') as Layout : null;
+const LAYOUT: Layout = urlLayout ?? (settings.layout === 'b' ? 'b' : 'a');
+const handoff: Handoff | null = (() => {
+  try {
+    const h = JSON.parse(sessionStorage.getItem(HANDOFF_KEY) ?? 'null') as Handoff | null;
+    sessionStorage.removeItem(HANDOFF_KEY);
+    return h && h.layout === LAYOUT && Date.now() - h.at < 60e3 ? h : null;
+  } catch { return null; }
+})();
+
 // ---------- state ----------
 // Round 17d: every visit opens at the time it is now at the site (Perth, AWST = UTC+8, no daylight saving), whatever
 // the viewer's own timezone. The time and date are never remembered; the slider and date change them for the visit,
@@ -58,8 +74,8 @@ const perthNow = () => {
 };
 const NOW = perthNow();
 const S = {
-  date: urlDate ?? NOW.date,
-  minutes: urlMinutes ?? NOW.minutes,
+  date: urlDate ?? handoff?.date ?? NOW.date,
+  minutes: urlMinutes ?? handoff?.minutes ?? NOW.minutes,
   playing: false,
   scenario: 'proposed' as Scenario,
   quality: 'High' as Quality,
@@ -83,7 +99,7 @@ const yieldForPaint = () => document.hidden
 
 const loadText = $('load-text'), loadFill = $('load-fill');
 const progress = (f: number, text?: string) => { loadFill.style.width = `${Math.round(f * 100)}%`; if (text) loadText.textContent = text; };
-$('loading').style.backgroundImage = 'url(../img/15_lounge_from_alfresco__proposed.jpg)';
+$('loading').style.backgroundImage = `url(../img/${LAYOUT === 'b' ? 'layoutb_15_lounge_from_alfresco' : '15_lounge_from_alfresco__proposed'}.jpg)`;
 
 function startQuality(): Quality {
   const q = params.get('q');
@@ -94,8 +110,8 @@ function startQuality(): Quality {
 
 async function main() {
   // the download doesn't need the GPU, so start it straight away and bring WebGPU up alongside
-  progress(0.02, 'Loading the model…');
-  const modelData = Model.fetch(BASE, f => progress(0.02 + f * 0.6, `Loading the model… ${Math.round(f * 100)}%`));
+  progress(0.02, handoff ? `Loading ${LAYOUT_CHOICES.find(c => c.value === LAYOUT)!.title}…` : 'Loading the model…');
+  const modelData = Model.fetch(BASE, LAYOUT, f => progress(0.02 + f * 0.6, `Loading the model… ${Math.round(f * 100)}%`));
   // ?gpu=1 turns on GPU timestamp queries for scripts/perf.mjs (they cost a little, so they're off normally)
   const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance', trackTimestamp: params.has('gpu') });
   await renderer.init();
@@ -119,7 +135,7 @@ async function main() {
   const model = new Model(renderer, atm);
   model.people = settings.people ?? true;
   scene.add(model.root);
-  const camsP: Promise<CameraDef[]> = fetch(BASE + 'cameras.json?v=' + __MODEL_V__).then(r => r.json()).catch(() => []);
+  const camsP: Promise<CameraDef[]> = fetch(BASE + MODEL_FILES[LAYOUT].cameras).then(r => r.json()).catch(() => []);
   const data = await modelData;
   mark('glb');
   progress(0.64, 'Building the scene…');
@@ -253,10 +269,11 @@ async function main() {
   let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
   let syncCovers = () => {}, coverFinished: (c: any) => void = () => {}, coverToggle: (c: any) => void = () => {};
   let nearCoverAt: (x: number, z: number, eyeY: number) => any = () => null, coversRef: Covers | null = null, nearCover: any = null;
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
-    remember({ options: { roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage } });
+    remember({ options: currentOptions() });
   };
 
   // design choices as cards: each changes the world and moves you to where the change shows
@@ -317,6 +334,9 @@ async function main() {
     }
     h?.appendChild(btn);
   };
+  // Round 19: the layout cards. Picking the other one loads its model (see swapLayout); this one stays pressed till then.
+  let layoutPick: Layout = LAYOUT;
+  cards($('cards-layout'), LAYOUT_CHOICES, () => layoutPick, v => swapLayout(v as Layout));
   // the roller: look down the pool from the opposite end, as the option renders do (the shallow-end ones sit behind
   // camera 05, so look back up the pool from the deep end for those)
   group('roller', ROLLER_CHOICES, 'roller', () => (/shallow/.test(model.roller) ? '13_deep_end_to_house' : '05_pool_north_end'));
@@ -329,10 +349,10 @@ async function main() {
   group('nfence', NFENCE_CHOICES, 'nfence', () => '20_pool_north_seating');
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
   // inline warnings on a card while a clashing option is chosen (Round 17d, 18). The other option isn't changed.
-  const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean) => {
+  const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean, cls = 'card-warn') => {
     const t = items.find(c => c.value === value)?.title;
     const card = [...$(box).querySelectorAll<HTMLElement>('.card')].find(c => c.querySelector('b')?.textContent === t);
-    const warn = document.createElement('em'); warn.className = 'card-warn'; warn.textContent = text;
+    const warn = document.createElement('em'); warn.className = cls; warn.textContent = text;
     card?.querySelector('span')?.appendChild(warn);
     const render = () => { warn.hidden = !show(); };
     cardGroups.push(render); render();
@@ -342,10 +362,15 @@ async function main() {
   const loungeClash = () => model.kitchen === 'kitchen_lounge' && model.post === 'post_two';
   warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', "With two roof posts, one post stands in this bench.", loungeClash);
   warnOn('cards-post', POST_CHOICES, 'post_two', 'With the lounge kitchen, the east post stands in its bench.', loungeClash);
+  // Round 19: Layout B moves the lounge's north-west steps into its corner, right under SK02's post and the lounge kitchen
+  warnOn('cards-post', POST_CHOICES, 'post_as_drawn', 'In Layout B it stands 0.5 m in front of the lounge steps.', () => LAYOUT === 'b');
+  warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', 'In Layout B its west end overlaps the top of the lounge steps by 0.25 m.', () => LAYOUT === 'b');
+  warnOn('cards-post', POST_CHOICES, 'post_corner_steps', 'In Layout B the steps are already in the corner.', () => LAYOUT === 'b', 'card-note');
   // Round 15: the choices in categories. A grid of category buttons, each showing its current choice (so the whole
   // design reads at a glance), and only the open category's cards below. The open category is remembered.
   const title = (items: Choice[], v: string) => items.find(c => c.value === v)?.title ?? '';
   const CATS: { id: string; name: string; summary: () => string }[] = [
+    { id: 'layout', name: 'Layout', summary: () => title(LAYOUT_CHOICES, LAYOUT) },
     { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
     { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
     { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
@@ -548,6 +573,27 @@ async function main() {
   };
   // Round 17c: no 'go to' list any more; the cards' View buttons and the renders page's links use goToCam
 
+  /**
+   * Round 19: switch to the other layout. Hands over where you are and where you're looking, the mode, the time and
+   * every option, then loads the page with that layout's model behind the loading cover (only that model downloads).
+   */
+  function swapLayout(to: Layout) {
+    if (to === layoutPick) return;
+    layoutPick = to;
+    remember({ layout: to });
+    const h: Handoff = { layout: to, at: Date.now(), mode: walker.mode, feet: walker.feet.toArray(), cam: camera.position.toArray(), target: orbit.target.toArray(),
+      yaw: walker.yaw, pitch: walker.pitch, minutes: S.minutes, date: S.date, scenario: S.scenario, people: model.people, options: currentOptions() };
+    try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
+    // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
+    const u = new URL(location.href);
+    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage']) u.searchParams.delete(k);
+    u.searchParams.set('layout', to);
+    const cover = $('loading'); cover.style.transition = 'none'; cover.classList.remove('done');
+    progress(0.02, `Loading ${title(LAYOUT_CHOICES, to)}…`);
+    if (document.pointerLockElement) document.exitPointerLock();
+    requestAnimationFrame(() => requestAnimationFrame(() => location.replace(u.href)));
+  }
+
 
 
   // ---------- panel / drawer ----------
@@ -668,9 +714,59 @@ async function main() {
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
   if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
-  // Round 17: back in the mode you were in last time (walk, fly or drone), before any deep-linked view
-  if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
-  if (params.get('cam')) goToCam(params.get('cam')!, true, true);
+  /**
+   * Round 19: an option carried over from the other layout is kept if this model builds it (it has parts tagged with
+   * it, or parts hidden by it); options that are just the absence of something (no cover, no kitchen) always are.
+   * Anything else goes back to its default, and the swap hint says so.
+   */
+  const dropped: string[] = [];
+  const keepIfBuilt = () => {
+    const built = new Set<string>();
+    model.root.traverse(o => { for (const k of [o.userData.option, o.userData.hide_option]) if (typeof k === 'string') k.split('+').forEach(p => built.add(p)); });
+    return (key: keyof typeof OPTION_DEFAULTS, v: string | undefined) => {
+      const def = OPTION_DEFAULTS[key];
+      if (!v) return def;
+      if (v === def || /(^|_)none$/.test(v) || built.has(v)) return v;
+      dropped.push(v); return def;
+    };
+  };
+  let swapHint: string | null = null;
+  if (handoff) {
+    // Round 19: just switched layout: the same options and Today/Proposed (the time was set above)...
+    fromUrl = true;   // already remembered, or a link's one-off: either way, don't write them again
+    const ho = handoff.options, keep = keepIfBuilt();
+    model.roller = keep('roller', valid(ho.roller, ROLLER_CHOICES)); model.kitchen = keep('kitchen', valid(ho.kitchen, KITCHEN_CHOICES));
+    model.post = keep('post', valid(ho.post, POST_CHOICES)); model.play = keep('play', valid(ho.play, PLAY_CHOICES));
+    model.spaCover = keep('spaCover', valid(ho.spaCover, SPA_COVER_CHOICES)); model.pump = keep('pump', valid(ho.pump, PUMP_CHOICES));
+    model.pier = keep('pier', valid(ho.pier, PIER_CHOICES)); model.nfence = keep('nfence', valid(ho.nfence, NFENCE_CHOICES));
+    model.passage = keep('passage', valid(ho.passage, PASSAGE_CHOICES));
+    model.people = handoff.people; peopleBox.checked = model.people;
+    if (handoff.scenario !== S.scenario) setScenario(handoff.scenario);
+    optChanged(); renderRoller();
+    fromUrl = false;
+    // ...and the same view, in the same mode. Walking, the spot may now be inside the moved wall or over the moved
+    // pool: then you stand at the nearest place you can
+    const name = title(LAYOUT_CHOICES, LAYOUT);
+    swapHint = name;
+    if (handoff.mode === 'walk') {
+      const [x, y, z] = handoff.feet, spot = walker.nearestStand(x, z, y);
+      if (spot) {
+        walker.place(spot.x, spot.y, spot.z, handoff.yaw, handoff.pitch);
+        const d = Math.hypot(spot.x - x, spot.z - z);
+        if (d > 0.05) swapHint = `${name}<small>Moved you ${d < 1 ? `${Math.round(d * 100)} cm` : `${d.toFixed(1)} m`}: where you stood isn't a floor in this layout</small>`;
+      } else swapHint = `${name}<small>Back at the start: there's nowhere to stand near where you were</small>`;
+    } else {
+      restoringMode = true; setMode(handoff.mode); restoringMode = false;
+      const cam = new Vector3().fromArray(handoff.cam);
+      if (handoff.mode === 'fly') walker.startFly(cam, handoff.yaw, handoff.pitch);   // pushed out of anything it's now inside
+      else { camera.position.copy(cam); orbit.target.fromArray(handoff.target); orbit.update(); }
+    }
+    if (dropped.length) swapHint += `<small>Not built in this layout yet: ${dropped.join(', ')}</small>`;
+  } else {
+    // Round 17: back in the mode you were in last time (walk, fly or drone), before any deep-linked view
+    if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
+    if (params.get('cam')) goToCam(params.get('cam')!, true, true);
+  }
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
   // the night lights' visibility is part of every shader's key: set it for this time of day before compiling
@@ -861,7 +957,7 @@ async function main() {
   function reveal() {
     if (revealed) return;
     revealed = true;
-    $('loading').classList.add('done'); requestAnimationFrame(firstVisitHelp);
+    $('loading').classList.add('done'); requestAnimationFrame(() => (swapHint ? showHint(swapHint, 4500) : firstVisitHelp()));
   }
 
   async function finishLoading() {
@@ -995,7 +1091,7 @@ async function main() {
     get post() { return post; },
     setOption: (k: string, v: string) => { (model as any)[k] = v; optChanged(); cardGroups.forEach(r => r()); },
     hinges, blankets, covers: () => coversRef, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
-    setPanel,
+    setPanel, layout: LAYOUT, swapLayout: (to: Layout) => swapLayout(to),
   };
 }
 

@@ -1046,6 +1046,23 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - CPU per frame is up ~1.5 ms (more draw calls: noMerge hinge parts, covers, pump room), comfortably inside the 16.7 ms frame.
 - `scripts/perf.mjs` gained a `pump` view and `--shots <dir>`. Logs and DPR 1 screenshots in `review/round18c/`.
 
+## Round 19: Layout B
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** `sync-model.sh` also copies `pool-model-b.glb`, `cameras-b.json` and `lights-b.json`, and turns `renders/model/layout_b/*_layoutb.png` into `img/layoutb_<cam>.jpg` (1600 x 900, as web_images.py does). B's files get their own `?v=` hash (`__MODEL_V_B__` in vite.config.ts), and deploy.sh warms them too | Run: 8 Layout B images, both models copied |
+| 2 | **Layout choice:** a new first category, "Layout", with two cards, "As drawn (SK02)" and "Lounge wall in line, pool moved" (details behind More; pictures cropped from the 07 aerials). Picking one hands everything over through sessionStorage (where you are and where you're looking, mode, time and date, Today/Proposed, people, every option) and reloads the page with the other model behind the loading cover. Remembered in settings; `?layout=a/b` is a one-off, like the other link params. Walking, if your spot is now part of a moved wall or the moved pool, `walker.nearestStand` finds the nearest floor at about the same level with room for the body, and a hint says how far you moved. Fly gets pushed out of anything it's in; the drone keeps its exact camera. An option this model doesn't build would go back to its default with a note (none do today: both models have the same 35 option keys) | Swap, warm: cover lifts in 2.2 to 2.3 s, settled 3.5 to 3.8 s |
+| 3 | **Posts in B:** all five post layouts show. Warnings in B only: SK02's post ("stands 0.5 m in front of the lounge steps") and the lounge kitchen ("overlaps the top of the lounge steps by 0.25 m"). The corner-post-with-steps card gets a quiet note that in B the steps are already in the corner | `review/round19/b_warnings.png` |
+| 4 | **Renders page:** a "Layout B" section after the posts: SK02 beside B from the same camera for all 8 B views. SK02's side uses its corner-post render where one exists (10, 06, 15), otherwise its main render, and its tag says which. Both images open in 3D in their own layout. Every other "Open in 3D" now passes `layout=a`, since those pictures are SK02's | `renders_layoutb*.png` (desktop, phone) |
+| 5 | **Load:** each layout fetches only its own GLB, lights and cameras | Checked in r19-test from request logs |
+
+**Checks:**
+- **New `scripts/r19-test.mjs`:** covers the swap in walk (nudged 0.8 m out of B's lounge coping, which reaches x −1.25 at 0.72 m above the floor), fly and drone, with options and time kept. Also checks only one GLB per load, remembering, the one-off `?layout=`, the B warnings and every post layout in B. PASS.
+- **Test fixes:** r17-test now ignores hidden warnings (the kitchen card has two now).
+- **Other checks:** settings, r16, r17, tools, switch, walk, pages and phone all pass. check-images: 245 checked, 0 missing, 1 awaiting (pavilion kitchen_lounge).
+- **B, Medium, view 15 with the lounge kitchen:** 550 draw calls and 2,687k triangles, the same as A. Fps not measured (Blender running).
+- **Found, not from this round:** view 10's camera is in the play area, so with the play area moved north, the View button for posts lands you on the climbing frame, crouched. This happens in both layouts.
+
 ## Summary
 
 **Round 17:**

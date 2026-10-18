@@ -6,7 +6,8 @@ import { VIEWS } from './views';
 import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string };
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string;
+  /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
 const SUN = {
@@ -107,6 +108,14 @@ const OLD_KITCHEN = { day: false, dusk: false };
 const oldKitchenNote = '<p class="hint stale">The kitchen in these pictures is the old split-by-the-gate layout; new ones without it are on the way.</p>';
 const KITCHEN_VIEWS = [['16_outdoor_kitchen', 'Kitchen'], ['10_alfresco_corner', 'North-west corner'], ['12_from_pavilion', 'From the pavilion']];
 
+// Round 19: Layout B's renders (all with the corner post), each beside SK02's layout from the same camera: with the
+// corner post too where that render exists (10, 06, 15), otherwise SK02's own post
+const LAYOUTB_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['06_sunken_lounge', 'In the lounge'], ['15_lounge_from_alfresco', 'Over the lounge'],
+  ['05_pool_north_end', 'Pool, north end'], ['20_pool_north_seating', 'From the spa deck'], ['13_deep_end_to_house', 'Deep end to the house'],
+  ['17_pool_overview', 'Pool from above'], ['07_aerial_southwest', 'From the air']];
+const A_CORNER = new Set(['10_alfresco_corner', '06_sunken_lounge', '15_lounge_from_alfresco']);
+const layoutASrc = (v: string) => (A_CORNER.has(v) ? `img/options_${v}_post_corner_steps.jpg` : `img/${v}__proposed.jpg`);
+
 /** Every image the panel can show (used to check nothing 404s after a sync). */
 export function allImageUrls() {
   return [
@@ -118,6 +127,7 @@ export function allImageUrls() {
     ...PIER.flatMap(([o]) => PIER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...PLAY.flatMap(([o]) => PLAY_VIEWS.map(([v]) => playSrc(o, v))),
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...LAYOUTB_VIEWS.flatMap(([v]) => [layoutASrc(v), `img/layoutb_${v}.jpg`]),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
     ...Object.entries(SUN).flatMap(([season, list]) => list.map(([key]) => `img/sun_${season}_${key}.jpg`)),
@@ -185,6 +195,25 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Post layout" id="po-opts"></div>
   <div class="chips" id="po-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="po-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Layout B: lounge wall in line, pool moved</h2>
+  <p>A second build of the whole yard. The sunken lounge's pool-side wall moves 0.5 m east to sit under the alfresco's corner post, and the pool moves 0.5 m east with it. Left: SK02's layout. Right: Layout B, both from the same camera.</p>
+</div>
+<section class="block" aria-label="SK02's layout beside Layout B">
+  <div class="pair">
+    <div class="fstage"><img id="la-img" alt=""><span class="tag l" id="la-tag"></span><button class="fly" id="la-fly" type="button">Open in 3D</button></div>
+    <div class="fstage"><img id="lb-img" alt=""><span class="tag l" id="lb-tag">Layout B, corner post</span><button class="fly" id="lb-fly" type="button">Open in 3D</button></div>
+  </div>
+  <div class="chips" id="lb-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="lb-note">
+    <p>The lounge is 3.37 m wide inside instead of 3.87 m. Its north-west steps sit in the corner, the north bench is 2.36 m long instead of 2.84 m, and the steps up to the spa deck are 0.5 m narrower. The fire pit moves 0.22 m east to stay central.</p>
+    <p>The pool moves with its coping, water, lights and covers. Between the coping and the boundary wall there's 0.63 m at the shallow end (was 0.14 m) and 1.96 m at the deep end. The north fence stays 1.66 m from the coping.</p>
+    <p>The roof's west edge comes in 0.17 m, so the corner post sits flush on the moved wall, with nothing in front of the steps. Everything else is as SK02.</p>
+    <p><b>Watch for</b> SK02's own post: in Layout B it stands 0.5 m in front of the middle of the north-west steps. The lounge kitchen's west end would overlap the top of those steps by 0.25 m.</p>
+  </div>
 </section>
 
 <div class="section-head">
@@ -459,6 +488,19 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: POSTS, optBox: $('po-opts'), viewBox: $('po-views'), img: 'po-img', tag: 'po-tag', note: 'po-note', flyBtn: 'po-fly',
     views: POST_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: o }) });
+  // ---------- Layout B beside SK02's layout ----------
+  const LB = { v: 0 };
+  const renderLayoutB = () => {
+    chips($('lb-views'), LAYOUTB_VIEWS, LB.v, i => { LB.v = i; renderLayoutB(); });
+    const [v, name] = LAYOUTB_VIEWS[LB.v];
+    img('la-img').src = I + layoutASrc(v).replace(/^img\//, ''); img('la-img').alt = `${name}: SK02's layout`;
+    $('la-tag').textContent = A_CORNER.has(v) ? 'As drawn (SK02), corner post' : "As drawn (SK02), SK02's post";
+    img('lb-img').src = `${I}layoutb_${v}.jpg`; img('lb-img').alt = `${name}: Layout B, with the corner post`;
+  };
+  $('la-fly').onclick = () => { const v = LAYOUTB_VIEWS[LB.v][0]; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: A_CORNER.has(v) ? 'post_corner_steps' : 'post_as_drawn', layout: 'a' }); };
+  $('lb-fly').onclick = () => fly({ cam: LAYOUTB_VIEWS[LB.v][0], scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: 'post_corner_steps', layout: 'b' });
+  renderLayoutB();
+  warmNear($('lb-img'), LAYOUTB_VIEWS.flatMap(([v]) => [I + layoutASrc(v).replace(/^img\//, ''), `${I}layoutb_${v}.jpg`]));
   picker({ opts: PUMP, optBox: $('pu-opts'), viewBox: $('pu-views'), img: 'pu-img', tag: 'pu-tag', note: 'pu-note', flyBtn: 'pu-fly',
     views: PUMP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pump: o }) });

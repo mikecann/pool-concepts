@@ -67,7 +67,13 @@ export const PASSAGE_CHOICES: Choice[] = [
   { value: 'passage_aggregate', short: 'New paving runs up to the play area.', title: 'New paving all the way', note: 'The aggregate carries on up the side passage to the sunken bark play area, under the trampoline.', img: 'card_passage_aggregate.jpg', src: 'options_19_play_area_side_as_drawn_aggregate.jpg' },
 ];
 
+// Round 19: two whole models. Layout B is the-pool's second build (pool-model-b.glb); every option exists in both.
+export const LAYOUT_CHOICES: Choice[] = [
+  { value: 'a', short: "SK02's lounge and pool, as drawn.", title: 'As drawn (SK02)', note: "SK02's layout: the sunken lounge 3.87 m wide inside, its north-west steps set in from the pool-side wall, and the pool where SK02 puts it.", img: 'card_layout_a.jpg', src: '07_aerial_southwest__proposed.jpg', crop: [0.3, 0.36, 0.34, 0.4] },
+  { value: 'b', short: 'The lounge wall lines up with the roof post.', title: 'Lounge wall in line, pool moved', note: "The lounge's pool-side wall moves 0.5 m east, under the alfresco's corner post, so the lounge is 3.37 m wide inside. The north-west steps sit in its corner, the north bench is 2.36 m long, and the steps up to the spa deck are 0.5 m narrower. The pool moves 0.5 m east with it (coping, water, lights, covers and all), leaving 0.63 m from the coping to the boundary wall at the shallow end. The roof's west edge comes in 0.17 m, so the corner post sits flush on the moved wall. Everything else is as SK02.", img: 'card_layout_b.jpg', src: 'layoutb_07_aerial_southwest.jpg', crop: [0.3, 0.36, 0.34, 0.4] },
+];
+
 /** What render.py shows when nothing in a group is picked. */
 export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers' };
 
-export const CARD_IMAGES = [...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));
+export const CARD_IMAGES = [...LAYOUT_CHOICES, ...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

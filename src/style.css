@@ -310,6 +310,8 @@ ul.assume li::marker { color: var(--accent); }
 
 .card-warn { display: block; margin-top: 4px; font-style: normal; font-weight: 600; color: #b5542a; }
 .card-warn[hidden] { display: none; }
+.card-note { display: block; margin-top: 4px; font-style: normal; opacity: .8; }
+.card-note[hidden] { display: none; }
 
 /* ---------- Round 17e: a simpler sidebar ---------- */
 .panel-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }

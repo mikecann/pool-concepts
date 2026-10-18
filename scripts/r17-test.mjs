@@ -175,7 +175,7 @@ let kl = await partsFor('kitchen_lounge');
 check('kitchen_lounge: its bench shows', kl.length > 0 && kl.every(Boolean), `${kl.length} parts`);
 await p.evaluate(() => __viewer.setPanel(true));
 await p.locator('#tab-alfresco').click();
-const warnK = () => p.locator('#cards-kitchen .card-warn').isVisible(), warnP = () => p.locator('#cards-post .card-warn').isVisible();
+const warnK = () => p.locator('#cards-kitchen .card-warn:not([hidden])').isVisible(), warnP = () => p.locator('#cards-post .card-warn:not([hidden])').isVisible();
 check('kitchen_lounge with one post: no clash warning', !(await warnK()) && !(await warnP()));
 await opt('post', 'post_two');
 check('kitchen_lounge with two posts: both cards warn', (await warnK()) && (await warnP()));

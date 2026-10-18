@@ -127,3 +127,7 @@ img.missing { visibility: hidden; }
 
 .fstage img.missing { visibility: hidden; }
 .fstage:has(img.missing) { background: var(--rule); }
+
+/* Round 19: SK02's layout beside Layout B */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }

@@ -23,6 +23,12 @@ export type LightDef = {
   power: number; xaxis?: number[]; spotAngle?: number; spotBlend?: number; size?: number; sizeY?: number; set?: string; option?: string;
 };
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
+export type Layout = 'a' | 'b';
+/** Each layout's export, with its content hash (vite.config.ts) so a new export is never served stale. */
+export const MODEL_FILES: Record<Layout, { glb: string; lights: string; cameras: string }> = {
+  a: { glb: 'pool-model.glb?v=' + __MODEL_V__, lights: 'lights.json?v=' + __MODEL_V__, cameras: 'cameras.json?v=' + __MODEL_V__ },
+  b: { glb: 'pool-model-b.glb?v=' + __MODEL_V_B__, lights: 'lights-b.json?v=' + __MODEL_V_B__, cameras: 'cameras-b.json?v=' + __MODEL_V_B__ },
+};
 export type Scenario = 'existing' | 'proposed';
 
 // Blender watts -> three's units in the same radiometric scale as the sun (strength 6.5): W / 4π for points
@@ -246,12 +252,14 @@ export class Model {
   }
 
   /** Start downloading the model and lights. Doesn't need the renderer, so it runs while WebGPU starts up. */
-  static fetch(base: string, onProgress: (f: number) => void) {
+  /** Round 19: only the chosen layout's files: SK02's (a) or Layout B's (-b), each with its own content hash. */
+  static fetch(base: string, layout: Layout, onProgress: (f: number) => void) {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
+    const f = MODEL_FILES[layout];
     return Promise.all([
-      loader.loadAsync(base + 'pool-model.glb?v=' + __MODEL_V__, e => { if (e.total) onProgress(e.loaded / e.total); }),
-      fetch(base + 'lights.json?v=' + __MODEL_V__).then(r => (r.ok ? r.json() : [])).catch(() => []) as Promise<LightDef[]>,
+      loader.loadAsync(base + f.glb, e => { if (e.total) onProgress(e.loaded / e.total); }),
+      fetch(base + f.lights).then(r => (r.ok ? r.json() : [])).catch(() => []) as Promise<LightDef[]>,
     ]);
   }
 

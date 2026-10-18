@@ -23,9 +23,10 @@ const modelFiles = (): Plugin => ({
 
 // A content hash of the exported model files, added to their URLs as ?v=… so public/_headers can let browsers
 // keep them for a week: a new export changes the hash on the next build, so nobody gets a stale model.
-const modelVersion = () => {
+// Layout B's files (-b) get their own hash, so a new export of one layout doesn't refetch the other.
+const modelVersion = (suffix = '') => {
   const h = createHash('sha1');
-  for (const f of ['pool-model.glb', 'lights.json', 'cameras.json']) {
+  for (const f of [`pool-model${suffix}.glb`, `lights${suffix}.json`, `cameras${suffix}.json`]) {
     const p = join('public/model/web', f);
     if (existsSync(p)) h.update(readFileSync(p));
   }
@@ -33,7 +34,7 @@ const modelVersion = () => {
 };
 
 export default defineConfig({
-  define: { __MODEL_V__: JSON.stringify(modelVersion()) },
+  define: { __MODEL_V__: JSON.stringify(modelVersion()), __MODEL_V_B__: JSON.stringify(modelVersion('-b')) },
   base: '/model/',
   publicDir: false,
   plugins: [modelFiles()],

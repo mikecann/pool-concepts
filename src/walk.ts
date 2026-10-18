@@ -179,6 +179,30 @@ export class Walker {
     if (this.poolSurfaceAt(x, z, fromY) > g - 0.01) return null;   // not into the pool or spa either
     return g;
   }
+  /**
+   * Round 19: the nearest spot to (x, z) you could stand on at about this level, for a layout swap, where the spot you
+   * stood on may now be inside a wall or over the moved pool: a dry floor within 0.6 m up or down, headroom to at
+   * least kneel (the pump room is 0.96 m), and no wall within the capsule's radius. Searches out to maxR, nearest first.
+   */
+  nearestStand(x: number, z: number, feetY: number, maxR = 3) {
+    const ok = (px: number, pz: number) => {
+      const g = this.walkableAt(px, pz, feetY + 0.6);
+      if (g === null || Math.abs(g - feetY) > 0.6 || this.headroomAt(px, pz, g) < 0.9) return null;
+      for (const [dx, dz] of [[RADIUS, 0], [-RADIUS, 0], [0, RADIUS], [0, -RADIUS]]) {
+        const h = this.groundAt(px + dx, pz + dz, g + 1.2);
+        if (Number.isFinite(h) && h > g + STEP) return null;
+      }
+      return g;
+    };
+    for (let r = 0; r <= maxR + 1e-6; r += 0.1) {
+      const n = r === 0 ? 1 : Math.max(8, Math.round((2 * Math.PI * r) / 0.1));
+      for (let i = 0; i < n; i++) {
+        const px = x + r * Math.cos((i / n) * Math.PI * 2), pz = z + r * Math.sin((i / n) * Math.PI * 2), g = ok(px, pz);
+        if (g !== null) return new Vector3(px, g, pz);
+      }
+    }
+    return null;
+  }
   /** Where the walker last stood on solid ground (for leaving drone mode somewhere sensible). */
   readonly lastStood = new Vector3(1.3, 2.37, 2.6);
 
