@@ -32,7 +32,7 @@ check('the post exists', post[2] > 0.05, `x ${post[0].toFixed(2)} z ${post[1].to
 
 // --- blanket box at the deep end: E unrolls across the pool, E again rolls it back
 await p.evaluate(() => { __viewer.model.roller = 'roller_pit'; __viewer.model.apply(); __viewer.walker.rebuild(__viewer.model.root); });
-check('the cavity paving hides when its box is chosen', (await visible('pitfill_roller_pit_concourse')) === false && (await visible('pitfill_roller_pit_shallow_concourse')) !== false);
+check('the cavity paving hides when its box is chosen', (await visible('pitfill_roller_pit_roller_channel_concourse')) === false && (await visible('pitfill_roller_pit_shallow_concourse')) !== false);
 const box = await p.evaluate(() => { const b = __viewer.blankets.boxes.find(b => b.group === 'roller_pit'); return [b.hinge.centre.x, b.hinge.centre.z]; });
 await p.evaluate(([x, z]) => { __viewer.place(x, 3, z + 1.3, 0, -25); }, box);
 await wait(600);

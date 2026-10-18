@@ -34,6 +34,8 @@ const ROLLER = [
     <p>The same roll-on cover parked at the canal end.</p>`],
   ["roller_lowpro", "Low-profile, deep end", `<b>Low-profile roller at the deep end</b>
     <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`],
+  ["roller_channel", "Open channel, deep end", `<b>Open channel at the deep end</b>
+    <p>An open, concrete-lined trench 0.42 m deep behind the deep-end coping, with a <a href="https://daisypoolcovers.com.au/pool-rollers/stationary/sq-pool-roller" target="_blank" rel="noopener">Daisy SQ</a> roller standing in it and no lid. A standard roller doesn't fit: its stands need 0.6 m of floor and it would need a 0.75 m trench. The open trench is a trip hazard beside the coping and collects leaves and water, so it needs a drain; a grate or a short rail may come later.</p>`],
 ];
 const KITCHEN = [
   ["kitchen_split", "Split by the gate", `<b>Either side of SK02's gate</b>

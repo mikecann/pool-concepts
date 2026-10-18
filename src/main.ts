@@ -468,6 +468,16 @@ async function main() {
     if (!hit || !FLOORS.test((hit.object as any).material?.name ?? '') || hit.point.y < 1.5) return null;
     return walker.walkableAt(x, z, hit.point.y + 0.3) !== null ? hit.point.y : null;
   };
+  /** The first solid, visible surface straight down from p, and whether it's a floor (FLOORS) or something on one. */
+  const surfaceBelow = (p: Vector3) => {
+    landRay.set(p, down);
+    const hit = landRay.intersectObject(model.root, true).find(h => {
+      let o: any = h.object; while (o) { if (!o.visible) return false; o = o.parent; }
+      const m = h.object as any;
+      return m.isMesh && !m.userData.water && !m.userData.people && m.userData.lod !== 'far' && m.userData.collide !== false;
+    });
+    return hit ? { y: hit.point.y, floor: FLOORS.test((hit.object as any).material?.name ?? '') } : null;
+  };
   let restoringMode = false;
   const setMode = (m: Mode) => {
     const from = walker.mode;
@@ -566,7 +576,14 @@ async function main() {
       showHint(`${VIEW_NAMES[name] ?? 'That view'} is from the air<small>Switch to Fly or Drone for the full view</small>`, 3500);
     } else {
       // stand where the render camera is (its height says if it's seated or standing)
-      if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch, p.y); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch, 1.4, p.y);
+      // Round 20: unless a standing camera is over something that isn't a floor (view 10 is above the boundary wall and
+      // its rail), then stand on the nearest real floor in the yard, looking at the same thing
+      const under = surfaceBelow(p);
+      const beside = under && !under.floor ? walker.nearestStand(p.x, p.z, p.y - 1.65, 3, 1.85, (x, z, y) => surfaceBelow(new Vector3(x, y + 0.3, z))?.floor === true) : null;
+      if (beside && p.y - beside.y > 1.4) {
+        const look = t.clone().sub(beside), by = Math.atan2(-look.x, -look.z), bp = Math.atan2(look.y - 1.65, Math.hypot(look.x, look.z));
+        if (instant) walker.place(beside.x, beside.y, beside.z, by, bp); else walker.glideTo(beside, by, bp, 1.4);
+      } else if (instant) walker.place(p.x, p.y - 1.2, p.z, yaw, pitch, p.y); else walker.glideTo(new Vector3(p.x, p.y - 1.2, p.z), yaw, pitch, 1.4, p.y);
     }
     void ground;
     shadowDirty = true;
@@ -722,7 +739,7 @@ async function main() {
   const dropped: string[] = [];
   const keepIfBuilt = () => {
     const built = new Set<string>();
-    model.root.traverse(o => { for (const k of [o.userData.option, o.userData.hide_option]) if (typeof k === 'string') k.split('+').forEach(p => built.add(p)); });
+    model.root.traverse(o => { for (const k of [o.userData.option, o.userData.hide_option]) if (typeof k === 'string') k.split(/[+|]/).forEach(p => built.add(p)); });
     return (key: keyof typeof OPTION_DEFAULTS, v: string | undefined) => {
       const def = OPTION_DEFAULTS[key];
       if (!v) return def;
@@ -863,8 +880,11 @@ async function main() {
   coverToggle = toggleCover; coversRef = covers;
   model.apply();
   let nearHinge: ReturnType<Hinges['nearest']> = null, lowNote = false;
+  // Round 20: a blanket roll with no lids (the open roller channel), used from beside the roll itself
+  let nearRoll: ReturnType<Blankets['nearLidless']> = null;
   const toggleGate = () => {
     if (nearGate) { model.swingGate(nearGate, nearGate.to === 0); return; }
+    if (!nearHinge && nearRoll) { blankets.toggle(nearRoll, hinges); shadowHold = Math.max(shadowHold, 50); return; }
     if (!nearHinge && nearCover) { coverToggle(nearCover); return; }
     if (!nearHinge) return;
     const box = blankets.forHinge(nearHinge);
@@ -909,10 +929,11 @@ async function main() {
     if (blankets.update(dt, hinges)) shadowDirty = true;
     for (const c of coversRef?.update(dt) ?? []) coverFinished(c);
     if (coversRef?.list.some(c => c.moving)) shadowDirty = true;
-    nearCover = !near && !nearHinge && canUse ? nearCoverAt(f.x, f.z, eyeY) : null;
+    nearRoll = !near && !nearHinge && canUse && S.scenario === 'proposed' ? blankets.nearLidless(f.x, f.z, eyeY, b => b.group === model.roller && (b.phase === 'in' || b.phase === 'out')) : null;
+    nearCover = !near && !nearHinge && !nearRoll && canUse ? nearCoverAt(f.x, f.z, eyeY) : null;
     if (hinges.update(dt)) shadowDirty = true;
-    const box = blankets.forHinge(nearHinge);
-    const what = near ? 'gate' : nearHinge ? nearHinge.kind : nearCover ? 'cover' : '';
+    const box = blankets.forHinge(nearHinge) ?? nearRoll;
+    const what = near ? 'gate' : nearHinge ? nearHinge.kind : nearRoll ? 'blanket' : nearCover ? 'cover' : '';
     const open = near ? near.to === 1 : nearHinge ? nearHinge.to === 1 : false;
     const coverOn = nearCover ? (nearCover.kind === 'pool' ? model.poolCover === 'on' : model.spaCover === 'spa_cover_on') : false;
     const verb = box ? blankets.label(box) : nearCover ? `roll the ${nearCover.kind === 'spa' ? 'hot tub' : 'pool'} cover ${coverOn ? 'off' : 'on'}` : `${open ? 'close' : 'open'} the ${what}`;

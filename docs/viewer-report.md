@@ -1063,6 +1063,22 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **B, Medium, view 15 with the lounge kitchen:** 550 draw calls and 2,687k triangles, the same as A. Fps not measured (Blender running).
 - **Found, not from this round:** view 10's camera is in the play area, so with the play area moved north, the View button for posts lands you on the climbing frame, crouched. This happens in both layouts.
 
+## Round 20
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** batch 7, both layouts (252 images, incl. Layout B option renders `layoutb_<cam>_<option>.jpg`, not used yet) | Done |
+| 2 | **`roller_channel` card** ("Open channel, deep end"): a Daisy SQ in an open 0.42 m trench, no lid; Daisy SQ link; More covers why not a standard roller (0.6 m stands, 0.75 m trench) and the trip hazard, leaves and water, the drain, and a possible grate or rail. Renders page too. **Lidless blankets** (blanket.ts): a `pit_roll` with `blanket_from` and no lid hinge is a box of its own; E within 1.6 m of the roll (walking or flying) unrolls it straight away with the same animation, and rolls it back | `review/round20/channel_a.png`, `test/*_channel_*.png` |
+| 3 | **`pier_straight_edge` card** ("Deck edge, then past the pier"). The gate keys work as for the others: SK02's gate on the deck edge, the duck's gate with the one long bench | `test/pier_straight_edge_18.png` |
+| 4 | **`hide_option: "a|b"`:** split on `|`, hidden when any is chosen (the deep end's fill now goes for the blanket box and the channel) | |
+| 5 | **View 10:** the camera is over the boundary wall and its steel rail (every play option, not only play_moved as I said in round 19), so walking there landed on the rail. Walking "go to" now checks the surface under a standing camera: if it isn't a floor, you stand on the nearest real floor within 3 m (0.4 m in, on the aggregate) looking at the same target. Seated views are untouched | `test/view10_play_moved.png` |
+
+**Checks:**
+- **New `scripts/r20-test.mjs`:** channel card, link and More text; the fill is cut away for the channel and the box and back for none; E unrolls and rolls back, walking and flying, in both layouts; the deck-edge fence with both gates; view 10 on the floor; seated view 06 unchanged. PASS.
+- **Test fixes:** r16-test uses the fill's new mesh name.
+- **Other checks:** settings, r16, r17, r19, tools, switch, walk, pages and phone all pass. check-images: 252 checked, 0 missing, 1 awaiting.
+- **Fps, both layouts, Low/Medium/High at DPR 1 and 2, five places:** 60 everywhere except A High in the pump room at DPR 2 (55). All of it was measured while a model-agent Blender job was running, so it isn't a clean number.
+
 ## Summary
 
 **Round 17:**

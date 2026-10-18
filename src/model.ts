@@ -818,8 +818,9 @@ export class Model {
       if (!String(u.option).split('+').every(part => chosen.includes(part))) return false;
     }
     // hide_option (Hide_<option> collections): shown unless that option is chosen. The paving that fills a blanket
-    // box's cavity, and the bathers in the pool and spa once a cover is fully on.
-    if (u.hide_option && this.scenario === 'proposed' && this.hidden(u.hide_option)) return false;
+    // box's cavity, and the bathers in the pool and spa once a cover is fully on. Round 20: "a|b" hides for any of them
+    // (the deep end's fill is cut by the blanket box and the open channel alike).
+    if (u.hide_option && this.scenario === 'proposed' && String(u.hide_option).split('|').some(k => this.hidden(k))) return false;
     if (u.people && !this.people) return false;
     if (u.lod === 'far' && (!this.showFar || !this.farReady)) return false;
     return true;
