@@ -37,6 +37,7 @@
     <div class="hint-pill" id="hint" hidden></div>
     <div class="measure-bar" id="measure-bar" hidden><span id="measure-text">Click two points to measure</span><button type="button" id="measure-clear">Clear</button><button type="button" id="measure-done">Done</button></div>
     <div class="measure-labels" id="measure-labels" aria-live="polite"></div>
+    <div class="dim-labels" id="dim-labels" hidden></div>
     <div class="fly-pad" id="fly-pad" hidden><button type="button" id="fly-up" aria-label="Fly up">&#9650;</button><button type="button" id="fly-down" aria-label="Fly down">&#9660;</button></div>
     <div class="gate-tip" id="gate-tip" hidden></div>
     <button type="button" class="gate-btn" id="gate-btn" hidden>Open the gate</button>
@@ -143,6 +144,13 @@
           <div class="cards" id="cards-nfence"></div>
         </section>
       </div>
+      <div class="cat-panel" role="tabpanel" data-cat="boundary" id="cat-boundary">
+        <section class="block" aria-labelledby="bfence-h">
+          <h3 class="fl" id="bfence-h">Boundary fence</h3>
+          <details class="sec-info"><summary aria-label="About this choice" title="About this choice">i</summary><p>The west boundary along the pool is part of the pool barrier, so under WA's pool rules it has to be at least 1.8 m high, measured from the ground on our side, and have nothing to climb in its top 900 mm on our side (that includes the face of the fence itself). It's the dividing fence, so any change needs the neighbour to agree. Today shows the existing fence.</p></details>
+          <div class="cards" id="cards-bfence"></div>
+        </section>
+      </div>
       <div class="cat-panel" role="tabpanel" data-cat="passage" id="cat-passage">
         <section class="block" aria-labelledby="passage-h">
           <h3 class="fl" id="passage-h">Side path</h3>
@@ -172,6 +180,10 @@
       <div class="field row">
         <label class="check"><input type="checkbox" id="opt-people" checked> People for scale</label>
         <label class="check"><input type="checkbox" id="opt-fps"> Frame rate</label>
+      </div>
+      <div class="field">
+        <label class="check"><input type="checkbox" id="opt-dims"> Dimensions <span class="kbd-hint desk-only">(L)</span></label>
+        <div class="chips small" role="group" aria-label="Which dimensions" id="opt-dimgroups"></div>
       </div>
       <div class="field">
         <span class="fl">Picture quality</span>

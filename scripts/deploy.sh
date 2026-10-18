@@ -7,10 +7,10 @@ cd "$(dirname "$0")/.."
 npm run build
 npx wrangler@4.112.0 deploy
 V=$(grep -o "pool-model\.glb?v=[A-Za-z0-9_-]*" public/model/assets/walk-*.js | head -1 | sed 's/.*?v=//')
-for f in pool-model.glb cameras.json lights.json; do
+for f in pool-model.glb cameras.json lights.json dims.json; do
   curl -s -o /dev/null -w "warm $f %{http_code} %{size_download} bytes %{time_total}s\n" "https://pool.mikecann.app/model/web/$f?v=$V"
 done
 VB=$(grep -o "pool-model-b\.glb?v=[A-Za-z0-9_-]*" public/model/assets/walk-*.js | head -1 | sed 's/.*?v=//')
-for f in pool-model-b.glb cameras-b.json lights-b.json; do
+for f in pool-model-b.glb cameras-b.json lights-b.json dims-b.json; do
   curl -s -o /dev/null -w "warm $f %{http_code} %{size_download} bytes %{time_total}s\n" "https://pool.mikecann.app/model/web/$f?v=$VB"
 done

@@ -1,0 +1,1692 @@
+[
+ {
+  "id": "pool_length",
+  "label": "Pool, inside length",
+  "group": "pool",
+  "a": [
+   -5.611,
+   2.376,
+   1.485
+  ],
+  "b": [
+   -6.161,
+   2.376,
+   9.465
+  ],
+  "value_m": 7.999,
+  "set": "proposed"
+ },
+ {
+  "id": "pool_width",
+  "label": "Pool, inside width",
+  "group": "pool",
+  "a": [
+   -5.611,
+   2.376,
+   1.485
+  ],
+  "b": [
+   -1.621,
+   2.376,
+   1.765
+  ],
+  "value_m": 4.0,
+  "set": "proposed"
+ },
+ {
+  "id": "coping_width",
+  "label": "Coping width",
+  "group": "pool",
+  "a": [
+   -1.874,
+   2.376,
+   5.444
+  ],
+  "b": [
+   -1.475,
+   2.376,
+   5.472
+  ],
+  "value_m": 0.4,
+  "set": "proposed"
+ },
+ {
+  "id": "water_to_coping",
+  "label": "Water level below the coping",
+  "group": "pool",
+  "a": [
+   -2.074,
+   2.376,
+   5.431
+  ],
+  "b": [
+   -2.074,
+   2.22,
+   5.431
+  ],
+  "value_m": 0.156,
+  "set": "proposed"
+ },
+ {
+  "id": "depth_shallow",
+  "label": "Shallow end depth (water to floor)",
+  "group": "pool",
+  "a": [
+   -3.717,
+   2.22,
+   3.121
+  ],
+  "b": [
+   -3.717,
+   1.37,
+   3.121
+  ],
+  "value_m": 0.85,
+  "set": "proposed"
+ },
+ {
+  "id": "depth_deep",
+  "label": "Deep end depth (water to floor)",
+  "group": "pool",
+  "a": [
+   -4.098,
+   2.22,
+   8.608
+  ],
+  "b": [
+   -4.098,
+   0.37,
+   8.608
+  ],
+  "value_m": 1.85,
+  "set": "proposed"
+ },
+ {
+  "id": "pool_to_boundary_north",
+  "label": "Pool (shell edge) to the boundary wall, north end",
+  "group": "pool",
+  "a": [
+   -5.611,
+   2.376,
+   1.485
+  ],
+  "b": [
+   -6.617,
+   2.376,
+   1.244
+  ],
+  "value_m": 1.034,
+  "set": "proposed"
+ },
+ {
+  "id": "pool_to_boundary_south",
+  "label": "Pool (shell edge) to the boundary wall, south end",
+  "group": "pool",
+  "a": [
+   -6.161,
+   2.376,
+   9.465
+  ],
+  "b": [
+   -8.456,
+   2.376,
+   8.915
+  ],
+  "value_m": 2.359,
+  "set": "proposed"
+ },
+ {
+  "id": "coping_to_boundary",
+  "label": "Coping to the boundary wall (closest)",
+  "group": "pool",
+  "a": [
+   -5.983,
+   2.376,
+   1.058
+  ],
+  "b": [
+   -6.54,
+   2.376,
+   0.924
+  ],
+  "value_m": 0.573,
+  "set": "proposed"
+ },
+ {
+  "id": "coping_to_north_fence_nfence_as_drawn",
+  "label": "Coping to the north pool fence",
+  "group": "pool",
+  "a": [
+   -1.195,
+   2.376,
+   1.394
+  ],
+  "b": [
+   -1.076,
+   2.376,
+   -0.265
+  ],
+  "value_m": 1.663,
+  "set": "proposed",
+  "option": "nfence_as_drawn"
+ },
+ {
+  "id": "coping_to_north_fence_nfence_moved",
+  "label": "Coping to the north pool fence",
+  "group": "pool",
+  "a": [
+   -1.195,
+   2.376,
+   1.394
+  ],
+  "b": [
+   -0.967,
+   2.376,
+   -1.761
+  ],
+  "value_m": 3.162,
+  "set": "proposed",
+  "option": "nfence_moved"
+ },
+ {
+  "id": "coping_to_lounge_wall",
+  "label": "Coping to the lounge wall (paving strip)",
+  "group": "pool",
+  "a": [
+   -1.79,
+   2.376,
+   10.03
+  ],
+  "b": [
+   -1.287,
+   2.376,
+   10.065
+  ],
+  "value_m": 0.504,
+  "set": "proposed"
+ },
+ {
+  "id": "deep_strip_west",
+  "label": "Deep end, coping to the terrace wall (west corner)",
+  "group": "pool",
+  "a": [
+   -6.189,
+   2.376,
+   9.864
+  ],
+  "b": [
+   -6.217,
+   2.376,
+   10.278
+  ],
+  "value_m": 0.415,
+  "set": "proposed",
+  "note": "plus the 0.31 m wall cap"
+ },
+ {
+  "id": "deep_strip_east",
+  "label": "Deep end, coping to the terrace wall (east corner)",
+  "group": "pool",
+  "a": [
+   -2.199,
+   2.376,
+   10.144
+  ],
+  "b": [
+   -2.274,
+   2.376,
+   11.238
+  ],
+  "value_m": 1.097,
+  "set": "proposed",
+  "note": "plus the 0.31 m wall cap"
+ },
+ {
+  "id": "shallow_steps",
+  "label": "Shallow-end corner steps (each leg)",
+  "group": "pool",
+  "a": [
+   -5.609,
+   2.0,
+   1.486
+  ],
+  "b": [
+   -3.863,
+   2.0,
+   1.607
+  ],
+  "value_m": 1.75,
+  "set": "proposed"
+ },
+ {
+  "id": "lounge_width",
+  "label": "Lounge, inside width",
+  "group": "lounge",
+  "a": [
+   -0.851,
+   1.67,
+   7.019
+  ],
+  "b": [
+   2.132,
+   1.67,
+   7.226
+  ],
+  "value_m": 2.99,
+  "set": "proposed"
+ },
+ {
+  "id": "lounge_length",
+  "label": "Lounge, inside length (north wall to the south steps' top)",
+  "group": "lounge",
+  "a": [
+   0.675,
+   1.67,
+   5.118
+  ],
+  "b": [
+   0.404,
+   1.67,
+   9.023
+  ],
+  "value_m": 3.914,
+  "set": "proposed"
+ },
+ {
+  "id": "lounge_depth",
+  "label": "Lounge floor below the concourse",
+  "group": "lounge",
+  "a": [
+   0.536,
+   2.37,
+   7.115
+  ],
+  "b": [
+   0.536,
+   1.67,
+   7.115
+  ],
+  "value_m": 0.7,
+  "set": "proposed"
+ },
+ {
+  "id": "bench_north_length",
+  "label": "North bench length",
+  "group": "lounge",
+  "a": [
+   0.276,
+   2.12,
+   5.092
+  ],
+  "b": [
+   2.231,
+   2.12,
+   5.228
+  ],
+  "value_m": 1.96,
+  "set": "proposed"
+ },
+ {
+  "id": "bench_east_length",
+  "label": "East bench length",
+  "group": "lounge",
+  "a": [
+   2.208,
+   2.12,
+   6.129
+  ],
+  "b": [
+   2.051,
+   2.12,
+   8.403
+  ],
+  "value_m": 2.28,
+  "set": "proposed"
+ },
+ {
+  "id": "bench_depth",
+  "label": "Bench depth",
+  "group": "lounge",
+  "a": [
+   1.074,
+   2.12,
+   5.148
+  ],
+  "b": [
+   1.011,
+   2.12,
+   6.045
+  ],
+  "value_m": 0.9,
+  "set": "proposed"
+ },
+ {
+  "id": "steps_sunken_nw_width",
+  "label": "North-west steps, flight width",
+  "group": "lounge",
+  "a": [
+   0.235,
+   2.195,
+   5.39
+  ],
+  "b": [
+   -0.733,
+   2.195,
+   5.323
+  ],
+  "value_m": 0.97,
+  "set": "proposed"
+ },
+ {
+  "id": "steps_sunken_s_width",
+  "label": "South steps, flight width",
+  "group": "lounge",
+  "a": [
+   0.29,
+   2.195,
+   9.97
+  ],
+  "b": [
+   -1.062,
+   2.195,
+   9.871
+  ],
+  "value_m": 1.356,
+  "set": "proposed"
+ },
+ {
+  "id": "firepit_to_north_bench",
+  "label": "Fire pit to the north bench's front",
+  "group": "lounge",
+  "a": [
+   0.169,
+   1.97,
+   7.17
+  ],
+  "b": [
+   0.25,
+   1.97,
+   5.993
+  ],
+  "value_m": 1.18,
+  "set": "proposed"
+ },
+ {
+  "id": "firepit_to_east_bench",
+  "label": "Fire pit to the east bench's front",
+  "group": "lounge",
+  "a": [
+   0.605,
+   1.97,
+   7.671
+  ],
+  "b": [
+   1.196,
+   1.97,
+   7.712
+  ],
+  "value_m": 0.593,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_diameter",
+  "label": "Spa diameter",
+  "group": "spa",
+  "a": [
+   0.59,
+   2.39,
+   9.69
+  ],
+  "b": [
+   2.59,
+   2.39,
+   9.69
+  ],
+  "value_m": 2.0,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_rim",
+  "label": "Spa rim above the deck",
+  "group": "spa",
+  "a": [
+   2.59,
+   2.37,
+   9.69
+  ],
+  "b": [
+   2.59,
+   2.39,
+   9.69
+  ],
+  "value_m": 0.02,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_to_wall_east",
+  "label": "Spa to the terrace wall (east)",
+  "group": "spa",
+  "a": [
+   2.588,
+   2.37,
+   9.759
+  ],
+  "b": [
+   3.554,
+   2.37,
+   9.826
+  ],
+  "value_m": 0.969,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_to_wall_south",
+  "label": "Spa to the terrace wall (south)",
+  "group": "spa",
+  "a": [
+   1.521,
+   2.37,
+   10.688
+  ],
+  "b": [
+   1.465,
+   2.37,
+   11.495
+  ],
+  "value_m": 0.81,
+  "set": "proposed"
+ },
+ {
+  "id": "pump_room_headroom",
+  "label": "Pump room clear headroom (under the joists)",
+  "group": "spa",
+  "a": [
+   -0.771,
+   1.27,
+   10.934
+  ],
+  "b": [
+   -0.771,
+   2.23,
+   10.934
+  ],
+  "value_m": 0.96,
+  "set": "proposed"
+ },
+ {
+  "id": "spa_roll_to_rim",
+  "label": "Rolled spa cover to the spa's rim",
+  "group": "spa",
+  "a": [
+   2.631,
+   2.57,
+   10.047
+  ],
+  "b": [
+   2.535,
+   2.57,
+   10.016
+  ],
+  "value_m": 0.101,
+  "set": "proposed",
+  "option": "spa_cover_rolled"
+ },
+ {
+  "id": "roof_ns",
+  "label": "Alfresco roof, house wall to the south edge",
+  "group": "alfresco",
+  "a": [
+   1.086,
+   5.091,
+   0.638
+  ],
+  "b": [
+   0.778,
+   5.091,
+   5.077
+  ],
+  "value_m": 4.45,
+  "set": "proposed"
+ },
+ {
+  "id": "roof_ew",
+  "label": "Alfresco roof, west edge to east edge",
+  "group": "alfresco",
+  "a": [
+   -0.776,
+   5.032,
+   2.914
+  ],
+  "b": [
+   3.164,
+   5.17,
+   3.188
+  ],
+  "value_m": 3.952,
+  "set": "proposed"
+ },
+ {
+  "id": "roof_high",
+  "label": "Roof top above the paving, high (east) side",
+  "group": "alfresco",
+  "a": [
+   3.164,
+   2.37,
+   3.188
+  ],
+  "b": [
+   3.164,
+   5.37,
+   3.188
+  ],
+  "value_m": 3.0,
+  "set": "proposed"
+ },
+ {
+  "id": "roof_low",
+  "label": "Roof top above the paving, low (west) side",
+  "group": "alfresco",
+  "a": [
+   -0.776,
+   2.37,
+   2.914
+  ],
+  "b": [
+   -0.776,
+   5.232,
+   2.914
+  ],
+  "value_m": 2.862,
+  "set": "proposed"
+ },
+ {
+  "id": "ceiling_low",
+  "label": "Ceiling above the paving, low side",
+  "group": "alfresco",
+  "a": [
+   -0.408,
+   2.37,
+   1.937
+  ],
+  "b": [
+   -0.408,
+   5.043,
+   1.937
+  ],
+  "value_m": 2.673,
+  "set": "proposed"
+ },
+ {
+  "id": "post_as_drawn_to_house",
+  "label": "Post to the house wall",
+  "group": "alfresco",
+  "a": [
+   -0.504,
+   3.37,
+   4.477
+  ],
+  "b": [
+   -0.231,
+   3.37,
+   0.546
+  ],
+  "value_m": 3.94,
+  "set": "proposed",
+  "option": "post_as_drawn"
+ },
+ {
+  "id": "post_as_drawn_to_coping",
+  "label": "Post to the pool coping",
+  "group": "alfresco",
+  "a": [
+   -0.504,
+   2.67,
+   4.477
+  ],
+  "b": [
+   -1.403,
+   2.67,
+   4.415
+  ],
+  "value_m": 0.901,
+  "set": "proposed",
+  "option": "post_as_drawn"
+ },
+ {
+  "id": "post_as_drawn_to_lounge_wall",
+  "label": "Post to the lounge wall",
+  "group": "alfresco",
+  "a": [
+   -0.504,
+   2.67,
+   4.477
+  ],
+  "b": [
+   -0.528,
+   2.67,
+   4.823
+  ],
+  "value_m": 0.347,
+  "set": "proposed",
+  "option": "post_as_drawn"
+ },
+ {
+  "id": "post_corner_to_house",
+  "label": "Post to the house wall",
+  "group": "alfresco",
+  "a": [
+   -0.834,
+   3.37,
+   4.464
+  ],
+  "b": [
+   -0.56,
+   3.37,
+   0.523
+  ],
+  "value_m": 3.95,
+  "set": "proposed",
+  "option": "post_corner"
+ },
+ {
+  "id": "post_corner_to_coping",
+  "label": "Post to the pool coping",
+  "group": "alfresco",
+  "a": [
+   -0.834,
+   2.67,
+   4.464
+  ],
+  "b": [
+   -1.404,
+   2.67,
+   4.425
+  ],
+  "value_m": 0.571,
+  "set": "proposed",
+  "option": "post_corner"
+ },
+ {
+  "id": "post_corner_to_lounge_wall",
+  "label": "Post to the lounge wall",
+  "group": "alfresco",
+  "a": [
+   -0.834,
+   2.67,
+   4.464
+  ],
+  "b": [
+   -0.857,
+   2.67,
+   4.8
+  ],
+  "value_m": 0.337,
+  "set": "proposed",
+  "option": "post_corner"
+ },
+ {
+  "id": "post_west_to_house",
+  "label": "Post to the house wall",
+  "group": "alfresco",
+  "a": [
+   -0.75,
+   3.37,
+   3.267
+  ],
+  "b": [
+   -0.56,
+   3.37,
+   0.523
+  ],
+  "value_m": 2.75,
+  "set": "proposed",
+  "option": "post_west"
+ },
+ {
+  "id": "post_west_to_coping",
+  "label": "Post to the pool coping",
+  "group": "alfresco",
+  "a": [
+   -0.75,
+   2.67,
+   3.267
+  ],
+  "b": [
+   -1.321,
+   2.67,
+   3.228
+  ],
+  "value_m": 0.572,
+  "set": "proposed",
+  "option": "post_west"
+ },
+ {
+  "id": "post_west_to_lounge_wall",
+  "label": "Post to the lounge wall",
+  "group": "alfresco",
+  "a": [
+   -0.75,
+   2.67,
+   3.267
+  ],
+  "b": [
+   -0.858,
+   2.67,
+   4.8
+  ],
+  "value_m": 1.537,
+  "set": "proposed",
+  "option": "post_west"
+ },
+ {
+  "id": "post_corner_steps_to_house",
+  "label": "Post to the house wall",
+  "group": "alfresco",
+  "a": [
+   -0.865,
+   3.37,
+   4.913
+  ],
+  "b": [
+   -0.56,
+   3.37,
+   0.523
+  ],
+  "value_m": 4.4,
+  "set": "proposed",
+  "option": "post_corner_steps"
+ },
+ {
+  "id": "post_corner_steps_to_coping",
+  "label": "Post to the pool coping",
+  "group": "alfresco",
+  "a": [
+   -0.865,
+   2.67,
+   4.913
+  ],
+  "b": [
+   -1.435,
+   2.67,
+   4.874
+  ],
+  "value_m": 0.571,
+  "set": "proposed",
+  "option": "post_corner_steps"
+ },
+ {
+  "id": "post_two_to_house",
+  "label": "Post to the house wall",
+  "group": "alfresco",
+  "a": [
+   -0.844,
+   3.37,
+   4.614
+  ],
+  "b": [
+   -0.56,
+   3.37,
+   0.523
+  ],
+  "value_m": 4.1,
+  "set": "proposed",
+  "option": "post_two"
+ },
+ {
+  "id": "post_two_to_coping",
+  "label": "Post to the pool coping",
+  "group": "alfresco",
+  "a": [
+   -0.844,
+   2.67,
+   4.614
+  ],
+  "b": [
+   -1.414,
+   2.67,
+   4.574
+  ],
+  "value_m": 0.571,
+  "set": "proposed",
+  "option": "post_two"
+ },
+ {
+  "id": "post_two_to_lounge_wall",
+  "label": "Post to the lounge wall",
+  "group": "alfresco",
+  "a": [
+   -0.844,
+   2.67,
+   4.614
+  ],
+  "b": [
+   -0.857,
+   2.67,
+   4.8
+  ],
+  "value_m": 0.187,
+  "set": "proposed",
+  "option": "post_two"
+ },
+ {
+  "id": "kitchen_split_run0",
+  "label": "Kitchen bench length",
+  "group": "alfresco",
+  "a": [
+   3.101,
+   3.27,
+   0.928
+  ],
+  "b": [
+   2.934,
+   3.27,
+   3.322
+  ],
+  "value_m": 2.4,
+  "set": "proposed",
+  "option": "kitchen_split"
+ },
+ {
+  "id": "kitchen_split_run1",
+  "label": "Kitchen bench length",
+  "group": "alfresco",
+  "a": [
+   2.872,
+   3.27,
+   4.22
+  ],
+  "b": [
+   2.81,
+   3.27,
+   5.118
+  ],
+  "value_m": 0.9,
+  "set": "proposed",
+  "option": "kitchen_split"
+ },
+ {
+  "id": "kitchen_continuous_run0",
+  "label": "Kitchen bench length",
+  "group": "alfresco",
+  "a": [
+   3.101,
+   3.27,
+   0.928
+  ],
+  "b": [
+   2.872,
+   3.27,
+   4.22
+  ],
+  "value_m": 3.3,
+  "set": "proposed",
+  "option": "kitchen_continuous"
+ },
+ {
+  "id": "kitchen_lounge_length",
+  "label": "Lounge kitchen bench length",
+  "group": "alfresco",
+  "a": [
+   0.314,
+   3.27,
+   4.544
+  ],
+  "b": [
+   2.159,
+   3.27,
+   4.672
+  ],
+  "value_m": 1.85,
+  "set": "proposed",
+  "option": "kitchen_lounge"
+ },
+ {
+  "id": "kitchen_lounge_to_fence",
+  "label": "Lounge kitchen to the east fence",
+  "group": "alfresco",
+  "a": [
+   2.179,
+   2.87,
+   4.673
+  ],
+  "b": [
+   3.227,
+   2.87,
+   4.746
+  ],
+  "value_m": 1.05,
+  "set": "proposed",
+  "option": "kitchen_lounge"
+ },
+ {
+  "id": "corridor_east",
+  "label": "Walkway east of the lounge (lounge wall to the drawn east fence, over the terrace wall's cap)",
+  "group": "alfresco",
+  "a": [
+   2.363,
+   2.42,
+   6.941
+  ],
+  "b": [
+   3.081,
+   2.42,
+   6.991
+  ],
+  "value_m": 0.72,
+  "set": "proposed",
+  "note": "the paving is 0.50 m, the wall cap the rest"
+ },
+ {
+  "id": "align_lounge_house",
+  "label": "Lounge wall's outer face vs the house's west wall line",
+  "group": "alignment",
+  "a": [
+   -0.915,
+   2.42,
+   4.909
+  ],
+  "b": [
+   -0.915,
+   2.42,
+   4.909
+  ],
+  "value_m": 0.0,
+  "set": "proposed",
+  "note": "0 means in line"
+ },
+ {
+  "id": "align_roof_lounge",
+  "label": "Roof's west edge vs the lounge wall's outer face",
+  "group": "alignment",
+  "a": [
+   -0.915,
+   5.232,
+   4.909
+  ],
+  "b": [
+   -0.915,
+   5.232,
+   4.909
+  ],
+  "value_m": 0.0,
+  "set": "proposed",
+  "note": "0 means in line"
+ },
+ {
+  "id": "fence_pool_north_length",
+  "label": "North fence, run length",
+  "group": "fences",
+  "a": [
+   -6.3,
+   3.62,
+   -0.64
+  ],
+  "b": [
+   -0.73,
+   3.62,
+   -0.24
+  ],
+  "value_m": 5.584,
+  "set": "proposed",
+  "option": "nfence_as_drawn"
+ },
+ {
+  "id": "fence_pool_north_height",
+  "label": "North fence, height",
+  "group": "fences",
+  "a": [
+   -6.3,
+   2.37,
+   -0.64
+  ],
+  "b": [
+   -6.3,
+   3.62,
+   -0.64
+  ],
+  "value_m": 1.25,
+  "set": "proposed",
+  "option": "nfence_as_drawn"
+ },
+ {
+  "id": "fence_pool_north_gate",
+  "label": "Pool gate opening",
+  "group": "fences",
+  "a": [
+   -2.51,
+   2.87,
+   -0.368
+  ],
+  "b": [
+   -1.612,
+   2.87,
+   -0.303
+  ],
+  "value_m": 0.9,
+  "set": "proposed",
+  "option": "nfence_as_drawn"
+ },
+ {
+  "id": "fence_pool_north_moved_length",
+  "label": "North Moved fence, run length",
+  "group": "fences",
+  "a": [
+   -5.81,
+   3.62,
+   -2.11
+  ],
+  "b": [
+   -0.626,
+   3.62,
+   -1.736
+  ],
+  "value_m": 5.197,
+  "set": "proposed",
+  "option": "nfence_moved"
+ },
+ {
+  "id": "fence_pool_north_moved_height",
+  "label": "North Moved fence, height",
+  "group": "fences",
+  "a": [
+   -5.81,
+   2.37,
+   -2.11
+  ],
+  "b": [
+   -5.81,
+   3.62,
+   -2.11
+  ],
+  "value_m": 1.25,
+  "set": "proposed",
+  "option": "nfence_moved"
+ },
+ {
+  "id": "fence_pool_north_moved_gate",
+  "label": "Pool gate opening",
+  "group": "fences",
+  "a": [
+   -2.219,
+   2.87,
+   -1.851
+  ],
+  "b": [
+   -1.322,
+   2.87,
+   -1.786
+  ],
+  "value_m": 0.9,
+  "set": "proposed",
+  "option": "nfence_moved"
+ },
+ {
+  "id": "fence_pool_east_planter_length",
+  "label": "East Planter fence, run length",
+  "group": "fences",
+  "a": [
+   3.206,
+   3.57,
+   5.659
+  ],
+  "b": [
+   3.76,
+   3.57,
+   10.64
+  ],
+  "value_m": 5.815,
+  "set": "proposed",
+  "option": "pier_as_drawn"
+ },
+ {
+  "id": "fence_pool_east_planter_height",
+  "label": "East Planter fence, height",
+  "group": "fences",
+  "a": [
+   3.206,
+   2.37,
+   5.659
+  ],
+  "b": [
+   3.206,
+   3.57,
+   5.659
+  ],
+  "value_m": 1.2,
+  "set": "proposed",
+  "option": "pier_as_drawn"
+ },
+ {
+  "id": "pier_to_fence_as_drawn",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   3.662,
+   2.77,
+   4.826
+  ],
+  "b": [
+   3.26,
+   2.77,
+   4.802
+  ],
+  "value_m": 0.403,
+  "set": "proposed",
+  "option": "pier_as_drawn",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_tall",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   3.662,
+   2.77,
+   4.826
+  ],
+  "b": [
+   3.26,
+   2.77,
+   4.802
+  ],
+  "value_m": 0.403,
+  "set": "proposed",
+  "option": "pier_tall",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_around",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   3.695,
+   2.77,
+   4.357
+  ],
+  "b": [
+   3.702,
+   2.77,
+   4.247
+  ],
+  "value_m": 0.11,
+  "set": "proposed",
+  "option": "pier_around",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_across",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   4.163,
+   2.77,
+   4.39
+  ],
+  "b": [
+   4.381,
+   2.77,
+   4.38
+  ],
+  "value_m": 0.218,
+  "set": "proposed",
+  "option": "pier_across",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_inset",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   3.662,
+   2.77,
+   4.826
+  ],
+  "b": [
+   2.746,
+   2.77,
+   5.046
+  ],
+  "value_m": 0.942,
+  "set": "proposed",
+  "option": "pier_inset",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_straight",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   4.163,
+   2.77,
+   4.39
+  ],
+  "b": [
+   4.191,
+   2.77,
+   4.392
+  ],
+  "value_m": 0.028,
+  "set": "proposed",
+  "option": "pier_straight",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_straight_edge",
+  "label": "Pavilion pier to the pool fence",
+  "group": "fences",
+  "a": [
+   4.163,
+   2.77,
+   4.39
+  ],
+  "b": [
+   4.191,
+   2.77,
+   4.392
+  ],
+  "value_m": 0.028,
+  "set": "proposed",
+  "option": "pier_straight_edge",
+  "note": "900 mm clear needed if the pier is outside the fence"
+ },
+ {
+  "id": "bfence_existing_height_2",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -6.597,
+   2.37,
+   1.5
+  ],
+  "b": [
+   -6.597,
+   4.18,
+   1.5
+  ],
+  "value_m": 1.81,
+  "set": "proposed",
+  "option": "bfence_existing",
+  "note": "poolside option needs 1.8 m (not compliant)"
+ },
+ {
+  "id": "bfence_existing_height_9",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -8.491,
+   2.37,
+   9.4
+  ],
+  "b": [
+   -8.491,
+   3.352,
+   9.4
+  ],
+  "value_m": 0.982,
+  "set": "proposed",
+  "option": "bfence_existing",
+  "note": "poolside option needs 1.8 m (not compliant)"
+ },
+ {
+  "id": "bfence_perforated_height_5",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -7.436,
+   2.37,
+   5.0
+  ],
+  "b": [
+   -7.436,
+   4.17,
+   5.0
+  ],
+  "value_m": 1.8,
+  "set": "proposed",
+  "option": "bfence_perforated",
+  "note": "poolside option needs 1.8 m"
+ },
+ {
+  "id": "bfence_colorbond_height_5",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -7.436,
+   2.37,
+   5.0
+  ],
+  "b": [
+   -7.436,
+   4.17,
+   5.0
+  ],
+  "value_m": 1.8,
+  "set": "proposed",
+  "option": "bfence_colorbond",
+  "note": "poolside option needs 1.8 m"
+ },
+ {
+  "id": "bfence_slat_height_5",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -7.436,
+   2.37,
+   5.0
+  ],
+  "b": [
+   -7.436,
+   4.17,
+   5.0
+  ],
+  "value_m": 1.8,
+  "set": "proposed",
+  "option": "bfence_slat",
+  "note": "poolside option needs 1.8 m"
+ },
+ {
+  "id": "bfence_tubular_height_5",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -7.436,
+   2.37,
+   5.0
+  ],
+  "b": [
+   -7.436,
+   4.17,
+   5.0
+  ],
+  "value_m": 1.8,
+  "set": "proposed",
+  "option": "bfence_tubular",
+  "note": "poolside option needs 1.8 m"
+ },
+ {
+  "id": "bfence_masonry_height_5",
+  "label": "Boundary fence, height above our paving",
+  "group": "fences",
+  "a": [
+   -7.436,
+   2.37,
+   5.0
+  ],
+  "b": [
+   -7.436,
+   4.17,
+   5.0
+  ],
+  "value_m": 1.8,
+  "set": "proposed",
+  "option": "bfence_masonry",
+  "note": "poolside option needs 1.8 m"
+ },
+ {
+  "id": "bfence_existing_today",
+  "label": "Boundary fence, height above the paving (today)",
+  "group": "fences",
+  "a": [
+   -6.597,
+   2.38,
+   1.5
+  ],
+  "b": [
+   -6.597,
+   4.18,
+   1.5
+  ],
+  "value_m": 1.8,
+  "set": "existing"
+ },
+ {
+  "id": "passage_at_trampoline_as_is",
+  "label": "Side passage width at the trampoline (boundary wall to the house)",
+  "group": "passage",
+  "a": [
+   -5.387,
+   2.42,
+   -3.9
+  ],
+  "b": [
+   -0.303,
+   2.42,
+   -3.9
+  ],
+  "value_m": 5.084,
+  "set": "proposed",
+  "option": "play_as_is"
+ },
+ {
+  "id": "bark_length_as_is",
+  "label": "Play area bark, north-south",
+  "group": "passage",
+  "a": [
+   -2.594,
+   2.28,
+   -5.29
+  ],
+  "b": [
+   -2.594,
+   2.28,
+   -11.12
+  ],
+  "value_m": 5.83,
+  "set": "proposed",
+  "option": "play_as_is"
+ },
+ {
+  "id": "trampoline_to_nfence_as_drawn_as_is",
+  "label": "Trampoline (net) to the north pool fence",
+  "group": "passage",
+  "a": [
+   -3.794,
+   2.67,
+   -2.233
+  ],
+  "b": [
+   -3.921,
+   2.67,
+   -0.469
+  ],
+  "value_m": 1.768,
+  "set": "proposed",
+  "option": "play_as_is+nfence_as_drawn",
+  "note": "900 mm non-climbable zone outside the fence"
+ },
+ {
+  "id": "trampoline_to_nfence_moved_as_is",
+  "label": "Trampoline (net) to the north pool fence",
+  "group": "passage",
+  "a": [
+   -3.794,
+   2.67,
+   -2.233
+  ],
+  "b": [
+   -3.813,
+   2.67,
+   -1.966
+  ],
+  "value_m": 0.268,
+  "set": "proposed",
+  "option": "play_as_is+nfence_moved",
+  "note": "900 mm non-climbable zone outside the fence"
+ },
+ {
+  "id": "passage_at_trampoline_moved",
+  "label": "Side passage width at the trampoline (boundary wall to the house)",
+  "group": "passage",
+  "a": [
+   -4.979,
+   2.42,
+   -5.602
+  ],
+  "b": [
+   -0.185,
+   2.42,
+   -5.602
+  ],
+  "value_m": 4.794,
+  "set": "proposed",
+  "option": "play_moved"
+ },
+ {
+  "id": "bark_length_moved",
+  "label": "Play area bark, north-south",
+  "group": "passage",
+  "a": [
+   -2.26,
+   2.28,
+   -7.003
+  ],
+  "b": [
+   -2.26,
+   2.28,
+   -12.822
+  ],
+  "value_m": 5.819,
+  "set": "proposed",
+  "option": "play_moved"
+ },
+ {
+  "id": "trampoline_to_nfence_as_drawn_moved",
+  "label": "Trampoline (net) to the north pool fence",
+  "group": "passage",
+  "a": [
+   -3.326,
+   2.67,
+   -3.935
+  ],
+  "b": [
+   -3.577,
+   2.67,
+   -0.444
+  ],
+  "value_m": 3.499,
+  "set": "proposed",
+  "option": "play_moved+nfence_as_drawn",
+  "note": "900 mm non-climbable zone outside the fence"
+ },
+ {
+  "id": "trampoline_to_nfence_moved_moved",
+  "label": "Trampoline (net) to the north pool fence",
+  "group": "passage",
+  "a": [
+   -3.326,
+   2.67,
+   -3.935
+  ],
+  "b": [
+   -3.47,
+   2.67,
+   -1.941
+  ],
+  "value_m": 1.999,
+  "set": "proposed",
+  "option": "play_moved+nfence_moved",
+  "note": "900 mm non-climbable zone outside the fence"
+ },
+ {
+  "id": "side_gate_width",
+  "label": "Side gate, wall to house",
+  "group": "passage",
+  "a": [
+   -2.046,
+   3.38,
+   -17.823
+  ],
+  "b": [
+   0.65,
+   3.38,
+   -17.636
+  ],
+  "value_m": 2.703,
+  "set": "both"
+ },
+ {
+  "id": "level_ffl_rl0",
+  "label": "House floor above the concourse",
+  "group": "levels",
+  "a": [
+   2.341,
+   2.37,
+   1.326
+  ],
+  "b": [
+   2.341,
+   2.47,
+   1.326
+  ],
+  "value_m": 0.1,
+  "set": "proposed"
+ },
+ {
+  "id": "level_rl0_lounge",
+  "label": "Concourse above the lounge floor",
+  "group": "levels",
+  "a": [
+   -0.516,
+   1.67,
+   4.937
+  ],
+  "b": [
+   -0.516,
+   2.37,
+   4.937
+  ],
+  "value_m": 0.7,
+  "set": "proposed"
+ },
+ {
+  "id": "level_rl0_lawn",
+  "label": "Concourse above the lawn",
+  "group": "levels",
+  "a": [
+   6.0,
+   1.78,
+   6.5
+  ],
+  "b": [
+   6.0,
+   2.37,
+   6.5
+  ],
+  "value_m": 0.59,
+  "set": "proposed"
+ },
+ {
+  "id": "level_lawn_prom",
+  "label": "Lawn above the canal path",
+  "group": "levels",
+  "a": [
+   6.0,
+   1.08,
+   10.0
+  ],
+  "b": [
+   6.0,
+   1.78,
+   10.0
+  ],
+  "value_m": 0.7,
+  "set": "both"
+ },
+ {
+  "id": "level_rl0_pump",
+  "label": "Concourse above the pump room floor",
+  "group": "levels",
+  "a": [
+   -0.813,
+   1.27,
+   11.532
+  ],
+  "b": [
+   -0.813,
+   2.37,
+   11.532
+  ],
+  "value_m": 1.1,
+  "set": "proposed"
+ }
+]

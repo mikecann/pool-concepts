@@ -1079,6 +1079,24 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **Other checks:** settings, r16, r17, r19, tools, switch, walk, pages and phone all pass. check-images: 252 checked, 0 missing, 1 awaiting.
 - **Fps, both layouts, Low/Medium/High at DPR 1 and 2, five places:** 60 everywhere except A High in the pump room at DPR 2 (55). All of it was measured while a model-agent Blender job was running, so it isn't a clean number.
 
+## Round 21
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** batch 8, both layouts (328 images incl. 54 Layout B). `sync-model.sh` copies `dims.json` / `dims-b.json`; they're in each layout's `?v=` hash, and deploy.sh warms them | Done |
+| 2 | **Dimensions overlay** (`src/dims.ts`): a Settings switch plus **L** (not D: D is strafe right), off by default and remembered. Fetched on first use for the current layout. Each dim shows by the same `set` / `option` / `hide_option` rules as the model's parts, so it follows Today/Proposed and every option. Thin dashed orange lines with a small cross at each end (two draw calls, overlay layer, not in the mirrors). The colour is pushed above 1 so AgX doesn't dull it. HTML labels ("4.00 m", plus the dim's name within 6 m) fade from 12 to 45 m, and the nearer of two overlapping labels wins. Chips in Settings: Pool, Lounge, Spa, Alfresco (incl. the two alignment lines), Fences, Side passage, Levels. The tape measure is unchanged | 56 by default in both layouts. All 55 option-specific dims checked: each shows when its option is chosen and goes with another, and the 3 `hide_option` ones hide. `dimensions_above_pool_lounge*.png` |
+| 3 | **Boundary fence:** a new category with six cards (Perforated default, Colorbond, Slat screen, Raised wall, Taller tubular, Keep existing). Keep existing always carries a warning (1.81 m down to 0.83 m). The i gives the WA rules (1.8 m from our side, nothing to climb in the top 900 mm on our side, the neighbour must agree). Today shows the existing fence. `?bfence=` works. A renders-page section covers views 13, 05, 17 and 07 | `test/bfence_*.png`, `renders_bfence.png` |
+| 4 | **Layout B (wall 0.88 m east):** the card and renders-page text are updated (2.99 m lounge, post and roof edge in line with the house wall, 0.50 m paving strip, 0.57 m to the boundary). SK02's post still warns, now "0.35 m in front of the lounge steps". The lounge kitchen no longer overlaps: measured, it starts at x 0.27, about 0.36 m east of the steps. Its warning became a note ("1.85 m long") | r19 and r21 tests |
+| 5 | **Pump room crawl:** a path is planned on a 10 cm grid (capsule clear, at least 0.75 m headroom), then walked with the keys from the promenade, through the doors and round the spa to its far side, kneeling the whole way. A: 6.1 m, B: 6.1 m | `test/pump_*_far_end.png` |
+| 6 | **Layout B option renders on the renders page:** every option picker shows B's render beside SK02's when B has that option and view (boundary fence, channel, posts, lounge kitchen, deck-edge fence, pump room), each opening in 3D in its own layout | `renders_posts_ab.png`, `renders_roller.png` |
+
+**Checks:**
+- **New `scripts/r21-test.mjs`:** PASS. r19-test was updated for the new B warnings.
+- **Other checks:** settings, r16, r17, r19, r20, tools, switch, walk, pages and phone all pass. check-images: 328 checked, 0 missing, 1 awaiting.
+- **Fps, Blender idle (clean):** both layouts, Low/Medium/High at DPR 1 and 2, five places: 60 everywhere. Dimensions on (High, DPR 2): still 60, +2 draw calls.
+- **Dusk scrub:** max 20 ms.
+- **Load, local:** warm 1.95 / 3.07 s, cold 2.66 / 3.82 s.
+
 ## Summary
 
 **Round 17:**

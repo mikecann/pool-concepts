@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
-import { NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -118,6 +118,21 @@ const LAYOUTB_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['06_sunken_
 const A_CORNER = new Set(['10_alfresco_corner', '06_sunken_lounge', '15_lounge_from_alfresco']);
 const layoutASrc = (v: string) => (A_CORNER.has(v) ? `img/options_${v}_post_corner_steps.jpg` : `img/${v}__proposed.jpg`);
 
+// Round 21: Layout B's option renders (layoutb_<cam>_<option>.jpg). Each sits beside SK02's render of the same option
+// and camera (options_<cam>_<option>.jpg) in that option's section; this is the list of the ones that exist.
+const LAYOUTB_OPTION_RENDERS = new Set([
+  ...['05_pool_north_end', '07_aerial_southwest', '13_deep_end_to_house', '17_pool_overview'].flatMap(v => BFENCE_CHOICES.map(c => `${v}_${c.value}`)),
+  ...['05_pool_north_end', '13_deep_end_to_house', '17_pool_overview'].map(v => `${v}_roller_channel`),
+  ...['10_alfresco_corner', '15_lounge_from_alfresco'].flatMap(v => ['post_as_drawn', 'post_corner', 'post_corner_steps', 'post_two', 'post_west'].map(o => `${v}_${o}`)),
+  ...['15_lounge_from_alfresco', '16_outdoor_kitchen'].flatMap(v => ['post_as_drawn', 'post_corner_steps'].map(o => `${v}_kitchen_lounge_${o}`)),
+  ...['12_from_pavilion', '16_outdoor_kitchen', '18_pier_fence'].map(v => `${v}_pier_straight_edge`),
+  '22_pump_room_pump_doors', '22_pump_room_pump_open',
+].map(k => `layoutb_${k}.jpg`));
+/** Layout B's file for an SK02 option render's URL, or '' if B has no render of it. */
+const layoutBName = (aUrl: string) => { const n = aUrl.split('/').pop()!; const b = n.startsWith('options_') ? 'layoutb_' + n.slice(8) : ''; return LAYOUTB_OPTION_RENDERS.has(b) ? b : ''; };
+const BFENCE = BFENCE_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const BFENCE_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence'], ['17_pool_overview', 'From above'], ['07_aerial_southwest', 'From the air']];
+
 /** Every image the panel can show (used to check nothing 404s after a sync). */
 export function allImageUrls() {
   return [
@@ -130,6 +145,8 @@ export function allImageUrls() {
     ...PLAY.flatMap(([o]) => PLAY_VIEWS.map(([v]) => playSrc(o, v))),
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...LAYOUTB_VIEWS.flatMap(([v]) => [layoutASrc(v), `img/layoutb_${v}.jpg`]),
+    ...BFENCE.flatMap(([o]) => BFENCE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...[...LAYOUTB_OPTION_RENDERS].map(n => `img/${n}`),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
     ...Object.entries(SUN).flatMap(([season, list]) => list.map(([key]) => `img/sun_${season}_${key}.jpg`)),
@@ -202,7 +219,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Options to decide</span>
   <h2>Layout B: lounge wall in line, pool moved</h2>
-  <p>A second build of the whole yard. The sunken lounge's pool-side wall moves 0.5 m east to sit under the alfresco's corner post, and the pool moves 0.5 m east with it. Left: SK02's layout. Right: Layout B, both from the same camera.</p>
+  <p>A second build of the whole yard. The sunken lounge's pool-side wall moves 0.88 m east, in line with the house's west wall and the alfresco's corner post, and the pool moves 0.5 m east. Left: SK02's layout. Right: Layout B, both from the same camera.</p>
 </div>
 <section class="block" aria-label="SK02's layout beside Layout B">
   <div class="pair">
@@ -211,10 +228,9 @@ const HTML = /* html */ `
   </div>
   <div class="chips" id="lb-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="lb-note">
-    <p>The lounge is 3.37 m wide inside instead of 3.87 m. Its north-west steps sit in the corner, the north bench is 2.36 m long instead of 2.84 m, and the steps up to the spa deck are 0.5 m narrower. The fire pit moves 0.22 m east to stay central.</p>
-    <p>The pool moves with its coping, water, lights and covers. Between the coping and the boundary wall there's 0.63 m at the shallow end (was 0.14 m) and 1.96 m at the deep end. The north fence stays 1.66 m from the coping.</p>
-    <p>The roof's west edge comes in 0.17 m, so the corner post sits flush on the moved wall, with nothing in front of the steps. Everything else is as SK02.</p>
-    <p><b>Watch for</b> SK02's own post: in Layout B it stands 0.5 m in front of the middle of the north-west steps. The lounge kitchen's west end would overlap the top of those steps by 0.25 m.</p>
+    <p>The lounge's pool-side wall moves 0.88 m east, onto the house's west wall line: the lounge is 2.99 m wide inside instead of 3.87 m. The house wall, the lounge wall, the corner post and the roof's west edge all line up. The north-west steps sit in the corner, the north bench is 1.96 m long, the steps up to the spa deck are 1.36 m wide, and the fire pit moves 0.39 m east (snug: about 0.56 m to the west wall).</p>
+    <p>The pool moves 0.5 m east with its coping, water, lights and covers: 0.50 m of paving between the coping and the lounge wall, 0.57 m from the coping to the boundary wall at its closest. The north fence stays 1.66 m from the coping.</p>
+    <p><b>Watch for</b> SK02's own post: in Layout B it stands 0.35 m in front of the west half of the north-west steps. The lounge kitchen starts clear of the steps, so it's 1.85 m long, with the BBQ and oven closer together.</p>
   </div>
 </section>
 
@@ -252,6 +268,18 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Pier fence" id="p-opts"></div>
   <div class="chips" id="p-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="p-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>West boundary fence</h2>
+  <p>The boundary along the pool is part of the pool barrier. WA's pool rules: at least 1.8 m high measured from our side, and nothing to climb in its top 900 mm on our side, the fence's own face included. It's the dividing fence, so the neighbour has to agree to any change. Today's wall and tube fence are too low for most of the pool.</p>
+</div>
+<section class="block" aria-label="Boundary fence options">
+  <div class="fstage"><img id="bf-img" alt=""><span class="tag l" id="bf-tag"></span><button class="fly" id="bf-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Boundary fence" id="bf-opts"></div>
+  <div class="chips" id="bf-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="bf-note"></div>
 </section>
 
 <div class="section-head">
@@ -450,9 +478,19 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
 
   // ---------- option pickers ----------
   type Picker = { opts: string[][]; optBox?: HTMLElement; viewBox: HTMLElement; img: string; tag: string; note?: string; views: string[][];
-    src: (o: string, v: string) => string; onFly: (o: string, v: string) => void; flyBtn: string };
+    src: (o: string, v: string) => string; onFly: (o: string, v: string, go?: (f: Fly) => void) => void; flyBtn: string };
   const picker = (cfg: Picker) => {
     const st = { o: 0, v: 0 };
+    // Round 21: Layout B's render of the same option from the same camera, beside SK02's, when there is one
+    const aStage = img(cfg.img).closest('.fstage') as HTMLElement, pair = document.createElement('div');
+    pair.className = 'pair single';
+    aStage.replaceWith(pair); pair.appendChild(aStage);
+    const bStage = document.createElement('div');
+    bStage.className = 'fstage'; bStage.hidden = true;
+    bStage.innerHTML = '<img alt=""><span class="tag l"></span><button class="fly" type="button">Open in 3D</button>';
+    pair.appendChild(bStage);
+    const bImg = bStage.querySelector('img')!, bTag = bStage.querySelector('span')!;
+    bStage.querySelector('button')!.onclick = () => cfg.onFly(cfg.opts[st.o][0], cfg.views[st.v][0], f => fly({ ...f, layout: 'b' }));
     const render = () => {
       if (cfg.optBox) chips(cfg.optBox, cfg.opts, st.o, i => { st.o = i; render(); });
       chips(cfg.viewBox, cfg.views, st.v, i => { st.v = i; render(); });
@@ -465,6 +503,9 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
       img(cfg.img).alt = `${v[1]}: ${o[1]}`;
       $(cfg.tag).textContent = o[1];
       if (cfg.note) $(cfg.note).innerHTML = o[2];
+      const bName = layoutBName(cfg.src(o[0], v[0]));
+      bStage.hidden = !bName; pair.classList.toggle('single', !bName);
+      if (bName) { bImg.src = I + bName; bImg.alt = `${v[1]}: ${o[1]}, Layout B`; bTag.textContent = `${o[1]}, Layout B`; $(cfg.tag).textContent = `${o[1]}, SK02`; }
     };
     $(cfg.flyBtn).onclick = () => cfg.onFly(cfg.opts[st.o][0], cfg.views[st.v][0]);
     render();
@@ -473,23 +514,26 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: ROLLER, optBox: $('r-opts'), viewBox: $('r-views'), img: 'r-img', tag: 'r-tag', note: 'r-note', flyBtn: 'r-fly',
     views: ROLLER_VIEWS,
     src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_none' }) });
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: o, kitchen: 'kitchen_none' }) });
   picker({ opts: PLAY, optBox: $('pl-opts'), viewBox: $('pl-views'), img: 'pl-img', tag: 'pl-tag', note: 'pl-note', flyBtn: 'pl-fly',
     views: PLAY_VIEWS, src: (o, v) => I + playSrc(o, v).replace(/^img\//, ''),
-    onFly: (o, v) => { const c = PLAY.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', play: c[3], passage: c[4] }); } });
+    onFly: (o, v, go = fly) => { const c = PLAY.find(x => x[0] === o)!; go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', play: c[3], passage: c[4] }); } });
   picker({ opts: PIER, optBox: $('p-opts'), viewBox: $('p-views'), img: 'p-img', tag: 'p-tag', note: 'p-note', flyBtn: 'p-fly',
     views: PIER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pier: o }) });
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pier: o }) });
+  picker({ opts: BFENCE, optBox: $('bf-opts'), viewBox: $('bf-views'), img: 'bf-img', tag: 'bf-tag', note: 'bf-note', flyBtn: 'bf-fly',
+    views: BFENCE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', bfence: o }) });
   picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
     views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => { const c = SIDE.find(x => x[0] === o)!; fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });
+    onFly: (o, v, go = fly) => { const c = SIDE.find(x => x[0] === o)!; go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });
   picker({ opts: KITCHEN, optBox: $('k-opts'), viewBox: $('k-views'), img: 'k-img', tag: 'k-tag', note: 'k-note', flyBtn: 'k-fly',
     views: KITCHEN_VIEWS,
     src: (o, v) => I + kitchenSrc(o, v).replace(/^img\//, ''),
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: o }) });
   picker({ opts: POSTS, optBox: $('po-opts'), viewBox: $('po-views'), img: 'po-img', tag: 'po-tag', note: 'po-note', flyBtn: 'po-fly',
     views: POST_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: o }) });
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', post: o }) });
   // ---------- Layout B beside SK02's layout ----------
   const LB = { v: 0 };
   const renderLayoutB = () => {
@@ -505,7 +549,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   warmNear($('lb-img'), LAYOUTB_VIEWS.flatMap(([v]) => [I + layoutASrc(v).replace(/^img\//, ''), `${I}layoutb_${v}.jpg`]));
   picker({ opts: PUMP, optBox: $('pu-opts'), viewBox: $('pu-views'), img: 'pu-img', tag: 'pu-tag', note: 'pu-note', flyBtn: 'pu-fly',
     views: PUMP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pump: o }) });
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pump: o }) });
   picker({ opts: [['dusk', 'Dusk, 7:40 pm']], viewBox: $('n-views'), img: 'n-img', tag: 'n-tag', flyBtn: 'n-fly', views: NIGHTV,
     src: (o, v) => `${I}night_${v}_${o}.jpg`,
     onFly: (_o, v) => fly({ cam: v, scenario: 'proposed', date: '2027-01-16', minutes: 19 * 60 + 40, roller: 'none', kitchen: OLD_KITCHEN.dusk ? 'kitchen_split' : 'kitchen_none' }) });

@@ -25,9 +25,9 @@ export type LightDef = {
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
 export type Layout = 'a' | 'b';
 /** Each layout's export, with its content hash (vite.config.ts) so a new export is never served stale. */
-export const MODEL_FILES: Record<Layout, { glb: string; lights: string; cameras: string }> = {
-  a: { glb: 'pool-model.glb?v=' + __MODEL_V__, lights: 'lights.json?v=' + __MODEL_V__, cameras: 'cameras.json?v=' + __MODEL_V__ },
-  b: { glb: 'pool-model-b.glb?v=' + __MODEL_V_B__, lights: 'lights-b.json?v=' + __MODEL_V_B__, cameras: 'cameras-b.json?v=' + __MODEL_V_B__ },
+export const MODEL_FILES: Record<Layout, { glb: string; lights: string; cameras: string; dims: string }> = {
+  a: { glb: 'pool-model.glb?v=' + __MODEL_V__, lights: 'lights.json?v=' + __MODEL_V__, cameras: 'cameras.json?v=' + __MODEL_V__, dims: 'dims.json?v=' + __MODEL_V__ },
+  b: { glb: 'pool-model-b.glb?v=' + __MODEL_V_B__, lights: 'lights-b.json?v=' + __MODEL_V_B__, cameras: 'cameras-b.json?v=' + __MODEL_V_B__, dims: 'dims-b.json?v=' + __MODEL_V_B__ },
 };
 export type Scenario = 'existing' | 'proposed';
 
@@ -230,6 +230,8 @@ export class Model {
   /** Round 17: the play area where it is or moved north; the hot tub's roll-on cover; the pool's roll-on cover state. */
   play = 'play_as_is';
   spaCover = 'spa_cover_none';
+  /** Round 21: the west boundary fence along the pool (Today always shows the existing one). */
+  bfence = 'bfence_perforated';
   /** The pool's roll-on cover: 'off' (rolled at its end), 'moving' (being rolled on or off) or 'on' (flat on the pool). */
   poolCover: 'off' | 'moving' | 'on' = 'off';
   /** The spa cover while it's being rolled: both the roll and the flat cover show. */
@@ -802,7 +804,7 @@ export class Model {
   private hidden(key: string) {
     if (key === 'pool_cover_on') return this.poolCover === 'on' && this.roller.startsWith('roller_rollon');
     if (key === 'spa_cover_on') return this.spaCover === 'spa_cover_on' && !this.spaCoverMoving;
-    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover].includes(key);
+    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence].includes(key);
   }
 
   visibleFor(u: Record<string, any>) {
@@ -811,7 +813,7 @@ export class Model {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence];
       // the covers while they're rolling on or off: the flat cover (revealed piece by piece) and the roll both show
       if (this.poolCover !== 'off' && this.roller.startsWith('roller_rollon')) chosen.push('pool_cover_on');
       if (this.spaCoverMoving) chosen.push('spa_cover_on', 'spa_cover_rolled');

@@ -7,6 +7,7 @@ import { LIGHT_SWAP, MODEL_FILES, Model, type CameraDef, type Gate, type Layout,
 import { Post, QUALITY, type Quality } from './post';
 import { Walker, type Mode } from './walk';
 import { TapeMeasure } from './measure';
+import { DIM_GROUPS, Dims } from './dims';
 import { Hinges } from './hinges';
 import { Blankets } from './blanket';
 import { Covers } from './covers';
@@ -14,7 +15,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { LAYOUT_CHOICES, OPTION_DEFAULTS, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -27,8 +28,8 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // ---------- remembered settings ----------
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
-type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout;
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover', string>> };
+type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 // the time and date aren't remembered any more (Round 17d): drop what older visits saved
@@ -269,7 +270,7 @@ async function main() {
   let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
   let syncCovers = () => {}, coverFinished: (c: any) => void = () => {}, coverToggle: (c: any) => void = () => {};
   let nearCoverAt: (x: number, z: number, eyeY: number) => any = () => null, coversRef: Covers | null = null, nearCover: any = null;
-  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage });
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
@@ -348,6 +349,7 @@ async function main() {
   group('pump', PUMP_CHOICES, 'pump', () => '22_pump_room');
   group('nfence', NFENCE_CHOICES, 'nfence', () => '20_pool_north_seating');
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
+  group('bfence', BFENCE_CHOICES, 'bfence', () => '13_deep_end_to_house');
   // inline warnings on a card while a clashing option is chosen (Round 17d, 18). The other option isn't changed.
   const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean, cls = 'card-warn') => {
     const t = items.find(c => c.value === value)?.title;
@@ -363,8 +365,11 @@ async function main() {
   warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', "With two roof posts, one post stands in this bench.", loungeClash);
   warnOn('cards-post', POST_CHOICES, 'post_two', 'With the lounge kitchen, the east post stands in its bench.', loungeClash);
   // Round 19: Layout B moves the lounge's north-west steps into its corner, right under SK02's post and the lounge kitchen
-  warnOn('cards-post', POST_CHOICES, 'post_as_drawn', 'In Layout B it stands 0.5 m in front of the lounge steps.', () => LAYOUT === 'b');
-  warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', 'In Layout B its west end overlaps the top of the lounge steps by 0.25 m.', () => LAYOUT === 'b');
+  // (Round 21: the wall moved 0.88 m: the post is in front of the steps' west half; the kitchen starts clear of them, shorter)
+  warnOn('cards-post', POST_CHOICES, 'post_as_drawn', 'In Layout B it stands 0.35 m in front of the lounge steps.', () => LAYOUT === 'b');
+  warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', 'In Layout B it starts clear of the lounge steps, so it is 1.85 m long.', () => LAYOUT === 'b', 'card-note');
+  // Round 21: keeping today's boundary fence wouldn't pass: say so on its card, always
+  warnOn('cards-bfence', BFENCE_CHOICES, 'bfence_existing', "Too low for most of the pool: 1.81 m at the north end down to 0.83 m.", () => true);
   warnOn('cards-post', POST_CHOICES, 'post_corner_steps', 'In Layout B the steps are already in the corner.', () => LAYOUT === 'b', 'card-note');
   // Round 15: the choices in categories. A grid of category buttons, each showing its current choice (so the whole
   // design reads at a glance), and only the open category's cards below. The open category is remembered.
@@ -375,6 +380,7 @@ async function main() {
     { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
     { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
     { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
+    { id: 'boundary', name: 'Boundary fence', summary: () => title(BFENCE_CHOICES, model.bfence) },
     { id: 'passage', name: 'Side path', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · play area ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
     { id: 'spa', name: 'Pump room', summary: () => title(PUMP_CHOICES, model.pump) },
   ];
@@ -427,6 +433,31 @@ async function main() {
   const tape = new TapeMeasure(model.root, camera, $('measure-labels'), t => { $('measure-text').textContent = t; });
   scene.add(tape.group);
   const measuring = () => tape.active;
+  // ---------- dimensions (Round 21): the switch in Settings or L; the chips pick the groups ----------
+  // (L, not D: D is a walking key)
+  const dims = new Dims(camera, $('dim-labels'), BASE + MODEL_FILES[LAYOUT].dims, d => model.visibleFor(d),
+    () => [S.scenario, ...Object.values(currentOptions()), model.poolCover, model.spaCoverMoving].join());
+  scene.add(dims.group);
+  if (settings.dimGroups) { dims.on.clear(); for (const g of settings.dimGroups) if (DIM_GROUPS.some(d => d.id === g)) dims.on.add(g); }
+  const dimsBox = $<HTMLInputElement>('opt-dims');
+  const setDims = (on: boolean) => { dimsBox.checked = on; void dims.setEnabled(on); remember({ dims: on }); };
+  dimsBox.onchange = () => setDims(dimsBox.checked);
+  const dimChips = $('opt-dimgroups');
+  const renderDimChips = () => {
+    dimChips.innerHTML = '';
+    for (const g of DIM_GROUPS) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = g.name;
+      b.setAttribute('aria-pressed', String(dims.on.has(g.id)));
+      b.onclick = () => { if (dims.on.has(g.id)) dims.on.delete(g.id); else dims.on.add(g.id); remember({ dimGroups: [...dims.on] }); renderDimChips(); };
+      dimChips.appendChild(b);
+    }
+  };
+  renderDimChips();
+  if (settings.dims) setDims(true);
+  addEventListener('keydown', e => {
+    if ((e.target as HTMLElement)?.closest?.('input, select, textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.code === 'KeyL') { setDims(!dims.enabled); showHint(dims.enabled ? 'Dimensions on<small>L or Settings to hide them; the chips in Settings pick which</small>' : 'Dimensions off', 2500); }
+  });
   const setMeasure = (on: boolean) => {
     tape.active = on;
     measureBtn.setAttribute('aria-pressed', String(on));
@@ -603,7 +634,7 @@ async function main() {
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
     const u = new URL(location.href);
-    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage']) u.searchParams.delete(k);
+    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage', 'bfence']) u.searchParams.delete(k);
     u.searchParams.set('layout', to);
     const cover = $('loading'); cover.style.transition = 'none'; cover.classList.remove('done');
     progress(0.02, `Loading ${title(LAYOUT_CHOICES, to)}…`);
@@ -713,6 +744,7 @@ async function main() {
   model.pier = valid(o.pier, PIER_CHOICES) ?? model.pier;
   model.nfence = valid(o.nfence, NFENCE_CHOICES) ?? model.nfence;
   model.passage = valid(o.passage, PASSAGE_CHOICES) ?? model.passage;
+  model.bfence = valid(o.bfence, BFENCE_CHOICES) ?? model.bfence;
   if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
   model.apply(); renderRoller();
   // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&scenario=existing
@@ -729,7 +761,8 @@ async function main() {
   model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
-  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  model.bfence = fromParam('bfence', BFENCE_CHOICES, 'bfence_') ?? model.bfence;
+  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage', 'bfence'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   /**
    * Round 19: an option carried over from the other layout is kept if this model builds it (it has parts tagged with
@@ -756,7 +789,7 @@ async function main() {
     model.post = keep('post', valid(ho.post, POST_CHOICES)); model.play = keep('play', valid(ho.play, PLAY_CHOICES));
     model.spaCover = keep('spaCover', valid(ho.spaCover, SPA_COVER_CHOICES)); model.pump = keep('pump', valid(ho.pump, PUMP_CHOICES));
     model.pier = keep('pier', valid(ho.pier, PIER_CHOICES)); model.nfence = keep('nfence', valid(ho.nfence, NFENCE_CHOICES));
-    model.passage = keep('passage', valid(ho.passage, PASSAGE_CHOICES));
+    model.passage = keep('passage', valid(ho.passage, PASSAGE_CHOICES)); model.bfence = keep('bfence', valid(ho.bfence, BFENCE_CHOICES));
     model.people = handoff.people; peopleBox.checked = model.people;
     if (handoff.scenario !== S.scenario) setScenario(handoff.scenario);
     optChanged(); renderRoller();
@@ -1051,6 +1084,7 @@ async function main() {
     walker.update(dt);
     if (walker.mode === 'drone') orbit.update();
     if (tape.count || tape.hasPending) tape.update(world.clientWidth, world.clientHeight);
+    if (dims.enabled) dims.update(world.clientWidth, world.clientHeight);
     // Round 15: under the pool or spa surface (walking and ducking, or flying in)
     const underwater = walker.mode !== 'drone' && camera.position.y < walker.waterTop - 0.02;
     if (post) {
@@ -1112,7 +1146,7 @@ async function main() {
     get post() { return post; },
     setOption: (k: string, v: string) => { (model as any)[k] = v; optChanged(); cardGroups.forEach(r => r()); },
     hinges, blankets, covers: () => coversRef, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
-    setPanel, layout: LAYOUT, swapLayout: (to: Layout) => swapLayout(to),
+    setPanel, dims, setDims, layout: LAYOUT, swapLayout: (to: Layout) => swapLayout(to),
   };
 }
 

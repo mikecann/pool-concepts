@@ -353,3 +353,13 @@ ul.assume li::marker { color: var(--accent); }
 .card-extra { padding: 0 6px; margin-top: -2px; }
 .card-more summary { font-size: 12px; }
 .block h3.fl .info-btn + .view-btn { margin-left: 0; }
+
+/* ---------- Round 21: the dimensions overlay ---------- */
+.dim-labels { position: absolute; inset: 0; pointer-events: none; z-index: 4; overflow: hidden; }
+.dim-labels[hidden] { display: none; }
+.dim-label { position: absolute; left: 0; top: 0; padding: 1px 6px; white-space: nowrap; background: rgba(18, 20, 22, .8); color: #fff;
+  border-bottom: 2px solid #ff6a1f; font: 600 12px/1.35 var(--font-mono); will-change: transform, opacity; }
+.dim-label small { display: none; max-width: 220px; overflow: hidden; text-overflow: ellipsis; font: 400 10.5px/1.3 var(--font-body, inherit); opacity: .8; }
+.dim-label.named small { display: block; }
+.kbd-hint { opacity: .6; font-size: 12px; }
+.chips.small button { min-height: 28px; padding: 3px 8px; font-size: 12.5px; }

@@ -26,5 +26,7 @@ PY
 # (export.sh pool-model-b.blend b), loaded only when that layout is chosen
 cp $POOL/model/web/pool-model.glb $POOL/model/web/cameras.json $POOL/model/web/lights.json $OUT/web/
 cp $POOL/model/web/pool-model-b.glb $POOL/model/web/cameras-b.json $POOL/model/web/lights-b.json $OUT/web/
+# Round 21: the dimension lines (compile_site.py), one file per layout
+cp $POOL/model/web/dims.json $POOL/model/web/dims-b.json $OUT/web/
 node --experimental-strip-types scripts/make-cards.mjs $OUT/img 2>&1 | grep -v ExperimentalWarning
 du -sh $OUT

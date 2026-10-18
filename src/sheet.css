@@ -113,6 +113,10 @@ ul.assume li::marker { color: var(--accent); }
   .renders .block:has(> .fstage), .renders .block:has(> .plan) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
   .renders .block:has(> .fstage) > :not(.fstage), .renders .block:has(> .plan) > :not(.plan) { grid-column: 2; }
   .renders .block:has(> .fstage) > .fstage, .renders .block:has(> .plan) > .plan { grid-column: 1; grid-row: 1 / span 8; }
+  /* Round 21: an option picker's picture, or SK02's and Layout B's side by side, on the left too */
+  .renders .block:has(> .pair):not(:has(#lb-img)) { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+  .renders .block:has(> .pair):not(:has(#lb-img)) > :not(.pair) { grid-column: 2; }
+  .renders .block:has(> .pair):not(:has(#lb-img)) > .pair { grid-column: 1; grid-row: 1 / span 8; }
   .renders .stage { max-height: 76vh; }
 }
 .hint { color: var(--muted); font-size: 13.5px; }
@@ -130,4 +134,5 @@ img.missing { visibility: hidden; }
 
 /* Round 19: SK02's layout beside Layout B */
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pair.single { grid-template-columns: 1fr; }
 @media (max-width: 700px) { .pair { grid-template-columns: 1fr; } }

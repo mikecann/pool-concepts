@@ -16,6 +16,7 @@ const walkUrl = (f: Fly) => {
   if (f.pier) q.set('pier', f.pier);
   if (f.nfence) q.set('nfence', f.nfence.replace('nfence_', ''));
   if (f.passage) q.set('passage', f.passage.replace('passage_', ''));
+  if (f.bfence) q.set('bfence', f.bfence.replace('bfence_', ''));
   // the picture's layout, whatever the walkthrough last had (a one-off: links aren't remembered)
   q.set('layout', f.layout ?? 'a');
   return '../walk/?' + q.toString();

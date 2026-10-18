@@ -26,7 +26,7 @@ const modelFiles = (): Plugin => ({
 // Layout B's files (-b) get their own hash, so a new export of one layout doesn't refetch the other.
 const modelVersion = (suffix = '') => {
   const h = createHash('sha1');
-  for (const f of [`pool-model${suffix}.glb`, `lights${suffix}.json`, `cameras${suffix}.json`]) {
+  for (const f of [`pool-model${suffix}.glb`, `lights${suffix}.json`, `cameras${suffix}.json`, `dims${suffix}.json`]) {
     const p = join('public/model/web', f);
     if (existsSync(p)) h.update(readFileSync(p));
   }

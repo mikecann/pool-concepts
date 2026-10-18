@@ -84,8 +84,10 @@ check('the layout is remembered', (await p.evaluate(() => JSON.parse(localStorag
 await opt('post', 'post_as_drawn');
 await p.evaluate(() => window.__openCategory('alfresco'));
 const w1 = await warnShown('cards-post', 'One post (as drawn)'), w2 = await warnShown('cards-kitchen', 'Facing the lounge');
-check('B: SK02\'s post warns about the steps', /0\.5 m in front of the lounge steps/.test(w1 ?? ''), w1 ?? 'none');
-check('B: the lounge kitchen warns about the steps', /overlaps the top of the lounge steps by 0\.25 m/.test(w2 ?? ''), w2 ?? 'none');
+check('B: SK02\'s post warns about the steps', /0\.35 m in front of the lounge steps/.test(w1 ?? ''), w1 ?? 'none');
+// Round 21: with the wall 0.88 m east, the lounge kitchen starts clear of the steps: a note, not a warning
+const n2 = await p.evaluate(() => { const c = [...document.querySelectorAll('#cards-kitchen .card')].find(c => c.querySelector('b')?.textContent === 'Facing the lounge'); return c?.querySelector('.card-note:not([hidden])')?.textContent ?? null; });
+check('B: the lounge kitchen no longer warns, it notes', !w2 && /1\.85 m long/.test(n2 ?? ''), n2 ?? 'none');
 await p.evaluate(() => __viewer.goToCam('10_alfresco_corner', true)); await wait(1500);
 await shot('b_post_as_drawn_kitchen_lounge');
 for (const post of ['post_as_drawn', 'post_corner', 'post_corner_steps', 'post_west', 'post_two']) {
