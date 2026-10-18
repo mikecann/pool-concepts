@@ -1215,7 +1215,7 @@
  },
  {
   "id": "pier_to_fence_as_drawn",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    3.662,
@@ -1230,11 +1230,11 @@
   "value_m": 0.403,
   "set": "proposed",
   "option": "pier_as_drawn",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_tall",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    3.662,
@@ -1249,11 +1249,11 @@
   "value_m": 0.403,
   "set": "proposed",
   "option": "pier_tall",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_around",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    3.695,
@@ -1268,11 +1268,11 @@
   "value_m": 0.11,
   "set": "proposed",
   "option": "pier_around",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_across",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    4.163,
@@ -1287,11 +1287,11 @@
   "value_m": 0.218,
   "set": "proposed",
   "option": "pier_across",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_inset",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    3.662,
@@ -1306,11 +1306,11 @@
   "value_m": 0.942,
   "set": "proposed",
   "option": "pier_inset",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_straight",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    4.163,
@@ -1325,11 +1325,11 @@
   "value_m": 0.028,
   "set": "proposed",
   "option": "pier_straight",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "pier_to_fence_straight_edge",
-  "label": "Pavilion pier to the pool fence",
+  "label": "Pavilion pillar to the pool fence",
   "group": "fences",
   "a": [
    4.163,
@@ -1344,7 +1344,26 @@
   "value_m": 0.028,
   "set": "proposed",
   "option": "pier_straight_edge",
-  "note": "900 mm clear needed if the pier is outside the fence"
+  "note": "900 mm clear needed if the pillar is outside the fence"
+ },
+ {
+  "id": "pier_to_fence_straight_deck",
+  "label": "Pavilion pillar to the pool fence",
+  "group": "fences",
+  "a": [
+   4.163,
+   2.77,
+   4.39
+  ],
+  "b": [
+   4.191,
+   2.77,
+   4.392
+  ],
+  "value_m": 0.028,
+  "set": "proposed",
+  "option": "pier_straight_deck",
+  "note": "900 mm clear needed if the pillar is outside the fence"
  },
  {
   "id": "bfence_existing_height_2",
@@ -1495,6 +1514,154 @@
   ],
   "value_m": 1.8,
   "set": "existing"
+ },
+ {
+  "id": "bplant_bed_walkway",
+  "label": "Boundary bed to the pool coping (walkway)",
+  "group": "pool",
+  "a": [
+   -7.482,
+   2.39,
+   6.809
+  ],
+  "b": [
+   -6.883,
+   2.39,
+   6.851
+  ],
+  "value_m": 0.6,
+  "set": "proposed",
+  "option": "bplant_bed",
+  "note": "narrowest point"
+ },
+ {
+  "id": "bplant_bed_length",
+  "label": "Boundary bed, length along the wall",
+  "group": "pool",
+  "a": [
+   -7.02,
+   2.82,
+   4.881
+  ],
+  "b": [
+   -8.103,
+   2.82,
+   9.399
+  ],
+  "value_m": 4.646,
+  "set": "proposed",
+  "option": "bplant_bed"
+ },
+ {
+  "id": "bplant_bed_height",
+  "label": "Boundary bed wall, height above the paving",
+  "group": "pool",
+  "a": [
+   -8.008,
+   2.37,
+   8.039
+  ],
+  "b": [
+   -8.008,
+   2.82,
+   8.039
+  ],
+  "value_m": 0.45,
+  "set": "proposed",
+  "option": "bplant_bed",
+  "note": "under 0.9 m: below the boundary fence's non-climbable zone"
+ },
+ {
+  "id": "bplant_pots_walkway",
+  "label": "Pots to the pool coping (walkway)",
+  "group": "pool",
+  "a": [
+   -7.887,
+   2.67,
+   8.919
+  ],
+  "b": [
+   -7.03,
+   2.67,
+   8.978
+  ],
+  "value_m": 0.859,
+  "set": "proposed",
+  "option": "bplant_pots",
+  "note": "narrowest point"
+ },
+ {
+  "id": "bplant_pot_height",
+  "label": "Pot rim above the paving",
+  "group": "pool",
+  "a": [
+   -5.898,
+   2.37,
+   -0.441
+  ],
+  "b": [
+   -5.898,
+   2.92,
+   -0.441
+  ],
+  "value_m": 0.55,
+  "set": "proposed",
+  "option": "bplant_pots",
+  "note": "under 0.9 m: below the boundary fence's non-climbable zone"
+ },
+ {
+  "id": "deck_alfresco_ew",
+  "label": "Alfresco deck, west edge to the pavilion deck",
+  "group": "alfresco",
+  "a": [
+   -1.281,
+   2.49,
+   2.679
+  ],
+  "b": [
+   3.358,
+   2.49,
+   3.001
+  ],
+  "value_m": 4.65,
+  "set": "proposed",
+  "option": "pier_straight_deck"
+ },
+ {
+  "id": "deck_alfresco_ns",
+  "label": "Alfresco deck, house wall to the lounge",
+  "group": "alfresco",
+  "a": [
+   1.184,
+   2.49,
+   0.665
+  ],
+  "b": [
+   0.891,
+   2.49,
+   4.894
+  ],
+  "value_m": 4.24,
+  "set": "proposed",
+  "option": "pier_straight_deck"
+ },
+ {
+  "id": "deck_alfresco_step",
+  "label": "Step down from the deck to the paving",
+  "group": "alfresco",
+  "a": [
+   -1.331,
+   2.37,
+   2.675
+  ],
+  "b": [
+   -1.331,
+   2.47,
+   2.675
+  ],
+  "value_m": 0.1,
+  "set": "proposed",
+  "option": "pier_straight_deck"
  },
  {
   "id": "passage_at_trampoline_as_is",

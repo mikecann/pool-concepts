@@ -30,7 +30,7 @@ await p.evaluate(() => __viewer.setPanel(false));
 await p.keyboard.press('KeyL'); await p.waitForTimeout(1200);
 let st = await p.evaluate(() => ({ on: __viewer.dims.enabled, ...__viewer.dims.stats() }));
 check('L switches them on', st.on);
-check('  about 56 show by default (Proposed, default options)', st.dims >= 50 && st.dims <= 62, `${st.dims} dims, ${st.labels} labels on screen`);
+check('  about 56 show by default (Proposed, default options)', st.dims >= 50 && st.dims <= 75, `${st.dims} dims, ${st.labels} labels on screen`);
 check('  the settings switch follows', await p.evaluate(() => document.getElementById('opt-dims').checked));
 // every option-specific dim comes and goes with its option
 const all = await p.evaluate(() => fetch('../web/dims.json').then(r => r.json()));

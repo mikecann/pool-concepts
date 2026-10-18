@@ -1120,6 +1120,25 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **New `scripts/r23-test.mjs`:** scans everything readable on both layouts' walkthrough, the renders page and the home pages (text including hidden More and i notes, plus alt, aria-label and title) for the word, and checks the aliases and the dims labels. PASS.
 - **Other checks:** pages, settings and r17 to r22 all pass. Test card titles were updated.
 
+## Round 24
+
+| # | Change | Result |
+|---|---|---|
+| 1 | **Sync:** batch 11, both layouts (287 images plus 124 Layout B; dims now 107 in A and 116 in B) | Done |
+| 2 | **`pier_straight_deck`** ("Straight past the pillar, deck under the roof") in Fence by the pillar. While it and any kitchen are both chosen, that kitchen's card and the deck card warn. Renders page: it's in the pillar picker (views 18 and 12), plus its own section with 10, 04, 15, 16, 18 and the south-east aerial, Layout B beside | `review/round24/test/*_deck_10.png` |
+| 3 | **Along the boundary wall:** a new category (Planter bed default, Pots, Nothing). The i covers the 0.9 m limit (NCZ 5). Renders section with 13, 05, 17 and 07, with B beside. `?bplant=` works | r24-test |
+| 4 | **Tags on instanced models:** option tags survive on the InstancedMeshes (the bed's shrubs and grasses), and the potted plant's `hide_option: pier_straight_deck` hides it when the deck is chosen. Both checked in both layouts | r24-test |
+| 5 | **Light slots:** a fixed pool allocated at load (6 spot, 6 area, 4 point = 16; raised at load if any one scheme needs more of a type, and the shadow-casting slots sized the same way). Each exported light becomes a spec (place, aim, colour, size or angle, power, the per-light tuning from rounds 9 to 13). Whichever specs are active for the scheme, scenario and options take slots, keeping theirs while they stay on. Switching only reassigns, so the set of lights (and every shader key) never changes. The "Lighting" category has "As specced" (`lights_specced`). Any `lights_*` scheme in lights.json gets a card automatically until it has a proper one; untagged lights are in every scheme | 11 of 16 slots used by default. A synthetic second scheme switched three times at night: same set of lights, worst frame 31 ms. Night views match the old per-light code (mean difference about 1/255; `night_*_before/after.png`) |
+
+**Checks:**
+- **New `scripts/r24-test.mjs`:** PASS.
+- **Test fixes:** settings-test now ignores hidden warnings (the pillar cards have two). The r21 and r22 dim-count ranges are widened (A 59, B 65 by default now). r20 polls for the channel prompt instead of a fixed wait, which ran short under Blender load.
+- **Other checks:** all pass. check-images: 384 checked, 0 missing, 1 awaiting.
+- **Perf: Blender busy (a model-agent job), so not clean.**
+  - Medium held 60 in most places, with dips to 47 and 53. High swung from 17 to 60.
+  - The dusk scrub was still clean (max 19 ms).
+  - Side by side under the same load, the old per-light build and the slot build were indistinguishable: 14 vs 17 lights in the scene, median GPU 30.7 vs 28.5 ms.
+
 ## Summary
 
 **Round 17:**

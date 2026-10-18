@@ -42,9 +42,9 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   await p.locator('#tab-passage').click(); await p.locator('#cards-passage .card').filter({ has: p.locator('b', { hasText: /^New paving/ }) }).click();
   // the inset fence card warns while a kitchen is chosen, not with none
   await p.locator('#tab-fences').click();
-  const warnNone = await p.locator('#cards-pier .card-warn').isVisible();
+  const warnNone = await p.locator('#cards-pier .card-warn:not([hidden])').isVisible();
   await p.evaluate(() => __viewer.setOption('kitchen', 'kitchen_split'));
-  const warnSplit = await p.locator('#cards-pier .card-warn').isVisible();
+  const warnSplit = await p.locator('#cards-pier .card-warn:not([hidden])').isVisible();
   check('pier_inset warns with a kitchen, not without', !warnNone && warnSplit);
   await p.locator('[data-date="2027-06-21"]').click();
   await p.locator('#time').fill('600'); await p.locator('#time').dispatchEvent('input');

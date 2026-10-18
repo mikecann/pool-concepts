@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
-import { BFENCE_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, BPLANT_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -118,6 +118,9 @@ const LAYOUTB_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['06_sunken_
 const A_CORNER = new Set(['10_alfresco_corner', '06_sunken_lounge', '15_lounge_from_alfresco']);
 const layoutASrc = (v: string) => (A_CORNER.has(v) ? `img/options_${v}_post_corner_steps.jpg` : `img/${v}__proposed.jpg`);
 
+const DECK_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge'], ['16_outdoor_kitchen', 'East fence'], ['18_pier_fence', 'At the pillar'], ['08_aerial_southeast', 'From the air']];
+const BPLANT = BPLANT_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const BPLANT_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence'], ['17_pool_overview', 'From above'], ['07_aerial_southwest', 'From the air']];
 // Round 21: Layout B's option renders (layoutb_<cam>_<option>.jpg). Each sits beside SK02's render of the same option
 // and camera (options_<cam>_<option>.jpg) in that option's section; this is the list of the ones that exist.
 const LAYOUTB_OPTION_RENDERS = new Set([
@@ -127,6 +130,9 @@ const LAYOUTB_OPTION_RENDERS = new Set([
   ...['15_lounge_from_alfresco', '16_outdoor_kitchen'].flatMap(v => ['post_as_drawn', 'post_corner_steps'].map(o => `${v}_kitchen_lounge_${o}`)),
   ...['12_from_pavilion', '16_outdoor_kitchen', '18_pier_fence'].map(v => `${v}_pier_straight_edge`),
   '22_pump_room_pump_doors', '22_pump_room_pump_open',
+  // Round 24: the deck under the roof (with no kitchen, and plain at the pillar), and the planting by the boundary wall
+  ...DECK_VIEWS.map(([v]) => `${v}_pier_straight_deck_kitchen_none`), '18_pier_fence_pier_straight_deck', '12_from_pavilion_pier_straight_deck',
+  ...BPLANT_VIEWS.flatMap(([v]) => BPLANT_CHOICES.map(c => `${v}_${c.value}`)),
   // Round 22: the kitchens (the lounge kitchen's plain name is with SK02's post, as A's pictures are)
   ...['10_alfresco_corner', '16_outdoor_kitchen'].flatMap(v => ['kitchen_split', 'kitchen_continuous', 'kitchen_freestanding', 'kitchen_none', 'kitchen_lounge'].map(o => `${v}_${o}`)),
 ].map(k => `layoutb_${k}.jpg`));
@@ -153,6 +159,8 @@ export function allImageUrls() {
     ...SIDE.flatMap(([o]) => SIDE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...LAYOUTB_VIEWS.flatMap(([v]) => [layoutASrc(v), `img/layoutb_${v}.jpg`]),
     ...BFENCE.flatMap(([o]) => BFENCE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...DECK_VIEWS.map(([v]) => `img/options_${v}_pier_straight_deck_kitchen_none.jpg`),
+    ...BPLANT.flatMap(([o]) => BPLANT_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...[...LAYOUTB_OPTION_RENDERS].map(n => `img/${n}`),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
     ...Object.entries(DAY).flatMap(([season, list]) => list.flatMap(([key]) => DAYV.map(([v]) => `img/times_${v}_${season}_${key}.jpg`))),
@@ -280,6 +288,16 @@ const HTML = /* html */ `
 
 <div class="section-head">
   <span class="label">Options to decide</span>
+  <h2>The deck under the new roof</h2>
+  <p>With the straight fence past the pillar: the pavilion's hardwood deck carried on west across the alfresco, step-free from the house, with a 0.1 m step down to the paving. No kitchen fits with it (each stands where the deck goes).</p>
+</div>
+<section class="block" aria-label="The deck under the roof">
+  <div class="fstage"><img id="dk-img" alt=""><span class="tag l" id="dk-tag"></span><button class="fly" id="dk-fly" type="button">Open in 3D</button></div>
+  <div class="chips" id="dk-views" role="group" aria-label="Viewpoint"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
   <h2>West boundary fence</h2>
   <p>The boundary along the pool is part of the pool barrier. WA's pool rules: at least 1.8 m high measured from our side, and nothing to climb in its top 900 mm on our side, the fence's own face included. It's the dividing fence, so the neighbour has to agree to any change. Today's wall and tube fence are too low for most of the pool.</p>
 </div>
@@ -288,6 +306,18 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Boundary fence" id="bf-opts"></div>
   <div class="chips" id="bf-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="bf-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Along the boundary wall</h2>
+  <p>Softening the wall beside the pool: a low planter bed, pots or just paving. Whatever goes there stays under 0.9 m, below the boundary fence's no-climb zone.</p>
+</div>
+<section class="block" aria-label="Planting along the boundary wall">
+  <div class="fstage"><img id="bp-img" alt=""><span class="tag l" id="bp-tag"></span><button class="fly" id="bp-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Along the boundary wall" id="bp-opts"></div>
+  <div class="chips" id="bp-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="bp-note"></div>
 </section>
 
 <div class="section-head">
@@ -532,6 +562,12 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: BFENCE, optBox: $('bf-opts'), viewBox: $('bf-views'), img: 'bf-img', tag: 'bf-tag', note: 'bf-note', flyBtn: 'bf-fly',
     views: BFENCE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', bfence: o }) });
+  picker({ opts: [['pier_straight_deck_kitchen_none', 'Deck under the roof', '']], viewBox: $('dk-views'), img: 'dk-img', tag: 'dk-tag', flyBtn: 'dk-fly',
+    views: DECK_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (_o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', pier: 'pier_straight_deck' }) });
+  picker({ opts: BPLANT, optBox: $('bp-opts'), viewBox: $('bp-views'), img: 'bp-img', tag: 'bp-tag', note: 'bp-note', flyBtn: 'bp-fly',
+    views: BPLANT_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', bplant: o }) });
   picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
     views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => { const c = SIDE.find(x => x[0] === o)!; go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });

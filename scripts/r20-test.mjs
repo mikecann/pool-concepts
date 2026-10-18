@@ -33,8 +33,9 @@ const channel = async label => {
   check(`${label}: the deep end's paving fill is cut away ("a|b")`, fill[1] > 0 && fill[0] === 0, `${fill[0]} of ${fill[1]} shown`);
   // stand on the concourse beside the channel, on the far side from the pool, looking at it
   await p.evaluate(([o, d]) => { const x = o[0] - d[0] * 1.0, z = o[2] - d[2] * 1.0; const yaw = Math.atan2(d[0], d[2]) * 180 / Math.PI; __viewer.place(x, o[1] + 0.6, z, yaw + 180, -25); }, [c.origin, c.dir]);
-  await wait(1400);
-  let tip = await tipText();
+  // poll for the prompt (a fixed wait ran short with Blender rendering on the same GPU)
+  let tip = '';
+  for (let i = 0; i < 20 && !tip.includes('unroll the blanket'); i++) { await wait(200); tip = await tipText(); }
   check(`${label}: by the channel, "unroll the blanket"`, tip.includes('unroll the blanket'), tip || await p.evaluate(() => __viewer.walker.feet.toArray().map(v => v.toFixed(2)).join(',')));
   await shot(`${label}_channel_in`);
   await p.keyboard.press('KeyE'); await wait(2500);

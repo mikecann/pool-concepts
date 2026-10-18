@@ -15,7 +15,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -29,7 +29,7 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 // One JSON blob in localStorage: quality, fps counter, people, scenario, the design options, the date and (only
 // once you've moved it yourself) the time of day. A first visit uses the defaults: Medium, fps counter on.
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence', string>> };
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 // the time and date aren't remembered any more (Round 17d): drop what older visits saved
@@ -270,10 +270,19 @@ async function main() {
   let blanketsRef: Blankets | null = null, hingesRef: Hinges | null = null;
   let syncCovers = () => {}, coverFinished: (c: any) => void = () => {}, coverToggle: (c: any) => void = () => {};
   let nearCoverAt: (x: number, z: number, eyeY: number) => any = () => null, coversRef: Covers | null = null, nearCover: any = null;
+  // Round 24: the lighting schemes: "As specced" (the lights as they are) plus any scheme the export tags
+  // ("lights_*") that isn't listed yet, under its own name, until it gets a card of its own
+  const lightingChoices: Choice[] = [
+    ...(model.lighting === 'lights_specced' ? LIGHTING_CHOICES : []),
+    ...model.lightSchemes.filter(k => !LIGHTING_CHOICES.some(c => c.value === k)).map(k => {
+      const t = k.replace(/^lights_/, '').replace(/_/g, ' ');
+      return { value: k, title: t[0].toUpperCase() + t.slice(1), short: 'A lighting scheme from the model.', note: '', img: 'card_lights_specced.jpg', src: '' };
+    }),
+  ];
   // Round 22: pier_inset can't be built in Layout B. There it falls back to the drawn fence, but your choice is held
   // (remembered, and handed to SK02's layout on a swap) until you pick another pier fence
   let heldPier: string | null = null;
-  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence });
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence, bplant: model.bplant, lighting: model.lighting });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
@@ -355,6 +364,10 @@ async function main() {
   group('nfence', NFENCE_CHOICES, 'nfence', () => '20_pool_north_seating');
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
   group('bfence', BFENCE_CHOICES, 'bfence', () => '13_deep_end_to_house');
+  group('bplant', BPLANT_CHOICES, 'bplant', () => '13_deep_end_to_house');
+  group('lighting', lightingChoices, 'lighting', () => '15_lounge_from_alfresco');
+  // a scheme only shows after dark: say so if it's picked by day
+  $('cards-lighting').addEventListener('click', () => { if (atm.state.night < 0.2) showHint('Lighting shows after dusk<small>Slide the time past about 19:30 to see it</small>', 3500); });
   // inline warnings on a card while a clashing option is chosen (Round 17d, 18). The other option isn't changed.
   const warnOn = (box: string, items: Choice[], value: string, text: string, show: () => boolean, cls = 'card-warn') => {
     const t = items.find(c => c.value === value)?.title;
@@ -388,6 +401,10 @@ async function main() {
   // (Round 21: the wall moved 0.88 m: the post is in front of the steps' west half; the kitchen starts clear of them, shorter)
   warnOn('cards-post', POST_CHOICES, 'post_as_drawn', 'In Layout B it stands 0.35 m in front of the lounge steps.', () => LAYOUT === 'b');
   warnOn('cards-kitchen', KITCHEN_CHOICES, 'kitchen_lounge', 'In Layout B it starts clear of the lounge steps, so it is 1.85 m long.', () => LAYOUT === 'b', 'card-note');
+  // Round 24: the deck under the roof covers the paving every kitchen stands on: warn on both while both are chosen
+  const deckClash = () => model.pier === 'pier_straight_deck' && model.kitchen !== 'kitchen_none';
+  for (const c of KITCHEN_CHOICES) if (c.value !== 'kitchen_none') warnOn('cards-kitchen', KITCHEN_CHOICES, c.value, 'With the deck under the roof, this kitchen stands where the deck goes.', () => deckClash() && model.kitchen === c.value);
+  warnOn('cards-pier', PIER_CHOICES, 'pier_straight_deck', 'With a kitchen: the kitchen stands where the deck goes.', deckClash);
   // Round 21: keeping today's boundary fence wouldn't pass: say so on its card, always
   warnOn('cards-bfence', BFENCE_CHOICES, 'bfence_existing', "Too low for most of the pool: 1.81 m at the north end down to 0.83 m.", () => true);
   warnOn('cards-post', POST_CHOICES, 'post_corner_steps', 'In Layout B the steps are already in the corner.', () => LAYOUT === 'b', 'card-note');
@@ -401,6 +418,8 @@ async function main() {
     { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
     { id: 'fences', name: 'Fences', summary: () => `Pillar: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
     { id: 'boundary', name: 'Boundary fence', summary: () => title(BFENCE_CHOICES, model.bfence) },
+    { id: 'bplant', name: 'Along the boundary wall', summary: () => title(BPLANT_CHOICES, model.bplant) },
+    { id: 'lighting', name: 'Lighting', summary: () => title(lightingChoices, model.lighting) },
     { id: 'passage', name: 'Side path', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · play area ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
     { id: 'spa', name: 'Pump room', summary: () => title(PUMP_CHOICES, model.pump) },
   ];
@@ -654,7 +673,7 @@ async function main() {
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
     const u = new URL(location.href);
-    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence']) u.searchParams.delete(k);
+    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting']) u.searchParams.delete(k);
     u.searchParams.set('layout', to);
     const cover = $('loading'); cover.style.transition = 'none'; cover.classList.remove('done');
     progress(0.02, `Loading ${title(LAYOUT_CHOICES, to)}…`);
@@ -765,6 +784,8 @@ async function main() {
   model.nfence = valid(o.nfence, NFENCE_CHOICES) ?? model.nfence;
   model.passage = valid(o.passage, PASSAGE_CHOICES) ?? model.passage;
   model.bfence = valid(o.bfence, BFENCE_CHOICES) ?? model.bfence;
+  model.bplant = valid(o.bplant, BPLANT_CHOICES) ?? model.bplant;
+  model.lighting = valid(o.lighting, lightingChoices) ?? model.lighting;
   if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
   model.apply(); renderRoller();
   // deep links from the renders page: ?cam=05_pool_north_end&roller=roller_pit&kitchen=…&scenario=existing
@@ -784,7 +805,9 @@ async function main() {
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
   model.bfence = fromParam('bfence', BFENCE_CHOICES, 'bfence_') ?? model.bfence;
-  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  model.bplant = fromParam('bplant', BPLANT_CHOICES, 'bplant_') ?? model.bplant;
+  model.lighting = fromParam('lighting', lightingChoices, 'lights_') ?? model.lighting;
+  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   /**
    * Round 19: an option carried over from the other layout is kept if this model builds it (it has parts tagged with
@@ -812,6 +835,7 @@ async function main() {
     model.spaCover = keep('spaCover', valid(ho.spaCover, SPA_COVER_CHOICES)); model.pump = keep('pump', valid(ho.pump, PUMP_CHOICES));
     model.pier = keep('pier', valid(ho.pier, PIER_CHOICES)); model.nfence = keep('nfence', valid(ho.nfence, NFENCE_CHOICES));
     model.passage = keep('passage', valid(ho.passage, PASSAGE_CHOICES)); model.bfence = keep('bfence', valid(ho.bfence, BFENCE_CHOICES));
+    model.bplant = keep('bplant', valid(ho.bplant, BPLANT_CHOICES)); model.lighting = valid(ho.lighting, lightingChoices) ?? model.lighting;
     model.people = handoff.people; peopleBox.checked = model.people;
     if (handoff.scenario !== S.scenario) setScenario(handoff.scenario);
     optChanged(); renderRoller();

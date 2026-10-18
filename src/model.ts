@@ -4,7 +4,7 @@
 // Node extras from the export: set (existing | proposed | both), option (roller_*, kitchen_*, gate_*),
 // people, night (light fittings), collide, lod ("far"), water (pool | spa | canal), window.
 import {
-  AdditiveBlending, Box3, Matrix4, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
+  AdditiveBlending, Box3, Matrix4, Quaternion, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Mesh, MeshBasicNodeMaterial, MeshStandardNodeMaterial, Object3D, PointLight, RectAreaLight, SpotLight, Vector3,
   type Light, type Material, type Texture, type WebGPURenderer, RectAreaLightNode,
 } from 'three/webgpu';
 import { abs, attribute, mrt, positionWorld, vec4, select, clamp, dot, max, materialRoughness, float, floor, fract, fwidth, sin, materialColor, mix, normalWorld, smoothstep, uv, vec2, mx_noise_float, positionLocal, time, uniform, vec3 } from 'three/tsl';
@@ -20,8 +20,19 @@ import type { Atmosphere } from './atmosphere';
 
 export type LightDef = {
   name: string; type: 'POINT' | 'SPOT' | 'AREA'; position: number[]; direction: number[]; color: number[];
-  power: number; xaxis?: number[]; spotAngle?: number; spotBlend?: number; size?: number; sizeY?: number; set?: string; option?: string;
+  power: number; xaxis?: number[]; spotAngle?: number; spotBlend?: number; size?: number; sizeY?: number; set?: string; option?: string; hide_option?: string;
 };
+/**
+ * Round 24: what a light slot is set to for one light of the export: everything a scheme can change (place, aim,
+ * colour, size or angle, power) and nothing that would change a shader (the type, shadows).
+ */
+type LightSpec = {
+  def: LightDef; type: 'SPOT' | 'POINT' | 'AREA'; pos: Vector3; target?: Vector3; quat?: Quaternion; color: Color; base: number;
+  w?: number; h?: number; distance?: number; angle?: number; penumbra?: number; shadow: boolean; role: 'pool' | 'spa' | null;
+};
+type Slot = { light: AnyLight; type: LightSpec['type']; shadow: boolean; spec: LightSpec | null; base: number; def: LightDef | null };
+/** Round 24: the slot pool's size per type (16 in all), raised at load if any one scheme needs more of a type. */
+const SLOTS = { SPOT: 6, AREA: 6, POINT: 4 };
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
 export type Layout = 'a' | 'b';
 /** Each layout's export, with its content hash (vite.config.ts) so a new export is never served stale. */
@@ -191,7 +202,13 @@ function tileJoints(base: any, j: { tile: number; width: number; grout: [number,
 
 export class Model {
   readonly root = new Group();
-  readonly nightLights: { light: AnyLight; base: number; def: LightDef }[] = [];
+  /** Round 24: the fixed pool of light slots (see setupLights); a slot with no light assigned has def null. */
+  readonly nightLights: Slot[] = [];
+  private lightSpecs: LightSpec[] = [];
+  private lightKey = '';
+  /** The lighting schemes in the export (option "lights_*"), and the one shown. */
+  lightSchemes: string[] = [];
+  lighting = 'lights_specced';
   readonly waters: Mesh[] = [];
   /** Lawn top surfaces the grass blades grow on. */
   readonly lawns: Mesh[] = [];
@@ -205,8 +222,6 @@ export class Model {
   /** How strongly the pool and spa lights' bounce lights their basins (0 by day or with the light off). */
   private poolGlow = uniform(0);
   private spaGlow = uniform(0);
-  private poolLight: AnyLight | null = null;
-  private spaLight: AnyLight | null = null;
   private glowColor(kind: WaterKind) {
     // the light's colour after a few metres of water, as for the lights themselves (see setupLights)
     const a = kind === 'spa' ? [0.315, 0.14, 0.12] : [0.27, 0.12, 0.105], path = kind === 'spa' ? 2 : 7;
@@ -230,6 +245,8 @@ export class Model {
   /** Round 17: the play area where it is or moved north; the hot tub's roll-on cover; the pool's roll-on cover state. */
   play = 'play_as_is';
   spaCover = 'spa_cover_none';
+  /** Round 24: along the boundary wall beside the pool: a low planter bed, pots or nothing. */
+  bplant = 'bplant_bed';
   /** Round 21: the west boundary fence along the pool (Today always shows the existing one). */
   bfence = 'bfence_perforated';
   /** The pool's roll-on cover: 'off' (rolled at its end), 'moving' (being rolled on or off) or 'on' (flat on the pool). */
@@ -699,75 +716,130 @@ export class Model {
     // midway between the two with their combined power. The look barely changes; the shaders get 4 lights smaller.
     this.glowCeiling(defs.filter(d => d.name.startsWith('alfresco_downlight')));
     if (!new URLSearchParams(location.search).has('lights13')) defs = pairUp(defs, ['led_uplight', 'alfresco_downlight']);
+    // Round 24: every light becomes a spec, and the specs share a fixed pool of light slots allocated here. A lighting
+    // scheme (option "lights_*"), like any option, only changes which specs are active, so switching reassigns slots
+    // (place, aim, colour, size, power) and never changes the set of lights: no shader rebuilds, no new shadow maps.
+    // Lights with no lights_ tag are in every scheme.
     for (const d of defs) {
       if (d.name.startsWith('int_light')) continue;   // interior lamps would shine through the walls; the windows glow instead
-      const col = new Color(d.color[0], d.color[1], d.color[2]);
-      const pos = new Vector3(...(d.position as [number, number, number]));
-      let light: AnyLight;
-      let base: number;
-      if (d.type === 'SPOT') {
-        const s = new SpotLight(col, 0, 18, (d.spotAngle ?? 1) / 2, d.spotBlend ?? 0.2, 2);
-        s.position.copy(pos);
-        s.target.position.copy(pos).add(new Vector3(...(d.direction as [number, number, number])));
-        this.root.add(s.target);
-        base = d.power * POINT_SCALE;
-        light = s;
-      } else if (d.type === 'AREA') {
-        const w = Math.max(0.05, d.size ?? 0.5), h = Math.max(0.03, d.sizeY || d.size || 0.5);
-        const r = new RectAreaLight(col, 0, w, h);
-        r.position.copy(pos);
-        r.lookAt(pos.clone().add(new Vector3(...(d.direction as [number, number, number]))));
-        if (d.xaxis) {
-          // lookAt can't know the strip's spin about its axis: build the basis from the exported long side, so the
-          // 2.5 m bench strips run along their benches (one of them ran across its bench before)
-          const z = new Vector3(...(d.direction as [number, number, number])).negate().normalize();
-          const x = new Vector3(...(d.xaxis as [number, number, number])).normalize();
-          const y = new Vector3().crossVectors(z, x).normalize();
-          r.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
+      this.lightSpecs.push(this.specFor(d));
+    }
+    this.lightSchemes = [...new Set(defs.flatMap(d => String(d.option ?? '').split('+')).filter(k => k.startsWith('lights_')))].sort();
+    if (this.lightSchemes.length && !defs.some(d => !String(d.option ?? '').includes('lights_'))) this.lighting = this.lightSchemes[0];
+    // the most of each type (and of shadow casters) any one scheme could have on at once
+    const schemes = this.lightSchemes.length ? this.lightSchemes : [this.lighting];
+    const need = (type: string, shadow = false) => Math.max(...schemes.map(sc => this.lightSpecs.filter(sp => sp.type === type && (!shadow || sp.shadow) &&
+      String(sp.def.option ?? '').split('+').every(k => !k.startsWith('lights_') || k === sc)).length));
+    for (const type of ['SPOT', 'AREA', 'POINT'] as const) {
+      const n = Math.max(SLOTS[type], need(type)), shadows = need(type, true);
+      for (let i = 0; i < n; i++) {
+        const light: AnyLight = type === 'SPOT' ? new SpotLight(0xffffff, 0, 18, 0.5, 0.2, 2) : type === 'AREA' ? new RectAreaLight(0xffffff, 0, 0.5, 0.5) : new PointLight(0xffffff, 0, 14, 2);
+        light.name = `light_slot_${type.toLowerCase()}_${i}`;
+        light.position.set(0, -50, 0);
+        if (type === 'SPOT') this.root.add((light as SpotLight).target);
+        const shadow = i < shadows && !!light.shadow && !new URLSearchParams(location.search).has('nightshadow0');
+        if (shadow) {
+          light.castShadow = true;
+          light.shadow.mapSize.set(512, 512);
+          light.shadow.bias = -0.002;
+          light.shadow.autoUpdate = false;
+          light.shadow.needsUpdate = true;
+          this.shadowLights.push(light);
         }
-        // three's LTC area lights come out darker than Cycles' for a thin strip a few cm off the floor: x4 matches the
-        // floor wash in the 19:40 and 21:00 renders
-        base = d.power / (Math.PI * w * h) * 2;
-        if (d.name.startsWith('led_bench')) { if (WARM) r.color.setRGB(1.0, 0.56, 0.26); else r.color.setRGB(1.0, 0.66, 0.36); }   // ~2700 K, as the strips are specified
-        light = r;
-      } else {
-        const p = new PointLight(col, 0, d.name.includes('pool') ? 9 : 14, 2);
-        p.position.copy(pos);
-        if (d.name.startsWith('led_firepit')) {
-          // just below the bowl's rim: it lights the bowl and the floor round it, and the rim casts the dark ring
-          p.position.y -= 0.12;
-          if (WARM) p.color.setRGB(1.0, 0.46, 0.15); else p.color.setRGB(1.0, 0.55, 0.22);
-        }
-        base = d.power * POINT_SCALE;
-        if (WET_LIGHTS && (d.name === 'pool_light' || d.name === 'led_spa_light')) {
-          // Round 9: these sit under water, so everything they light is seen through metres of it. Cycles soaks up
-          // the red on the way (pool_water: 0.27, 0.12, 0.105 per m), which is why its pool glows teal at night;
-          // ours doesn't absorb light, so the colour carries a typical path's worth (4.5 m in the pool, 1.2 m in the spa)
-          const path = (d.name === 'pool_light' ? 4.5 : 1.2) * WET_PATH, a = d.name === 'pool_light' ? [0.27, 0.12, 0.105] : [0.315, 0.14, 0.12];
-          p.color.setRGB(col.r * Math.exp(-a[0] * path), col.g * Math.exp(-a[1] * path), col.b * Math.exp(-a[2] * path));
-          base *= WET_GAIN * (d.name === "led_spa_light" ? SPA_GAIN : 1);   // Round 11: the spa glows bright cyan at dusk in Cycles
-        }
-        light = p;
-        if (d.name === 'pool_light') this.poolLight = p;
-        if (d.name === 'led_spa_light') this.spaLight = p;
+        this.root.add(light);
+        this.nightLights.push({ light, type, shadow, spec: null, base: 0, def: null });
       }
-      // Round 9: the lounge floor (pale limestone) burned to white at night where Cycles has it amber
-      if (d.name.startsWith('led_bench') || d.name.startsWith('led_firepit')) base *= LOUNGE_GAIN;
-      light.name = d.name;
-      light.userData.set = d.set ?? 'proposed';
-      if (d.option) light.userData.option = d.option;
-      if (KEY_SHADOW_LIGHTS.includes(d.name) && light.shadow && !new URLSearchParams(location.search).has('nightshadow0')) {
-        light.castShadow = true;
-        light.shadow.mapSize.set(512, 512);
-        light.shadow.bias = -0.002;
-        light.shadow.autoUpdate = false;
-        light.shadow.needsUpdate = true;
-        this.shadowLights.push(light);
-      }
-      this.root.add(light);
-      this.nightLights.push({ light, base, def: d });
     }
   }
+
+  /** One exported light as a slot setting (the per-light tuning from rounds 9 to 13 lives here). */
+  private specFor(d: LightDef): LightSpec {
+    const color = new Color(d.color[0], d.color[1], d.color[2]);
+    const pos = new Vector3(...(d.position as [number, number, number]));
+    const dir = new Vector3(...(d.direction as [number, number, number]));
+    const shadow = KEY_SHADOW_LIGHTS.includes(d.name);
+    let spec: LightSpec;
+    if (d.type === 'SPOT') {
+      spec = { def: d, type: 'SPOT', pos, target: pos.clone().add(dir), color, base: d.power * POINT_SCALE, distance: 18, angle: (d.spotAngle ?? 1) / 2, penumbra: d.spotBlend ?? 0.2, shadow, role: null };
+    } else if (d.type === 'AREA') {
+      const w = Math.max(0.05, d.size ?? 0.5), h = Math.max(0.03, d.sizeY || d.size || 0.5);
+      const o = new Object3D(); o.position.copy(pos); o.lookAt(pos.clone().add(dir));
+      let quat = o.quaternion.clone();
+      if (d.xaxis) {
+        // lookAt can't know the strip's spin about its axis: build the basis from the exported long side, so the
+        // 2.5 m bench strips run along their benches (one of them ran across its bench before)
+        const z = dir.clone().negate().normalize(), x = new Vector3(...(d.xaxis as [number, number, number])).normalize();
+        const y = new Vector3().crossVectors(z, x).normalize();
+        quat = new Quaternion().setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
+      }
+      // three's LTC area lights come out darker than Cycles' for a thin strip a few cm off the floor: x4 matches the
+      // floor wash in the 19:40 and 21:00 renders
+      if (d.name.startsWith('led_bench')) { if (WARM) color.setRGB(1.0, 0.56, 0.26); else color.setRGB(1.0, 0.66, 0.36); }   // ~2700 K, as the strips are specified
+      spec = { def: d, type: 'AREA', pos, quat, color, base: d.power / (Math.PI * w * h) * 2, w, h, shadow, role: null };
+    } else {
+      let base = d.power * POINT_SCALE, role: LightSpec['role'] = null;
+      if (d.name.startsWith('led_firepit')) {
+        // just below the bowl's rim: it lights the bowl and the floor round it, and the rim casts the dark ring
+        pos.y -= 0.12;
+        if (WARM) color.setRGB(1.0, 0.46, 0.15); else color.setRGB(1.0, 0.55, 0.22);
+      }
+      if (WET_LIGHTS && (d.name === 'pool_light' || d.name === 'led_spa_light')) {
+        // Round 9: these sit under water, so everything they light is seen through metres of it. Cycles soaks up
+        // the red on the way (pool_water: 0.27, 0.12, 0.105 per m), which is why its pool glows teal at night;
+        // ours doesn't absorb light, so the colour carries a typical path's worth (4.5 m in the pool, 1.2 m in the spa)
+        const path = (d.name === 'pool_light' ? 4.5 : 1.2) * WET_PATH, a = d.name === 'pool_light' ? [0.27, 0.12, 0.105] : [0.315, 0.14, 0.12];
+        color.setRGB(color.r * Math.exp(-a[0] * path), color.g * Math.exp(-a[1] * path), color.b * Math.exp(-a[2] * path));
+        base *= WET_GAIN * (d.name === 'led_spa_light' ? SPA_GAIN : 1);   // Round 11: the spa glows bright cyan at dusk in Cycles
+      }
+      if (d.name === 'pool_light') role = 'pool';
+      if (d.name === 'led_spa_light') role = 'spa';
+      spec = { def: d, type: 'POINT', pos, color, base, distance: d.name.includes('pool') ? 9 : 14, shadow, role };
+    }
+    // Round 9: the lounge floor (pale limestone) burned to white at night where Cycles has it amber
+    if (d.name.startsWith('led_bench') || d.name.startsWith('led_firepit')) spec.base *= LOUNGE_GAIN;
+    return spec;
+  }
+
+  /**
+   * Round 24: give the active lights (scheme, scenario, options) their slots. A light keeps its slot while it stays
+   * active; the rest fill the free slots of their type, shadow casters first into the slots that cast shadows. A light
+   * with no free slot of its type is left out (and said so in the console); a slot with nothing assigned stays dark.
+   */
+  assignLights() {
+    const active = this.lightSpecs.filter(sp => this.visibleFor({ set: sp.def.set ?? 'proposed', option: sp.def.option, hide_option: sp.def.hide_option }));
+    const key = active.map(sp => sp.def.name).join();
+    if (key === this.lightKey) return;
+    this.lightKey = key;
+    const keep = new Set(active);
+    for (const slot of this.nightLights) if (slot.spec && !keep.has(slot.spec)) this.setSlot(slot, null);
+    const placed = new Set(this.nightLights.map(sl => sl.spec).filter(Boolean));
+    for (const sp of [...active].sort((a, b) => Number(b.shadow) - Number(a.shadow))) {
+      if (placed.has(sp)) continue;
+      const free = this.nightLights.filter(sl => !sl.spec && sl.type === sp.type);
+      const slot = free.find(sl => sl.shadow === sp.shadow) ?? free.find(sl => !sl.shadow) ?? free[0];
+      if (!slot) { console.warn(`lights: no free ${sp.type} slot for ${sp.def.name}`); continue; }
+      this.setSlot(slot, sp);
+    }
+  }
+
+  private setSlot(slot: Slot, sp: LightSpec | null) {
+    const l = slot.light as any;
+    slot.spec = sp; slot.def = sp?.def ?? null; slot.base = sp?.base ?? 0;
+    l.userData.def = sp?.def.name ?? null;
+    if (!sp) { l.intensity = 0; l.position.set(0, -50, 0); if (l.target) l.target.position.set(0, -51, 0); return; }
+    l.position.copy(sp.pos);
+    l.color.copy(sp.color);
+    if (slot.type === 'SPOT') { l.target.position.copy(sp.target!); l.angle = sp.angle; l.penumbra = sp.penumbra; l.distance = sp.distance; }
+    else if (slot.type === 'AREA') { l.quaternion.copy(sp.quat!); l.width = sp.w; l.height = sp.h; }
+    else l.distance = sp.distance;
+    if (slot.shadow) l.shadow.needsUpdate = true;
+  }
+
+  /** Which slot shows which light, for the tests. */
+  lightSlots() { return this.nightLights.map(sl => ({ slot: sl.light.name, type: sl.type, shadow: sl.shadow, light: sl.def?.name ?? null })); }
+
+  /** Test hook: add lights as if the export had them (e.g. a second scheme), then reassign. */
+  addLights(defs: LightDef[]) { for (const d of defs) this.lightSpecs.push(this.specFor(d)); this.lightSchemes = [...new Set([...this.lightSchemes, ...defs.flatMap(d => String(d.option ?? '').split('+')).filter(k => k.startsWith('lights_'))])].sort(); this.lightKey = ''; this.assignLights(); }
 
   /** Called every frame: dusk fade, fire flicker, flame visibility. */
   update(night: number, t: number, dt = 0) {
@@ -785,15 +857,17 @@ export class Model {
       // appears changes every material's lighting; three recompiles them, and on the way disposed the shadow map the
       // other materials were still drawing with ("Destroyed ShadowDepthTexture", no sun shadows after Today ->
       // Proposed). So the set of lights, like the set of shadow maps, is fixed from load. ?lightswap=1 for before.
-      const here = this.visibleFor(light.userData);
+      // (Round 24: the lights are now slots; an empty slot is dark.)
+      const here = def !== null;
       const vis = SCEN_SWAP ? (swap ? on : true) && here : swap ? on : true;
       if (light.visible !== vis) { light.visible = vis; if (light.castShadow) light.shadow!.needsUpdate = true; }
       // on Low (no TRAA or SSGI) the bench strips' floor wash clips to a white flare: about 0.6x there (Round 13)
-      const low = this.lowQuality && def.name.startsWith('led_bench') ? BENCH_LOW : 1;
-      light.intensity = (here ? base * night * low : 0) * (def.name.startsWith('led_firepit') ? flick : 1);
+      const low = this.lowQuality && def?.name.startsWith('led_bench') ? BENCH_LOW : 1;
+      light.intensity = (here ? base * night * low : 0) * (def?.name.startsWith('led_firepit') ? flick : 1);
     }
-    this.poolGlow.value = this.poolLight && this.visibleFor(this.poolLight.userData) ? night * GLOW : 0;
-    this.spaGlow.value = this.spaLight && this.visibleFor(this.spaLight.userData) ? night * GLOW * SPA_GAIN : 0;
+    const role = (r: 'pool' | 'spa') => this.nightLights.some(sl => sl.spec?.role === r);
+    this.poolGlow.value = role('pool') ? night * GLOW : 0;
+    this.spaGlow.value = role('spa') ? night * GLOW * SPA_GAIN : 0;
     // shadow maps of the night lights: refresh while they're fading in, then they're static
     if (on !== this.wasOn) { this.wasOn = on; for (const l of this.shadowLights) l.shadow!.needsUpdate = true; }
     // (hiding a mesh doesn't change any shader, unlike the lights: the flames simply go away by day)
@@ -804,7 +878,7 @@ export class Model {
   private hidden(key: string) {
     if (key === 'pool_cover_on') return this.poolCover === 'on' && this.roller.startsWith('roller_rollon');
     if (key === 'spa_cover_on') return this.spaCover === 'spa_cover_on' && !this.spaCoverMoving;
-    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence].includes(key);
+    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting].includes(key);
   }
 
   visibleFor(u: Record<string, any>) {
@@ -813,7 +887,7 @@ export class Model {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting];
       // the covers while they're rolling on or off: the flat cover (revealed piece by piece) and the roll both show
       if (this.poolCover !== 'off' && this.roller.startsWith('roller_rollon')) chosen.push('pool_cover_on');
       if (this.spaCoverMoving) chosen.push('spa_cover_on', 'spa_cover_rolled');
@@ -836,6 +910,7 @@ export class Model {
       if (u.set === undefined && u.option === undefined && u.hide_option === undefined && u.people === undefined && u.lod === undefined) return;
       o.visible = this.visibleFor(u);
     });
+    this.assignLights();
     for (const l of this.shadowLights) l.shadow!.needsUpdate = true;
     for (const p of this.fencePanels) {
       p.mesh.material = this.fence === 'glass' && this.fenceGlass ? this.fenceGlass : p.perforated;
