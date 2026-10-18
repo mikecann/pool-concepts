@@ -12,7 +12,7 @@ export const VIEWS = [
   ["13_deep_end_to_house", "Deep end, looking back", "From the canal end of the pool back at the alfresco and the house."],
   ["10_alfresco_corner", "North-west corner", "From the north fence across the pool to the alfresco and lounge."],
   ["12_from_pavilion", "From the pavilion", "On the existing timber deck under the pavilion, looking west."],
-  ["18_pier_fence", "Pavilion pier and fence", "On the pavilion deck, looking at the pier beside the east pool fence and gate."],
+  ["18_pier_fence", "Pavilion pillar and fence", "On the pavilion deck, looking at the pillar beside the east pool fence and gate."],
   ["19_play_area", "Side passage play area", "At the pool's north gate, looking up the side passage at the trampoline and the climbing frame."],
   ["21_play_area_north", "Play area, looking south down the side passage", "From the play area at the north end of the side passage, looking south past the trampoline to the pool fence."],
   ["20_pool_north_seating", "Pool from the spa deck, looking north", "From the spa deck, looking up the pool to the north fence and the side passage beyond it."],

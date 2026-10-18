@@ -22,6 +22,9 @@ export const DIM_GROUPS: { id: string; name: string; groups: string[] }[] = [
 const COLOR = 0xff6a1f, TICK = 0.12, FADE_NEAR = 12, FADE_FAR = 45, NAME_NEAR = 6;
 const _m = new Vector3(), _p = new Vector3(), _d = new Vector3(), _t = new Vector3(), _u = new Vector3();
 
+/** Round 23: Mike calls the pavilion's pier a pillar; the export's labels still say pier. */
+const pillar = (t: string) => t.replace(/\b([Pp])ier(s?)\b/g, (_, p, s) => `${p === 'P' ? 'P' : 'p'}illar${s}`);
+
 export class Dims {
   readonly group = new Group();
   /** Chip ids switched on. */
@@ -45,7 +48,7 @@ export class Dims {
 
   /** The dims file is fetched the first time the overlay goes on. */
   private load() {
-    this.loading ??= fetch(this.url).then(r => (r.ok ? r.json() : [])).catch(() => []).then((l: Dim[]) => { this.list = Array.isArray(l) ? l : []; this.key = ''; });
+    this.loading ??= fetch(this.url).then(r => (r.ok ? r.json() : [])).catch(() => []).then((l: Dim[]) => { this.list = (Array.isArray(l) ? l : []).map(d => ({ ...d, label: pillar(d.label), note: d.note && pillar(d.note) })); this.key = ''; });
     return this.loading;
   }
 

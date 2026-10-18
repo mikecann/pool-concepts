@@ -1111,6 +1111,15 @@ r17-test passes, as do settings, r16, tools, switch, walk, the page checks, phon
 - **New `scripts/r22-test.mjs`:** PASS.
 - **Other checks:** settings, r16, r17, r19, r20, r21, tools, switch, walk, pages and phone all pass. check-images: 339 checked, 0 missing, 1 awaiting.
 
+## Round 23: "pier" is now "pillar"
+
+- **What changed:** every user-facing "pier", "Pier" and "piers" is now pillar. That covers card titles, short lines and More text, the section heading ("Fence by the pillar") and its i, the Fences summary ("Pillar: …"), warnings and the Layout B fallback hint, the renders page (headings, notes, view names, aria labels), and the view name "Pavilion pillar and fence".
+- **Dimension labels:** these come from the export ("Pavilion pier to the pool fence"), so the viewer renames them when it loads them.
+- **Unchanged:** the home pages don't mention it. The option keys (`pier_*`), `?pier=`, the `cards-pier` and `pier-h` ids, and the image names stay. `?pillar=` is an alias: `straight`, `pier_straight` and `pillar_straight` all work.
+- **Two other uses changed too:** the boundary wall's "pier caps" are now "pillar caps", and the wall pier under the corner post's footing is now a pillar. These follow "everywhere"; say if they should go back.
+- **New `scripts/r23-test.mjs`:** scans everything readable on both layouts' walkthrough, the renders page and the home pages (text including hidden More and i notes, plus alt, aria-label and title) for the word, and checks the aliases and the dims labels. PASS.
+- **Other checks:** pages, settings and r17 to r22 all pass. Test card titles were updated.
+
 ## Summary
 
 **Round 17:**

@@ -53,11 +53,11 @@ const POSTS = [
   ["post_as_drawn", "As drawn (SK02)", `<b>SK02's single post</b>
     <p>One 100 mm post in the middle of the alfresco with a beam along it. 1.35 m to the pool coping and 0.27 m to the lounge coping.</p>`],
   ["post_corner", "Corner post", `<b>One post at the south-west corner</b>
-    <p>A beam along the west edge to the house, and a 310 mm beam along the south side to a short post on the pavilion's pier. The most open alfresco, with the longest beam; an engineer has to say whether the pier can take a second post.</p>`],
+    <p>A beam along the west edge to the house, and a 310 mm beam along the south side to a short post on the pavilion's pillar. The most open alfresco, with the longest beam; an engineer has to say whether the pillar can take a second post.</p>`],
   ["post_west", "West edge, cantilevered", `<b>One post on the west edge</b>
     <p>The west beam runs over the post and cantilevers 1.65 m to the south edge, so nothing stands on the side facing the pool and lounge. The post sits about where you'd step from the alfresco onto the coping, and the cantilevered corner is the part most exposed to wind uplift.</p>`],
   ["post_two", "Two posts", `<b>Two posts on the south side</b>
-    <p>Shorter spans than the corner post, with nothing on the pier. Two posts along the lounge's edge, though: the west one 0.11 m from the lounge coping, the east one 1.0 m from the benchtops.</p>`],
+    <p>Shorter spans than the corner post, with nothing on the pillar. Two posts along the lounge's edge, though: the west one 0.11 m from the lounge coping, the east one 1.0 m from the benchtops.</p>`],
   ["post_corner_steps", "Corner post, steps moved", `<b>A corner post, with the lounge steps moved</b>
     <p>One post right at the roof's south-west corner, standing on the lounge's north wall, with only the west-edge beam. The lounge's north-west steps move 0.45 m east so the flight is clear of the post, and the north bench gets about 0.5 m shorter. The post is 0.5 m from the pool coping. With the lounge kitchen, its west end sits at the head of the moved steps, leaving 0.77 m of the flight open.</p>`],
 ];
@@ -94,7 +94,7 @@ const PLAY = PLAY_CHOICES.flatMap(c => PASSAGE_CHOICES.map(ps => [`${c.value}_${
   `<b>${c.title}</b><p>${c.note}</p><b>${ps.title}</b><p>${ps.note}</p>`, c.value, ps.value]));
 const PLAY_VIEWS = [['19_play_area', 'Up the side passage'], ['21_play_area_north', 'From the play area'], ['20_pool_north_seating', 'From the spa deck']];
 const playSrc = (o: string, v: string) => `img/options_${v}_${o}.jpg`;
-const PIER_VIEWS = [['18_pier_fence', 'At the pier'], ['12_from_pavilion', 'From the pavilion']];
+const PIER_VIEWS = [['18_pier_fence', 'At the pillar'], ['12_from_pavilion', 'From the pavilion']];
 // the side passage: north fence position x passage surface, as render.py names them (side_<fence>_<surface>)
 const SIDE = NFENCE_CHOICES.flatMap(f => PASSAGE_CHOICES.map(p => [
   `side_${f.value.replace('nfence_', '')}_${p.value.replace('passage_', '')}`, `${f.title}, ${p.title.toLowerCase()}`,
@@ -268,12 +268,12 @@ const HTML = /* html */ `
 
 <div class="section-head">
   <span class="label">Options to decide</span>
-  <h2>The fence by the pavilion pier</h2>
-  <p>WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pier sits 0.4 m outside the east fence.</p>
+  <h2>The fence by the pavilion pillar</h2>
+  <p>WA pool rules: the fence must be 1.2 m high on the outside, with nothing to climb on within its 900 mm non-climbable zones unless it's 1.8 m high. The pavilion's concrete pillar sits 0.4 m outside the east fence.</p>
 </div>
-<section class="block" aria-label="Pier fence options">
+<section class="block" aria-label="Pillar fence options">
   <div class="fstage"><img id="p-img" alt=""><span class="tag l" id="p-tag"></span><button class="fly" id="p-fly" type="button">Open in 3D</button></div>
-  <div class="chips" role="group" aria-label="Pier fence" id="p-opts"></div>
+  <div class="chips" role="group" aria-label="Pillar fence" id="p-opts"></div>
   <div class="chips" id="p-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="p-note"></div>
 </section>
@@ -379,7 +379,7 @@ const HTML = /* html */ `
     <tbody>
       <tr><td>Boundaries, walls, steps, paving, jetty, canal wall, levels</td><td>Denada survey DWG, 3D lines and spot heights</td><td>A few cm</td></tr>
       <tr><td>Pool, spa, lounge, deck, new walls, fence, skillion outline</td><td>SK02, lined up on the survey using the 99 survey points still in Bob's drawing</td><td>0 mm offset, as good as SK02</td></tr>
-      <tr><td>House walls, doors, eaves, roof</td><td>Plunkett Homes plans, 2005</td><td>Within 2 cm of the surveyed pavilion piers</td></tr>
+      <tr><td>House walls, doors, eaves, roof</td><td>Plunkett Homes plans, 2005</td><td>Within 2 cm of the surveyed pavilion pillars</td></tr>
       <tr><td>Boundary walls and fences, planters</td><td>Survey wall tops plus the Dec 2025 LiDAR scan</td><td>Scan fits the survey to 4 cm</td></tr>
       <tr><td>Neighbours</td><td>Drone photo matched to the survey, simple shapes</td><td>Placed to about 0.3 m</td></tr>
       <tr><td>The canal, the far bank and the houses around it</td><td>Overture building outlines lined up on the Landgate cadastre, the canal edge traced from 2025 aerial imagery, colours and roof types from your photos</td><td>Outlines to about 0.5 m, heights estimated from storeys</td></tr>

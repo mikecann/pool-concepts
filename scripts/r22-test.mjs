@@ -70,8 +70,8 @@ check('  and available again', !(await pierCard()).disabled);
 // --- picking another pier fence in B lets go of it
 await pickLayout('Lounge wall in line, pool moved');
 await p.evaluate(() => { __viewer.setPanel(true); window.__openCategory('fences'); });
-await p.locator('#cards-pier .card').filter({ has: p.locator('b', { hasText: /^Straight past the pier$/ }) }).click();
-check('in B, picking "Straight past the pier" replaces it', (await remembered()) === 'pier_straight');
+await p.locator('#cards-pier .card').filter({ has: p.locator('b', { hasText: /^Straight past the pillar$/ }) }).click();
+check('in B, picking "Straight past the pillar" replaces it', (await remembered()) === 'pier_straight');
 await pickLayout('As drawn \\(SK02\\)');
 check('  and that is what SK02\'s layout gets', (await p.evaluate(() => __viewer.model.pier)) === 'pier_straight');
 

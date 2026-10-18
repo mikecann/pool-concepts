@@ -73,7 +73,7 @@ const more = await card.locator('.card-more p').innerText();
 check('  More: why the Daisy SQ, and the trench\'s hazards', /0\.6 m/.test(more) && /0\.75 m/.test(more) && /trip hazard/.test(more) && /drain/.test(more) && /grate|rail/.test(more));
 await p.screenshot({ path: `${OUT}/card_channel.png` });
 await p.evaluate(() => window.__openCategory('fences'));
-check('Fences: a "Deck edge, then past the pier" card', await p.locator('#cards-pier .card b', { hasText: /^Deck edge, then past the pier$/ }).count() === 1);
+check('Fences: a "Deck edge, then past the pillar" card', await p.locator('#cards-pier .card b', { hasText: /^Deck edge, then past the pillar$/ }).count() === 1);
 
 await channel('A');
 

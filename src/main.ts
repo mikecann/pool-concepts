@@ -399,7 +399,7 @@ async function main() {
     { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
     { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
     { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
-    { id: 'fences', name: 'Fences', summary: () => `Pier: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
+    { id: 'fences', name: 'Fences', summary: () => `Pillar: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
     { id: 'boundary', name: 'Boundary fence', summary: () => title(BFENCE_CHOICES, model.bfence) },
     { id: 'passage', name: 'Side path', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · play area ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
     { id: 'spa', name: 'Pump room', summary: () => title(PUMP_CHOICES, model.pump) },
@@ -654,7 +654,7 @@ async function main() {
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
     const u = new URL(location.href);
-    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage', 'bfence']) u.searchParams.delete(k);
+    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence']) u.searchParams.delete(k);
     u.searchParams.set('layout', to);
     const cover = $('loading'); cover.style.transition = 'none'; cover.classList.remove('done');
     progress(0.02, `Loading ${title(LAYOUT_CHOICES, to)}…`);
@@ -778,11 +778,13 @@ async function main() {
   model.play = fromParam('play', PLAY_CHOICES, 'play_') ?? model.play;
   model.spaCover = fromParam('spacover', SPA_COVER_CHOICES, 'spa_cover_') ?? model.spaCover;
   model.pump = fromParam('pump', PUMP_CHOICES, 'pump_') ?? model.pump;
-  model.pier = fromParam('pier', PIER_CHOICES) ?? model.pier;
+  // Round 23: the pier is called the pillar now; ?pillar= (e.g. ?pillar=straight) works as well as ?pier=
+  const pillarParam = params.get('pillar')?.replace(/^pillar_/, 'pier_');
+  model.pier = fromParam('pier', PIER_CHOICES) ?? (pillarParam ? valid(pillarParam.startsWith('pier_') ? pillarParam : 'pier_' + pillarParam, PIER_CHOICES) : undefined) ?? model.pier;
   model.nfence = fromParam('nfence', NFENCE_CHOICES, 'nfence_') ?? model.nfence;
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
   model.bfence = fromParam('bfence', BFENCE_CHOICES, 'bfence_') ?? model.bfence;
-  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'nfence', 'passage', 'bfence'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   /**
    * Round 19: an option carried over from the other layout is kept if this model builds it (it has parts tagged with
@@ -841,7 +843,7 @@ async function main() {
   if (LAYOUT === 'b' && model.pier === 'pier_inset') {
     heldPier = 'pier_inset'; model.pier = 'pier_as_drawn'; model.apply(); syncCovers(); walker.rebuild(model.root); renderRoller();
     const note = `<small>The fence pulled into the alfresco isn't possible in Layout B, so it's as drawn here. It comes back in SK02's layout.</small>`;
-    swapHint = swapHint ? swapHint + note : `Fence by the pier: as drawn${note}`;
+    swapHint = swapHint ? swapHint + note : `Fence by the pillar: as drawn${note}`;
   }
   // compile the pipelines the first view needs, all at once, for the targets the frames really render into
   // (the post pass's MRT target), while the textures upload alongside. The water mirrors come afterwards.
