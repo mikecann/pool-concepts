@@ -116,6 +116,7 @@ export const WALLCAP_CHOICES: Choice[] = [
 // Round 27: the timber spa deck's outline (Layout B only; SK02's layout has the one deck)
 export const DECK_CHOICES: Choice[] = [
   { value: 'deck_wide', short: "Out to the walls and along the east strip.", title: 'Timber to the edges', note: "The deck runs out to the walls' outer faces and along the whole east strip.", img: 'card_deck_wide.jpg', src: 'layoutb_14_spa_to_canal_deck_wide.jpg', crop: [0, 0.4, 0.75, 0.6] },
+  { value: 'deck_wide_framed', short: 'The wide deck, edged with the wall tops.', title: 'Timber with a cap border', note: "The same timber area as Timber to the edges, framed all round by the wall caps: round the sunken lounge, and outside along the strip's north end, the fence edge, the chamfer and the canal-side wall. The border follows the Wall tops choice.", img: 'card_deck_wide_framed.jpg', src: 'layoutb_14_spa_to_canal_deck_wide_framed.jpg', crop: [0, 0.4, 0.75, 0.6] },
   { value: 'deck_as_is', short: 'The squared deck as drawn.', title: 'Squared deck', note: 'The squared spa deck, as drawn.', img: 'card_deck_as_is.jpg', src: 'layoutb_14_spa_to_canal_deck_as_is.jpg', crop: [0, 0.4, 0.75, 0.6] },
 ];
 

@@ -519,6 +519,42 @@
   "option": "deck_wide"
  },
  {
+  "id": "deck_framed_ew",
+  "label": "Framed deck (timber), west end to the east wall's cap",
+  "group": "spa",
+  "a": [
+   -1.276,
+   2.38,
+   10.117
+  ],
+  "b": [
+   3.491,
+   2.38,
+   10.448
+  ],
+  "value_m": 4.779,
+  "set": "proposed",
+  "option": "deck_wide_framed"
+ },
+ {
+  "id": "deck_framed_strip",
+  "label": "Framed deck along the east strip, between the caps",
+  "group": "spa",
+  "a": [
+   3.138,
+   2.38,
+   7.095
+  ],
+  "b": [
+   3.787,
+   2.38,
+   7.14
+  ],
+  "value_m": 0.651,
+  "set": "proposed",
+  "option": "deck_wide_framed"
+ },
+ {
   "id": "deck_wide_fence_height",
   "label": "Straight east fence, height above the wide deck",
   "group": "fences",
