@@ -443,7 +443,8 @@
    10.449
   ],
   "value_m": 4.8,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "deck_as_is"
  },
  {
   "id": "spa_deck_ns",
@@ -460,7 +461,81 @@
    10.977
   ],
   "value_m": 2.189,
-  "set": "proposed"
+  "set": "proposed",
+  "option": "deck_as_is"
+ },
+ {
+  "id": "deck_wide_ew",
+  "label": "Wide deck, west end to the east wall's outer face",
+  "group": "spa",
+  "a": [
+   -1.276,
+   2.38,
+   10.117
+  ],
+  "b": [
+   3.772,
+   2.38,
+   10.467
+  ],
+  "value_m": 5.06,
+  "set": "proposed",
+  "option": "deck_wide"
+ },
+ {
+  "id": "deck_wide_ns",
+  "label": "Wide deck, the strip's north end to the terrace wall's outer face",
+  "group": "spa",
+  "a": [
+   3.551,
+   2.38,
+   5.561
+  ],
+  "b": [
+   3.163,
+   2.38,
+   11.158
+  ],
+  "value_m": 5.611,
+  "set": "proposed",
+  "option": "deck_wide"
+ },
+ {
+  "id": "deck_wide_strip",
+  "label": "Wide deck along the east strip, lounge's inner face to the edge wall's outer face",
+  "group": "spa",
+  "a": [
+   2.907,
+   2.38,
+   7.079
+  ],
+  "b": [
+   3.998,
+   2.38,
+   7.155
+  ],
+  "value_m": 1.093,
+  "set": "proposed",
+  "option": "deck_wide"
+ },
+ {
+  "id": "deck_wide_fence_height",
+  "label": "Straight east fence, height above the wide deck",
+  "group": "fences",
+  "a": [
+   3.901,
+   2.37,
+   7.449
+  ],
+  "b": [
+   3.901,
+   3.67,
+   7.449
+  ],
+  "value_m": 1.3,
+  "set": "proposed",
+  "option": "deck_wide",
+  "note": "1.89 m above the lawn outside"
  },
  {
   "id": "spa_diameter",
@@ -1178,7 +1253,7 @@
   "group": "fences",
   "a": [
    3.206,
-   2.37,
+   2.372,
    5.659
   ],
   "b": [
@@ -1186,7 +1261,7 @@
    3.57,
    5.659
   ],
-  "value_m": 1.2,
+  "value_m": 1.198,
   "set": "proposed",
   "option": "pier_as_drawn"
  },
@@ -1507,7 +1582,8 @@
    7.142
   ],
   "value_m": 0.682,
-  "set": "proposed"
+  "set": "proposed",
+  "hide_option": "deck_wide"
  },
  {
   "id": "strip_east_clear_straight",

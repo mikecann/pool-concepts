@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { VIEWS } from './views';
-import { BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, BPLANT_CHOICES, DECK_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -126,6 +126,11 @@ const LIGHTS_VIEWS = ['17_pool_overview|From above', '15_lounge_from_alfresco|Ov
 });
 /** "17_pool_overview_2100" + "lights_resort" -> night_17_pool_overview_lights_resort_2100.jpg */
 const lightsSrc = (o: string, v: string) => `img/night_${v.slice(0, -5)}_${o}_${v.slice(-4)}.jpg`;
+// Round 27: the wall tops (both layouts, B beside) and Layout B's spa deck outline
+const WALLCAP = WALLCAP_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const WALLCAP_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['17_pool_overview', 'From above'], ['06_sunken_lounge', 'In the lounge']];
+const SPADECK = DECK_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
+const SPADECK_VIEWS = [['14_spa_to_canal', 'Spa to the canal'], ['17_pool_overview', 'From above'], ['06_sunken_lounge', 'In the lounge'], ['07_aerial_southwest', 'From the air']];
 const DECK_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge'], ['16_outdoor_kitchen', 'East fence'], ['18_pier_fence', 'At the pillar'], ['08_aerial_southeast', 'From the air']];
 const BPLANT = BPLANT_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
 const BPLANT_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_north_end', 'From the north fence'], ['17_pool_overview', 'From above'], ['07_aerial_southwest', 'From the air']];
@@ -141,6 +146,8 @@ const LAYOUTB_OPTION_RENDERS = new Set([
   // Round 24: the deck under the roof (with no kitchen, and plain at the pillar), and the planting by the boundary wall
   ...DECK_VIEWS.map(([v]) => `${v}_pier_straight_deck_kitchen_none`), '18_pier_fence_pier_straight_deck', '12_from_pavilion_pier_straight_deck',
   ...BPLANT_VIEWS.flatMap(([v]) => BPLANT_CHOICES.map(c => `${v}_${c.value}`)),
+  // Round 27: the wall tops
+  ...WALLCAP_VIEWS.flatMap(([v]) => WALLCAP_CHOICES.map(c => `${v}_${c.value}`)),
   // Round 25: the lighting schemes
   ...['15_lounge_from_alfresco', '17_pool_overview'].flatMap(v => LIGHTING_CHOICES.flatMap(c => ['1940', '2100'].map(t => `${v}_${c.value}_${t}`))),
   // Round 22: the kitchens (the lounge kitchen's plain name is with SK02's post, as A's pictures are)
@@ -171,6 +178,8 @@ export function allImageUrls() {
     ...BFENCE.flatMap(([o]) => BFENCE_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...DECK_VIEWS.map(([v]) => `img/options_${v}_pier_straight_deck_kitchen_none.jpg`),
     ...LIGHTS.flatMap(([o]) => LIGHTS_VIEWS.map(([v]) => lightsSrc(o, v))),
+    ...WALLCAP.flatMap(([o]) => WALLCAP_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
+    ...SPADECK.flatMap(([o]) => SPADECK_VIEWS.map(([v]) => `img/layoutb_${v}_${o}.jpg`)),
     ...BPLANT.flatMap(([o]) => BPLANT_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...[...LAYOUTB_OPTION_RENDERS].map(n => `img/${n}`),
     ...NIGHTV.map(([v]) => `img/night_${v}_dusk.jpg`),
@@ -317,6 +326,30 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Boundary fence" id="bf-opts"></div>
   <div class="chips" id="bf-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="bf-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide</span>
+  <h2>Wall tops</h2>
+  <p>The finish on top of the new retaining walls and the sunken lounge's walls.</p>
+</div>
+<section class="block" aria-label="Wall top options">
+  <div class="fstage"><img id="wc-img" alt=""><span class="tag l" id="wc-tag"></span><button class="fly" id="wc-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Wall tops" id="wc-opts"></div>
+  <div class="chips" id="wc-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="wc-note"></div>
+</section>
+
+<div class="section-head">
+  <span class="label">Options to decide · Layout B</span>
+  <h2>Spa deck</h2>
+  <p>In Layout B, the timber spa deck out to the walls' edges, or squared as drawn.</p>
+</div>
+<section class="block" aria-label="Spa deck options">
+  <div class="fstage"><img id="sd-img" alt=""><span class="tag l" id="sd-tag"></span><button class="fly" id="sd-fly" type="button">Open in 3D</button></div>
+  <div class="chips" role="group" aria-label="Spa deck" id="sd-opts"></div>
+  <div class="chips" id="sd-views" role="group" aria-label="Viewpoint"></div>
+  <div class="optnote" id="sd-note"></div>
 </section>
 
 <div class="section-head">
@@ -594,6 +627,13 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: LIGHTS, optBox: $('li-opts'), viewBox: $('li-views'), img: 'li-img', tag: 'li-tag', note: 'li-note', flyBtn: 'li-fly',
     views: LIGHTS_VIEWS, src: (o, v) => I + lightsSrc(o, v).replace(/^img\//, ''),
     onFly: (o, v, go = fly) => go({ cam: v.slice(0, -5), scenario: 'proposed', date: '2027-01-16', minutes: v.endsWith('1940') ? 19 * 60 + 40 : 21 * 60, roller: 'none', kitchen: 'kitchen_none', lighting: o }) });
+  picker({ opts: WALLCAP, optBox: $('wc-opts'), viewBox: $('wc-views'), img: 'wc-img', tag: 'wc-tag', note: 'wc-note', flyBtn: 'wc-fly',
+    views: WALLCAP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', wallcap: o }) });
+  // (Layout B's own renders: no SK02 picture beside them, and Open in 3D opens Layout B)
+  picker({ opts: SPADECK, optBox: $('sd-opts'), viewBox: $('sd-views'), img: 'sd-img', tag: 'sd-tag', note: 'sd-note', flyBtn: 'sd-fly',
+    views: SPADECK_VIEWS, src: (o, v) => `${I}layoutb_${v}_${o}.jpg`,
+    onFly: (o, v) => fly({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', deck: o, layout: 'b' }) });
   picker({ opts: SIDE, optBox: $('s-opts'), viewBox: $('s-views'), img: 's-img', tag: 's-tag', note: 's-note', flyBtn: 's-fly',
     views: SIDE_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => { const c = SIDE.find(x => x[0] === o)!; go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', nfence: c[3], passage: c[4] }); } });

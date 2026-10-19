@@ -106,7 +106,20 @@ export const LIGHTING_CHOICES: Choice[] = [
   { value: 'lights_garden', short: 'Soft moonlight from the eaves, and bollards.', title: 'Garden', note: "Natural and subtle \"moonlighting\". Four cool downlights from the house's eaves (two over the side passage, two in the pavilion's south eave), the four plant uplights warm and low, and seven low bollards (0.6 m) along the terrace's canal side and either side of the path to the jetty. The pool light almost off; no bench strips or downlights.", img: 'card_lights_garden.jpg', src: 'night_15_lounge_from_alfresco_lights_garden_1940.jpg' },
 ];
 
-/** What render.py shows when nothing in a group is picked. */
-export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced' };
+// Round 27: the finish on top of the new retaining walls and the sunken lounge's walls (both layouts)
+export const WALLCAP_CHOICES: Choice[] = [
+  { value: 'wallcap_aggregate', short: 'Matches the pool coping.', title: 'Aggregate cap', note: 'An aggregate cap on the new retaining walls and the sunken lounge walls, matching the pool coping.', img: 'card_wallcap_aggregate.jpg', src: 'options_13_deep_end_to_house_wallcap_aggregate.jpg', crop: [0.55, 0.45, 0.45, 0.55] },
+  { value: 'wallcap_limestone', short: 'A limestone cap on the walls.', title: 'Limestone cap', note: 'A limestone cap on the new retaining walls and the sunken lounge walls.', img: 'card_wallcap_limestone.jpg', src: 'options_13_deep_end_to_house_wallcap_limestone.jpg', crop: [0.55, 0.45, 0.45, 0.55] },
+  { value: 'wallcap_none', short: "The aggregate runs to the wall's edge.", title: 'No cap', note: "No separate cap: the aggregate paving runs right to the wall's edge.", img: 'card_wallcap_none.jpg', src: 'options_13_deep_end_to_house_wallcap_none.jpg', crop: [0.55, 0.45, 0.45, 0.55] },
+];
 
-export const CARD_IMAGES = [...LAYOUT_CHOICES, ...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES, ...BFENCE_CHOICES, ...BPLANT_CHOICES, ...LIGHTING_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));
+// Round 27: the timber spa deck's outline (Layout B only; SK02's layout has the one deck)
+export const DECK_CHOICES: Choice[] = [
+  { value: 'deck_wide', short: "Out to the walls and along the east strip.", title: 'Timber to the edges', note: "The deck runs out to the walls' outer faces and along the whole east strip.", img: 'card_deck_wide.jpg', src: 'layoutb_14_spa_to_canal_deck_wide.jpg', crop: [0, 0.4, 0.75, 0.6] },
+  { value: 'deck_as_is', short: 'The squared deck as drawn.', title: 'Squared deck', note: 'The squared spa deck, as drawn.', img: 'card_deck_as_is.jpg', src: 'layoutb_14_spa_to_canal_deck_as_is.jpg', crop: [0, 0.4, 0.75, 0.6] },
+];
+
+/** What render.py shows when nothing in a group is picked. */
+export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced', wallcap: 'wallcap_aggregate', deck: 'deck_wide' };
+
+export const CARD_IMAGES = [...LAYOUT_CHOICES, ...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES, ...BFENCE_CHOICES, ...BPLANT_CHOICES, ...LIGHTING_CHOICES, ...WALLCAP_CHOICES, ...DECK_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

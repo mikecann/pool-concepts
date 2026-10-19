@@ -15,7 +15,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -31,7 +31,7 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
   /** Round 26: the lighting adjust panel's settings, per scheme. */ lightAdjust?: Record<string, LightAdjust>;
   /** Round 26: a pillar fence was picked on purpose (so Layout B's own default doesn't replace it). */ pierChosen?: boolean;
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting', string>> };
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting' | 'wallcap' | 'deck', string>> };
 const SETTINGS_KEY = 'pool-settings';
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 // the time and date aren't remembered any more (Round 17d): drop what older visits saved
@@ -283,7 +283,7 @@ async function main() {
   // Round 22: pier_inset can't be built in Layout B. There it falls back to the drawn fence, but your choice is held
   // (remembered, and handed to SK02's layout on a swap) until you pick another pier fence
   let heldPier: string | null = null;
-  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence, bplant: model.bplant, lighting: model.lighting });
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence, bplant: model.bplant, lighting: model.lighting, wallcap: model.wallcap, deck: model.deck });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
@@ -367,6 +367,16 @@ async function main() {
   group('passage', PASSAGE_CHOICES, 'passage', () => '19_play_area');
   group('bfence', BFENCE_CHOICES, 'bfence', () => '13_deep_end_to_house');
   group('bplant', BPLANT_CHOICES, 'bplant', () => '13_deep_end_to_house');
+  group('wallcap', WALLCAP_CHOICES, 'wallcap', () => '13_deep_end_to_house');
+  group('deck', DECK_CHOICES, 'deck', () => '14_spa_to_canal');
+  // Round 27: the spa deck's outline is a Layout B option; SK02's layout has the one squared deck, so grey them there
+  if (LAYOUT === 'a') {
+    for (const card of $('cards-deck').querySelectorAll<HTMLButtonElement>('.card')) {
+      card.disabled = true; card.classList.add('unavailable'); card.title = 'Layout B only';
+      const why = document.createElement('em'); why.className = 'card-note'; why.textContent = "Layout B only: SK02's layout has the one squared deck.";
+      card.querySelector('span')?.appendChild(why);
+    }
+  }
   // Round 25: the lighting's View goes to the lounge at 20:30 (keeping your mode); picked by day, a hint offers 20:30
   const LIGHTS_AT = 20 * 60 + 30;
   group('lighting', lightingChoices, 'lighting', () => '15_lounge_from_alfresco', () => setTime(LIGHTS_AT, true));
@@ -511,7 +521,8 @@ async function main() {
     { id: 'bplant', name: 'Along the boundary wall', summary: () => title(BPLANT_CHOICES, model.bplant) },
     { id: 'lighting', name: 'Lighting', summary: () => title(lightingChoices, model.lighting) },
     { id: 'passage', name: 'Side path', summary: () => `${title(PASSAGE_CHOICES, model.passage)} · play area ${title(PLAY_CHOICES, model.play).toLowerCase()}` },
-    { id: 'spa', name: 'Pump room', summary: () => title(PUMP_CHOICES, model.pump) },
+    { id: 'spa', name: 'Spa deck', summary: () => LAYOUT === 'b' ? `${title(DECK_CHOICES, model.deck)} · ${title(PUMP_CHOICES, model.pump).toLowerCase()}` : `Pump room: ${title(PUMP_CHOICES, model.pump).toLowerCase()}` },
+    { id: 'finishes', name: 'Finishes', summary: () => `Wall tops: ${title(WALLCAP_CHOICES, model.wallcap).toLowerCase()}` },
   ];
   const catTabs = $('cat-tabs');
   let openCat = CATS.some(c => c.id === store.get('pool-cat')) ? store.get('pool-cat')! : 'pool';
@@ -763,7 +774,7 @@ async function main() {
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
     const u = new URL(location.href);
-    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting']) u.searchParams.delete(k);
+    for (const k of ['cam', 't', 'date', 'scenario', 'roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting', 'wallcap', 'deck']) u.searchParams.delete(k);
     u.searchParams.set('layout', to);
     const cover = $('loading'); cover.style.transition = 'none'; cover.classList.remove('done');
     progress(0.02, `Loading ${title(LAYOUT_CHOICES, to)}…`);
@@ -875,6 +886,8 @@ async function main() {
   model.passage = valid(o.passage, PASSAGE_CHOICES) ?? model.passage;
   model.bfence = valid(o.bfence, BFENCE_CHOICES) ?? model.bfence;
   model.bplant = valid(o.bplant, BPLANT_CHOICES) ?? model.bplant;
+  model.wallcap = valid(o.wallcap, WALLCAP_CHOICES) ?? model.wallcap;
+  model.deck = valid(o.deck, DECK_CHOICES) ?? model.deck;
   model.lighting = valid(o.lighting, lightingChoices) ?? model.lighting;
   if (settings.scenario === 'existing' && !params.has('scenario')) setScenario('existing');
   model.apply(); renderRoller();
@@ -896,8 +909,10 @@ async function main() {
   model.passage = fromParam('passage', PASSAGE_CHOICES, 'passage_') ?? model.passage;
   model.bfence = fromParam('bfence', BFENCE_CHOICES, 'bfence_') ?? model.bfence;
   model.bplant = fromParam('bplant', BPLANT_CHOICES, 'bplant_') ?? model.bplant;
+  model.wallcap = fromParam('wallcap', WALLCAP_CHOICES, 'wallcap_') ?? model.wallcap;
+  model.deck = fromParam('deck', DECK_CHOICES, 'deck_') ?? model.deck;
   model.lighting = fromParam('lighting', lightingChoices, 'lights_') ?? model.lighting;
-  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+  if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting', 'wallcap', 'deck'].some(k => params.has(k))) { optChanged(); renderRoller(); }
   fromUrl = false;
   /**
    * Round 19: an option carried over from the other layout is kept if this model builds it (it has parts tagged with
@@ -926,6 +941,8 @@ async function main() {
     model.pier = keep('pier', valid(ho.pier, PIER_CHOICES)); model.nfence = keep('nfence', valid(ho.nfence, NFENCE_CHOICES));
     model.passage = keep('passage', valid(ho.passage, PASSAGE_CHOICES)); model.bfence = keep('bfence', valid(ho.bfence, BFENCE_CHOICES));
     model.bplant = keep('bplant', valid(ho.bplant, BPLANT_CHOICES)); model.lighting = valid(ho.lighting, lightingChoices) ?? model.lighting;
+    // (the deck outline only exists in Layout B: carried over as it is, never "not built here")
+    model.wallcap = keep('wallcap', valid(ho.wallcap, WALLCAP_CHOICES)); model.deck = valid(ho.deck, DECK_CHOICES) ?? model.deck;
     model.people = handoff.people; peopleBox.checked = model.people;
     if (handoff.scenario !== S.scenario) setScenario(handoff.scenario);
     optChanged(); renderRoller();

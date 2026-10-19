@@ -370,6 +370,9 @@ export class Model {
   spaCover = 'spa_cover_none';
   /** Round 24: along the boundary wall beside the pool: a low planter bed, pots or nothing. */
   bplant = 'bplant_bed';
+  /** Round 27: the wall tops (both layouts), and Layout B's spa deck outline (SK02's layout has no deck_ parts). */
+  wallcap = 'wallcap_aggregate';
+  deck = 'deck_wide';
   /** Round 21: the west boundary fence along the pool (Today always shows the existing one). */
   bfence = 'bfence_perforated';
   /** The pool's roll-on cover: 'off' (rolled at its end), 'moving' (being rolled on or off) or 'on' (flat on the pool). */
@@ -885,7 +888,7 @@ export class Model {
   /** The most lights of each type (and shadow casters) on at once, over every scheme and option combination. */
   private lightNeeds() {
     const out = { SPOT: { all: 0, shadow: 0 }, AREA: { all: 0, shadow: 0 }, POINT: { all: 0, shadow: 0 } };
-    const FIELDS: Record<string, keyof this> = { post_: 'post', kitchen_: 'kitchen', pier_: 'pier', roller_: 'roller', play_: 'play', pump_: 'pump', bplant_: 'bplant', bfence_: 'bfence', nfence_: 'nfence', passage_: 'passage', spa_cover_: 'spaCover' } as any;
+    const FIELDS: Record<string, keyof this> = { post_: 'post', kitchen_: 'kitchen', pier_: 'pier', roller_: 'roller', play_: 'play', pump_: 'pump', bplant_: 'bplant', bfence_: 'bfence', wallcap_: 'wallcap', deck_: 'deck', nfence_: 'nfence', passage_: 'passage', spa_cover_: 'spaCover' } as any;
     const keys = [...new Set(this.lightSpecs.flatMap(sp => [...String(sp.def.option ?? '').split('+'), ...String(sp.def.hide_option ?? '').split('|')]))]
       .filter(k => k && !k.startsWith('lights_') && Object.keys(FIELDS).some(pre => k.startsWith(pre))).slice(0, 6);
     const saved = { lighting: this.lighting, scenario: this.scenario, ...Object.fromEntries(Object.values(FIELDS).map(f => [f, (this as any)[f]])) };
@@ -1051,7 +1054,7 @@ export class Model {
   private hidden(key: string) {
     if (key === 'pool_cover_on') return this.poolCover === 'on' && this.roller.startsWith('roller_rollon');
     if (key === 'spa_cover_on') return this.spaCover === 'spa_cover_on' && !this.spaCoverMoving;
-    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting].includes(key);
+    return [this.roller, this.kitchen, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting, this.wallcap, this.deck].includes(key);
   }
 
   visibleFor(u: Record<string, any>) {
@@ -1060,7 +1063,7 @@ export class Model {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting, this.wallcap, this.deck];
       // the covers while they're rolling on or off: the flat cover (revealed piece by piece) and the roll both show
       if (this.poolCover !== 'off' && this.roller.startsWith('roller_rollon')) chosen.push('pool_cover_on');
       if (this.spaCoverMoving) chosen.push('spa_cover_on', 'spa_cover_rolled');
