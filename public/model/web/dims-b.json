@@ -574,6 +574,25 @@
   "note": "1.89 m above the lawn outside"
  },
  {
+  "id": "deck_framed_fence_height",
+  "label": "Straight east fence, height above the edge wall's cap it stands on",
+  "group": "fences",
+  "a": [
+   3.901,
+   2.39,
+   7.449
+  ],
+  "b": [
+   3.901,
+   3.67,
+   7.449
+  ],
+  "value_m": 1.28,
+  "set": "proposed",
+  "option": "deck_wide_framed",
+  "note": "1.30 m above the timber beside it, 1.89 m above the lawn outside"
+ },
+ {
   "id": "spa_diameter",
   "label": "Spa diameter",
   "group": "spa",
@@ -1619,7 +1638,7 @@
   ],
   "value_m": 0.682,
   "set": "proposed",
-  "hide_option": "deck_wide"
+  "hide_option": "deck_wide|deck_wide_framed"
  },
  {
   "id": "strip_east_clear_straight",
@@ -1638,6 +1657,7 @@
   "value_m": 0.867,
   "set": "proposed",
   "option": "pier_straight",
+  "hide_option": "deck_wide",
   "note": "the way from the alfresco to the spa deck with a straight fence"
  },
  {
@@ -1656,7 +1676,8 @@
   ],
   "value_m": 1.28,
   "set": "proposed",
-  "option": "pier_straight"
+  "option": "pier_straight",
+  "hide_option": "deck_wide|deck_wide_framed"
  },
  {
   "id": "fence_straight_strip_height_lawn",
@@ -1693,6 +1714,7 @@
   "value_m": 0.867,
   "set": "proposed",
   "option": "pier_straight_edge",
+  "hide_option": "deck_wide",
   "note": "the way from the alfresco to the spa deck with a straight fence"
  },
  {
@@ -1711,7 +1733,8 @@
   ],
   "value_m": 1.28,
   "set": "proposed",
-  "option": "pier_straight_edge"
+  "option": "pier_straight_edge",
+  "hide_option": "deck_wide|deck_wide_framed"
  },
  {
   "id": "fence_straight_edge_strip_height_lawn",
