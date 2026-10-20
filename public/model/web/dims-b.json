@@ -311,7 +311,7 @@
  },
  {
   "id": "bench_north_length",
-  "label": "North bench length",
+  "label": "North bench, seat length (to the corner table)",
   "group": "lounge",
   "a": [
    0.276,
@@ -319,11 +319,46 @@
    5.092
   ],
   "b": [
-   2.991,
+   2.133,
    2.12,
+   5.221
+  ],
+  "value_m": 1.862,
+  "set": "proposed"
+ },
+ {
+  "id": "bench_corner_table",
+  "label": "Corner table, width",
+  "group": "lounge",
+  "a": [
+   2.133,
+   2.39,
+   5.221
+  ],
+  "b": [
+   2.991,
+   2.39,
    5.281
   ],
-  "value_m": 2.722,
+  "value_m": 0.86,
+  "set": "proposed",
+  "note": "0.66 m deep, 0.70 m above the lounge floor"
+ },
+ {
+  "id": "bench_corner_table_height",
+  "label": "Corner table, height above the lounge floor",
+  "group": "lounge",
+  "a": [
+   2.52,
+   1.67,
+   5.849
+  ],
+  "b": [
+   2.52,
+   2.37,
+   5.849
+  ],
+  "value_m": 0.7,
   "set": "proposed"
  },
  {
@@ -433,16 +468,16 @@
   "label": "Spa deck (timber), west end to east end",
   "group": "spa",
   "a": [
-   -1.276,
+   -1.081,
    2.38,
-   10.117
+   10.13
   ],
   "b": [
    3.512,
    2.38,
    10.449
   ],
-  "value_m": 4.8,
+  "value_m": 4.604,
   "set": "proposed",
   "option": "deck_as_is"
  },
@@ -469,16 +504,16 @@
   "label": "Wide deck, west end to the east wall's outer face",
   "group": "spa",
   "a": [
-   -1.276,
+   -1.081,
    2.38,
-   10.117
+   10.13
   ],
   "b": [
    3.772,
    2.38,
    10.467
   ],
-  "value_m": 5.06,
+  "value_m": 4.864,
   "set": "proposed",
   "option": "deck_wide"
  },
@@ -523,16 +558,16 @@
   "label": "Framed deck (timber), west end to the east wall's cap",
   "group": "spa",
   "a": [
-   -1.276,
+   -1.081,
    2.38,
-   10.117
+   10.13
   ],
   "b": [
    3.491,
    2.38,
    10.448
   ],
-  "value_m": 4.779,
+  "value_m": 4.583,
   "set": "proposed",
   "option": "deck_wide_framed"
  },
@@ -675,6 +710,40 @@
    10.934
   ],
   "value_m": 0.96,
+  "set": "proposed"
+ },
+ {
+  "id": "pump_doors_width",
+  "label": "Pump room doors, opening width",
+  "group": "spa",
+  "a": [
+   -1.119,
+   1.87,
+   11.461
+  ],
+  "b": [
+   0.577,
+   1.87,
+   11.579
+  ],
+  "value_m": 1.7,
+  "set": "proposed"
+ },
+ {
+  "id": "pump_doors_to_deck_edge",
+  "label": "Pump room doors' west jamb to the timber's west edge",
+  "group": "spa",
+  "a": [
+   -1.173,
+   2.17,
+   11.457
+  ],
+  "b": [
+   -1.119,
+   2.17,
+   11.461
+  ],
+  "value_m": 0.054,
   "set": "proposed"
  },
  {

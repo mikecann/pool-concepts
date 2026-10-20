@@ -311,7 +311,7 @@
  },
  {
   "id": "bench_north_length",
-  "label": "North bench length",
+  "label": "North bench, seat length (to the corner table)",
   "group": "lounge",
   "a": [
    -0.602,
@@ -319,11 +319,48 @@
    5.031
   ],
   "b": [
-   2.231,
+   1.373,
    2.12,
+   5.168
+  ],
+  "value_m": 1.98,
+  "set": "proposed",
+  "hide_option": "post_corner_steps"
+ },
+ {
+  "id": "bench_corner_table",
+  "label": "Corner table, width",
+  "group": "lounge",
+  "a": [
+   1.373,
+   2.39,
+   5.168
+  ],
+  "b": [
+   2.231,
+   2.39,
    5.228
   ],
-  "value_m": 2.84,
+  "value_m": 0.86,
+  "set": "proposed",
+  "hide_option": "post_corner_steps",
+  "note": "0.66 m deep, 0.70 m above the lounge floor"
+ },
+ {
+  "id": "bench_corner_table_height",
+  "label": "Corner table, height above the lounge floor",
+  "group": "lounge",
+  "a": [
+   1.76,
+   1.67,
+   5.797
+  ],
+  "b": [
+   1.76,
+   2.37,
+   5.797
+  ],
+  "value_m": 0.7,
   "set": "proposed",
   "hide_option": "post_corner_steps"
  },
@@ -347,7 +384,7 @@
  },
  {
   "id": "bench_steps_north_length",
-  "label": "North bench length",
+  "label": "North bench, seat length (to the corner table)",
   "group": "lounge",
   "a": [
    -0.123,
@@ -355,11 +392,48 @@
    5.065
   ],
   "b": [
-   2.231,
+   1.373,
    2.12,
+   5.168
+  ],
+  "value_m": 1.5,
+  "set": "proposed",
+  "option": "post_corner_steps"
+ },
+ {
+  "id": "bench_steps_corner_table",
+  "label": "Corner table, width",
+  "group": "lounge",
+  "a": [
+   1.373,
+   2.39,
+   5.168
+  ],
+  "b": [
+   2.231,
+   2.39,
    5.228
   ],
-  "value_m": 2.36,
+  "value_m": 0.86,
+  "set": "proposed",
+  "option": "post_corner_steps",
+  "note": "0.66 m deep, 0.70 m above the lounge floor"
+ },
+ {
+  "id": "bench_steps_corner_table_height",
+  "label": "Corner table, height above the lounge floor",
+  "group": "lounge",
+  "a": [
+   1.76,
+   1.67,
+   5.797
+  ],
+  "b": [
+   1.76,
+   2.37,
+   5.797
+  ],
+  "value_m": 0.7,
   "set": "proposed",
   "option": "post_corner_steps"
  },
