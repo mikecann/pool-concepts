@@ -8,6 +8,7 @@ export const VIEWS = [
   ["05_pool_north_end", "Pool, shallow end", "At the north fence by the gate, looking down the pool to the canal."],
   ["06_sunken_lounge", "In the sunken lounge", "Seated in the lounge, 0.7 m below the deck, looking at the spa steps."],
   ["15_lounge_from_alfresco", "Over the lounge", "Standing at the edge of the alfresco, looking down into the lounge and the fire pit."],
+  ["24_lounge_corner", "Lounge corner", "Sitting on the south bench, looking at the corner where the lounge's two benches meet."],
   ["14_spa_to_canal", "Spa deck", "Beside the spa, looking across the pool to the canal."],
   ["13_deep_end_to_house", "Deep end, looking back", "From the canal end of the pool back at the alfresco and the house."],
   ["10_alfresco_corner", "North-west corner", "From the north fence across the pool to the alfresco and lounge."],
@@ -23,4 +24,6 @@ export const VIEWS = [
   ["07_aerial_southwest", "Aerial, south-west", "Drone height over the canal, looking north-east."],
   ["08_aerial_southeast", "Aerial, south-east", "Drone height over the canal, looking north-west."],
 ];
+/** Round 28: views rendered with the proposed design only (they look at something that isn't there today). */
+export const PROPOSED_ONLY = new Set(['24_lounge_corner']);
 export const VIEW_NAMES: Record<string, string> = Object.fromEntries(VIEWS.map(([id, name]) => [id, name]));

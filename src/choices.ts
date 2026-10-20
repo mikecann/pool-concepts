@@ -120,7 +120,13 @@ export const DECK_CHOICES: Choice[] = [
   { value: 'deck_as_is', short: 'The squared deck as drawn.', title: 'Squared deck', note: 'The squared spa deck, as drawn.', img: 'card_deck_as_is.jpg', src: 'layoutb_14_spa_to_canal_deck_as_is.jpg', crop: [0, 0.4, 0.75, 0.6] },
 ];
 
-/** What render.py shows when nothing in a group is picked. */
-export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced', wallcap: 'wallcap_aggregate', deck: 'deck_wide' };
+// Round 28: the lounge's north-west bench corner, where the two benches meet (both layouts)
+export const CORNER_CHOICES: Choice[] = [
+  { value: 'corner_timber', short: 'Bench slats run across the corner.', title: 'Timber corner', note: 'The bench slats run on across the corner, at seat height.', img: 'card_corner_timber.jpg', src: 'options_24_lounge_corner_corner_timber.jpg', crop: [0.36, 0.22, 0.42, 0.47] },
+  { value: 'corner_aggregate', short: 'A precast slab 10 cm above the seat.', title: 'Aggregate corner', note: 'A precast aggregate slab in the corner, 10 cm above the seat.', img: 'card_corner_aggregate.jpg', src: 'options_24_lounge_corner_corner_aggregate.jpg', crop: [0.36, 0.22, 0.42, 0.47] },
+];
 
-export const CARD_IMAGES = [...LAYOUT_CHOICES, ...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES, ...BFENCE_CHOICES, ...BPLANT_CHOICES, ...LIGHTING_CHOICES, ...WALLCAP_CHOICES, ...DECK_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));
+/** What render.py shows when nothing in a group is picked. */
+export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced', wallcap: 'wallcap_aggregate', deck: 'deck_wide', corner: 'corner_timber' };
+
+export const CARD_IMAGES = [...LAYOUT_CHOICES, ...ROLLER_CHOICES, ...KITCHEN_CHOICES, ...POST_CHOICES, ...PUMP_CHOICES, ...SPA_COVER_CHOICES, ...PLAY_CHOICES, ...PIER_CHOICES, ...NFENCE_CHOICES, ...PASSAGE_CHOICES, ...BFENCE_CHOICES, ...BPLANT_CHOICES, ...LIGHTING_CHOICES, ...WALLCAP_CHOICES, ...DECK_CHOICES, ...CORNER_CHOICES].map(c => ({ img: c.img, src: c.src, crop: c.crop }));

@@ -65,6 +65,8 @@ button { font: inherit; color: inherit; }
 .modes button { background: transparent; border: 0; padding: 4px 9px; cursor: pointer; font-family: var(--font-display);
   text-transform: uppercase; letter-spacing: .08em; font-weight: 600; font-size: 13px; }
 .modes button + button { border-left: 1px solid var(--ink); }
+/* Round 28: a view with only the proposed picture hides Today and Both */
+.modes button[hidden] + button { border-left: 0; }
 .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 .strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .thumb { display: grid; gap: 3px; text-align: left; background: transparent; border: 0; padding: 0; cursor: pointer; }

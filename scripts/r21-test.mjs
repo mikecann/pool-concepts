@@ -34,7 +34,7 @@ check('  about 56 show by default (Proposed, default options)', st.dims >= 50 &&
 check('  the settings switch follows', await p.evaluate(() => document.getElementById('opt-dims').checked));
 // every option-specific dim comes and goes with its option
 const all = await p.evaluate(() => fetch('../web/dims.json').then(r => r.json()));
-const FIELD = { roller: 'roller', kitchen: 'kitchen', post: 'post', pump: 'pump', play: 'play', spa_cover: 'spaCover', pier: 'pier', nfence: 'nfence', passage: 'passage', bfence: 'bfence' };
+const FIELD = { roller: 'roller', kitchen: 'kitchen', post: 'post', pump: 'pump', play: 'play', spa_cover: 'spaCover', pier: 'pier', nfence: 'nfence', passage: 'passage', bfence: 'bfence', bplant: 'bplant', wallcap: 'wallcap', deck: 'deck', corner: 'corner' };
 const fieldFor = k => Object.entries(FIELD).find(([pre]) => k.startsWith(pre + '_') || k === pre)?.[1];
 let bad = [], tried = 0;
 for (const d of all.filter(d => d.option && d.set !== 'existing')) {
@@ -56,9 +56,14 @@ for (const d of all.filter(d => d.option && d.set !== 'existing')) {
 check(`option-specific dims follow their options (${tried} checked)`, bad.length === 0 && tried > 40, bad.slice(0, 4).join('; '));
 const hideOnly = all.filter(d => d.hide_option);
 for (const d of hideOnly) {
+  // a dim that also has an option of its own (Round 28: the bench corner's heights) shows only with it chosen
+  const own = d.option && !d.option.includes('+') ? [fieldFor(d.option), d.option] : null;
+  const was = own && await p.evaluate(f => __viewer.model[f], own[0]);
+  if (own) await opt(p, own[0], own[1]);
   const shownNow = (await ids(p)).includes(d.id);
   await opt(p, 'post', d.hide_option); const hidden = !(await ids(p)).includes(d.id);
   await opt(p, 'post', 'post_as_drawn');
+  if (own) await opt(p, own[0], was);
   check(`  "${d.id}" hides with ${d.hide_option}`, shownNow && hidden);
 }
 // chips
