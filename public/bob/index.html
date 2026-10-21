@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Keel Retreat: design for construction</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23172225%22/%3E%3Crect x=%226%22 y=%2210%22 width=%2220%22 height=%2212%22 fill=%22%2399AFC9%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Bob's page: the one design to draw. Unlisted (not linked from the front page). Everything on it comes from JSON
+   next to it: profile.json (the design, also what /model/walk/?profile=bob shows), choices.json (the options' titles,
+   written by scripts/bob-choices.mjs on every build), drawings/drawings.json, renders/renders.json, questions.json.
+   Same drawing-sheet look as the front page. */
+:root {
+  --paper: #F4F6F5; --sheet: #FFFFFF; --ink: #172225; --muted: #5A686B; --rule: #D3DADA;
+  --accent: #3F6489; --scrim: rgba(15, 22, 24, 0.9); --on-scrim: #F4F6F5;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1517; --sheet: #161E21; --ink: #E3EAEA; --muted: #98A6A9; --rule: #2A3539; --accent: #9DB8D8;
+    --scrim: rgba(6, 10, 11, 0.94); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0F1517; --sheet: #161E21; --ink: #E3EAEA; --muted: #98A6A9; --rule: #2A3539; --accent: #9DB8D8;
+  --scrim: rgba(6, 10, 11, 0.94); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; margin: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
+a { color: var(--accent); }
+h1, h2, h3, .jump a, .tile b, .btn, .tb-row b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin: 0; }
+.label, .date { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); font-weight: 400; text-transform: none; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: max(16px, 3vw); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.muted { color: var(--muted); }
+
+/* the sticky jump bar */
+.jump { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 2px solid var(--ink); padding-top: env(safe-area-inset-top, 0px); }
+.jump .wrap { display: flex; align-items: center; gap: 4px 18px; min-height: 44px; flex-wrap: wrap; padding-block: 6px; }
+.jump .home { font-size: 18px; color: var(--ink); text-decoration: none; margin-right: auto; }
+.jump nav { display: flex; gap: 2px 14px; flex-wrap: wrap; }
+.jump nav a { color: var(--ink); text-decoration: none; font-size: 15px; padding: 3px 0; border-bottom: 2px solid transparent; }
+.jump nav a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+@media (max-width: 520px) { .jump .home { display: none; } .jump nav { gap: 2px 12px; } }
+
+/* the title block, like a drawing sheet's */
+.titleblock { margin-block: 22px 36px; border: 2px solid var(--ink); background: var(--sheet); display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.tb-main { padding: 16px 18px; display: grid; gap: 6px; }
+.tb-main h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1; }
+.tb-main .sub { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em; font-weight: 500; font-size: clamp(17px, 2.4vw, 21px); color: var(--muted); }
+.tb-main p { margin: 6px 0 0; }
+.tb-side { border-left: 2px solid var(--ink); display: grid; align-content: stretch; min-width: 220px; }
+.tb-row { padding: 8px 14px; display: grid; gap: 1px; }
+.tb-row + .tb-row { border-top: 1px solid var(--ink); }
+.tb-row b { font-size: 18px; line-height: 1.1; }
+@media (max-width: 640px) {
+  .titleblock { grid-template-columns: 1fr; }
+  .tb-side { border-left: 0; border-top: 2px solid var(--ink); grid-template-columns: 1fr 1fr; min-width: 0; }
+  .tb-row + .tb-row { border-top: 0; border-left: 1px solid var(--ink); }
+}
+
+section { margin-bottom: 48px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--rule); padding-bottom: 8px; margin-bottom: 16px; }
+h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
+.empty-note { color: var(--muted); font-style: italic; margin: 0; }
+
+/* the 3D tile */
+.tile { position: relative; display: block; overflow: hidden; border: 1px solid var(--rule); background: #172225; color: var(--on-scrim); text-decoration: none; aspect-ratio: 16 / 9; }
+.tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.tile:hover img { transform: scale(1.03); }
+.tile > span { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 4px; padding: 30px 16px 14px; background: linear-gradient(transparent, rgba(10, 14, 16, .8)); }
+.tile b { font-size: clamp(26px, 4vw, 42px); line-height: 1.05; }
+.tile small { font-size: 14px; opacity: .9; }
+.tile .btn { justify-self: start; margin-top: 6px; background: var(--on-scrim); color: #172225; padding: 9px 16px; font-size: 16px; letter-spacing: .1em; font-style: normal; }
+.tile:hover .btn { background: #fff; }
+.tile .url { display: none; }
+@media (max-width: 520px) { .tile { aspect-ratio: 4 / 3; } }
+
+/* the spec table */
+.spec { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--rule); }
+.spec th, .spec td { text-align: left; vertical-align: top; padding: 9px 12px; border-top: 1px solid var(--rule); }
+.spec tr:first-child > * { border-top: 0; }
+.spec th { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; font-size: 14px; color: var(--muted); width: 26%; }
+.spec .opt-title { font-weight: 600; width: 32%; }
+.spec .opt-short { color: var(--muted); font-size: 14px; }
+@media (max-width: 600px) {
+  .spec tr { display: grid; grid-template-columns: 1fr; padding: 8px 12px; border-top: 1px solid var(--rule); }
+  .spec tr:first-child { border-top: 0; }
+  .spec th, .spec td { padding: 0; border: 0; width: auto !important; }
+  .spec th { font-size: 13px; }
+}
+
+/* drawings and renders */
+.entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 24px 18px; }
+.entry { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.shot { display: block; border: 1px solid var(--rule); background: var(--sheet); cursor: zoom-in; aspect-ratio: 4 / 3; overflow: hidden; }
+.shot img { width: 100%; height: 100%; object-fit: cover; }
+.drawings .shot img { object-fit: contain; background: #fff; }
+.entry h3 { font-size: 19px; line-height: 1.1; }
+.meta { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.files { display: flex; gap: 14px; font-size: 13.5px; flex-wrap: wrap; }
+
+/* questions */
+.qsec + .qsec { margin-top: 20px; }
+.qsec h3 { font-size: 17px; color: var(--muted); margin-bottom: 6px; }
+.qlist { list-style: none; margin: 0; padding: 0; background: var(--sheet); border: 1px solid var(--rule); }
+.qlist li + li { border-top: 1px solid var(--rule); }
+.q { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; padding: 10px 12px; cursor: pointer; }
+.q input { grid-row: span 2; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
+.q b { font-weight: 600; }
+.q span { color: var(--muted); font-size: 14px; }
+.q:has(input:checked) b { text-decoration: line-through; text-decoration-color: var(--muted); }
+.count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+
+footer { border-top: 2px solid var(--ink); padding-block: 12px 40px; color: var(--muted); font-size: 13px; }
+
+/* the lightbox */
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 96vh; }
+dialog::backdrop { background: var(--scrim); }
+dialog img { max-width: 96vw; max-height: 84vh; width: auto; height: auto; background: #fff; }
+dialog .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 8px; color: var(--on-scrim); font-size: 13px; flex-wrap: wrap; }
+dialog .bar a { color: var(--on-scrim); }
+dialog .acts { display: flex; gap: 14px; align-items: center; }
+dialog button { font: inherit; background: var(--on-scrim); color: #172225; border: 0; padding: 6px 12px; cursor: pointer;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+
+/* print: black on white, no jump bar or buttons, each part on its own page, empty boxes to tick on paper */
+@media print {
+  :root { --paper: #fff; --sheet: #fff; --ink: #000; --muted: #444; --rule: #999; --accent: #000; color-scheme: light; }
+  @page { margin: 14mm; }
+  html { scroll-behavior: auto; }
+  body { font-size: 11pt; }
+  .jump, button, dialog, .files, .tile .btn, .tile small { display: none !important; }
+  .wrap { max-width: none; padding: 0; }
+  .titleblock { margin-top: 0; }
+  section { margin-bottom: 24px; }
+  section.page { break-before: page; }
+  section.page.empty { break-before: auto; }
+  .tile { aspect-ratio: auto; border: 1px solid #000; background: none; color: #000; break-inside: avoid; }
+  .tile img { height: auto; transform: none !important; }
+  .tile > span { position: static; background: none; padding: 8px 10px; }
+  .tile .url { display: block; font-family: var(--font-mono); font-size: 10pt; text-transform: none; letter-spacing: 0; }
+  .entries { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .drawings .entries { grid-template-columns: 1fr; }
+  .entry, .spec tr, .qlist li { break-inside: avoid; }
+  .shot { aspect-ratio: auto; border-color: #999; }
+  .shot img { height: auto; object-fit: contain; }
+  .spec { border-color: #999; }
+  /* the boxes print empty, ticked or not, so Bob can tick them on paper */
+  .q input { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1.5px solid #000; border-radius: 0; background: #fff; }
+  .q:has(input:checked) b { text-decoration: none; }
+  a { color: #000; text-decoration: none; }
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<header class="jump">
+  <div class="wrap">
+    <a class="home" href="#top">35 Keel Retreat</a>
+    <nav aria-label="Jump to">
+      <a href="#model">3D</a>
+      <a href="#spec">Spec</a>
+      <a href="#drawings">Drawings</a>
+      <a href="#renders">Renders</a>
+      <a href="#questions">Questions</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <div class="titleblock">
+    <div class="tb-main">
+      <h1>35 Keel Retreat, Port Geographe</h1>
+      <span class="sub">Pool, spa, sunken lounge and alfresco</span>
+      <p>This is the design we'd like drawn. Everything else on pool.mikecann.app was options.</p>
+    </div>
+    <div class="tb-side">
+      <div class="tb-row"><span class="label">Drawing set</span><b>Design for construction drawings</b></div>
+      <div class="tb-row" id="revised-row" hidden><span class="label">Revised</span><b><time id="revised"></time></b></div>
+    </div>
+  </div>
+
+  <section id="model" aria-labelledby="model-h">
+    <div class="sec-head"><h2 id="model-h">The design in 3D</h2></div>
+    <a class="tile" id="tile3d" href="/model/walk/?profile=bob">
+      <img id="tile3d-img" alt="The design from the air, looking north-east" width="1600" height="900" hidden>
+      <span><b>Walk round it</b><small>M measures, L shows dimensions.</small><em class="btn">Open the 3D model</em><span class="url" id="tile3d-url"></span></span>
+    </a>
+  </section>
+
+  <section id="spec" class="page" aria-labelledby="spec-h">
+    <div class="sec-head"><h2 id="spec-h">The design in words</h2></div>
+    <table class="spec" id="spec-table"><tbody></tbody></table>
+    <p class="empty-note" id="spec-error" hidden>The design couldn't be loaded.</p>
+  </section>
+
+  <section id="drawings" class="page drawings" aria-labelledby="drawings-h">
+    <div class="sec-head"><h2 id="drawings-h">Drawings</h2></div>
+    <div class="entries" data-list="drawings"></div>
+    <p class="empty-note" data-empty="drawings" hidden>Drawings to come.</p>
+  </section>
+
+  <section id="renders" class="page renders" aria-labelledby="renders-h">
+    <div class="sec-head"><h2 id="renders-h">Renders</h2></div>
+    <div class="entries" data-list="renders"></div>
+    <p class="empty-note" data-empty="renders" hidden>Renders to come.</p>
+  </section>
+
+  <section id="questions" class="page" aria-labelledby="questions-h">
+    <div class="sec-head"><h2 id="questions-h">Questions for Bob</h2><span class="count" id="q-count" aria-live="polite"></span></div>
+    <div id="q-list"></div>
+    <p class="empty-note" id="q-empty" hidden>Questions to come.</p>
+  </section>
+
+  <footer>Family project page, just for Bob. It isn't listed on search engines.</footer>
+</main>
+
+<dialog id="zoom" aria-label="Enlarged image">
+  <img id="zoom-img" alt="">
+  <div class="bar"><span id="zoom-cap"></span><span class="acts"><a id="zoom-full" href="#" target="_blank" rel="noopener">Full size</a><button type="button" id="zoom-close">Close</button></span></div>
+</dialog>
+
+<script>
+// Everything is fetched from the site root. A missing file (404) shows that part's quiet "to come" state.
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = d => new Date(d + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+const getJSON = url => fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem("bob-questions") ?? "{}") ?? {}; } catch { return {}; } },
+  set(v) { try { localStorage.setItem("bob-questions", JSON.stringify(v)); } catch { /* storage blocked: ticks last this visit */ } },
+};
+
+// the 3D tile's address, printed under it
+$("tile3d-url").textContent = new URL($("tile3d").getAttribute("href"), location.href).href;
+
+// ---- the design: profile.json + choices.json
+Promise.all([getJSON("/bob/profile.json"), getJSON("/bob/choices.json")]).then(([profile, choices]) => {
+  if (!profile || !choices) { $("spec-error").hidden = false; return; }
+  if (profile.revised) { $("revised").textContent = fmt(profile.revised); $("revised").dateTime = profile.revised; $("revised-row").hidden = false; }
+  const img = $("tile3d-img");
+  img.src = `/model/img/${profile.layout === "b" ? "layoutb_07_aerial_southwest.jpg" : "07_aerial_southwest__proposed.jpg"}`;
+  img.hidden = false;
+  const rows = choices.groups.map(g => {
+    const v = g.key === "layout" ? profile.layout : profile.options?.[g.key];
+    return [g.key, g.name, g.options[v]];
+  });
+  const lit = choices.lighting[profile.lights?.scheme];
+  rows.push(["lighting", "Lighting", lit && { ...lit, short: lit.short + (profile.lights?.adjust ? " Adjusted from the design in the 3D model." : "") }]);
+  $("spec-table").tBodies[0].innerHTML = rows.map(([key, name, o]) =>
+    `<tr data-group="${esc(key)}"><th scope="row">${esc(name)}</th><td class="opt-title">${esc(o?.title ?? "Not chosen")}</td><td class="opt-short">${esc(o?.short)}</td></tr>`).join("");
+});
+
+// ---- drawings and renders: a grid of thumbnails, each opening the lightbox
+const LISTS = {
+  drawings: { dir: "/bob/drawings/", entry: d => ({ src: d.file, title: d.title, top: d.sheet, date: d.date,
+    links: [d.pdf && [d.pdf, "PDF"], [d.file, "Full size"]] }) },
+  renders: { dir: "/bob/renders/", entry: r => ({ src: r.file, title: r.title, date: r.date,
+    links: [[r.file, "Full size"], r.view && [`/model/walk/?profile=bob&cam=${encodeURIComponent(r.view)}`, "Open in 3D", true]] }) },
+};
+for (const [name, cfg] of Object.entries(LISTS)) {
+  getJSON(`${cfg.dir}${name}.json`).then(list => {
+    const box = document.querySelector(`[data-list="${name}"]`);
+    if (!Array.isArray(list) || !list.length) { document.querySelector(`[data-empty="${name}"]`).hidden = false; box.closest("section").classList.add("empty"); return; }
+    const url = f => (f.startsWith("/") ? f : cfg.dir + f);
+    box.innerHTML = list.map(cfg.entry).map(e => `
+      <article class="entry">
+        <a class="shot" href="${esc(url(e.src))}" data-zoom data-cap="${esc([e.top, e.title].filter(Boolean).join(" · "))}"><img src="${esc(url(e.src))}" alt="${esc(e.title)}" loading="lazy"></a>
+        ${e.top ? `<span class="label">${esc(e.top)}</span>` : ""}
+        <div class="meta"><h3>${esc(e.title)}</h3>${e.date ? `<time class="date" datetime="${esc(e.date)}">${esc(fmt(e.date))}</time>` : ""}</div>
+        <div class="files">${e.links.filter(Boolean).map(([f, label, same]) => `<a href="${esc(url(f))}"${same ? "" : ' target="_blank" rel="noopener"'}>${label}${same ? "" : " ↗"}</a>`).join("")}</div>
+      </article>`).join("");
+  });
+}
+
+// ---- questions: ticks saved per viewer (key bob-questions: id -> true)
+getJSON("/bob/questions.json").then(sections => {
+  const items = Array.isArray(sections) ? sections.flatMap(s => s.items ?? []) : [];
+  if (!items.length) { $("q-empty").hidden = false; return; }
+  const done = store.get();
+  $("q-list").innerHTML = sections.map(s => `
+    <div class="qsec"><h3>${esc(s.section)}</h3><ul class="qlist">${(s.items ?? []).map(q => `
+      <li><label class="q"><input type="checkbox" data-id="${esc(q.id)}"${done[q.id] ? " checked" : ""}><b>${esc(q.title)}</b><span>${esc(q.detail)}</span></label></li>`).join("")}
+    </ul></div>`).join("");
+  const boxes = [...$("q-list").querySelectorAll("input[data-id]")];
+  const count = () => { $("q-count").textContent = `${boxes.filter(b => b.checked).length} of ${boxes.length} done`; };
+  $("q-list").addEventListener("change", e => {
+    const id = e.target.dataset?.id; if (!id) return;
+    const all = store.get();
+    if (e.target.checked) all[id] = true; else delete all[id];
+    store.set(all); count();
+  });
+  count();
+});
+
+// ---- the lightbox (as the front page's)
+const dlg = $("zoom");
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-zoom]");
+  if (!a || !dlg.showModal) return;          // very old browsers just follow the link
+  e.preventDefault();
+  const img = $("zoom-img");
+  img.src = a.getAttribute("href"); img.alt = a.querySelector("img").alt;
+  $("zoom-cap").textContent = a.dataset.cap;
+  $("zoom-full").href = a.getAttribute("href");
+  dlg.showModal();
+});
+$("zoom-close").onclick = () => dlg.close();
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>

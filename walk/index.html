@@ -18,8 +18,8 @@
     <canvas id="canvas" tabindex="0" aria-label="Backyard in 3D. Click to look around, W A S D or the arrow keys to walk."></canvas>
 
     <header class="hud top">
-      <a class="back-btn" href="../" aria-label="Back to the start: renders or 3D" title="Back to the start (renders or 3D)"><span aria-hidden="true">&larr;</span></a>
-      <div class="seg" role="group" aria-label="Scenario">
+      <a class="back-btn" id="back-btn" href="../" aria-label="Back to the start: renders or 3D" title="Back to the start (renders or 3D)"><span aria-hidden="true">&larr;</span></a>
+      <div class="seg" id="scenario-seg" role="group" aria-label="Scenario">
         <button id="sc-existing" aria-pressed="false">Today</button>
         <button id="sc-proposed" aria-pressed="true">Proposed</button>
       </div>
@@ -100,9 +100,13 @@
     <div class="grab" id="grab" aria-hidden="true"><span></span></div>
     <div class="panel-scroll" id="panel-scroll">
       <div class="panel-head">
-        <h2 class="panel-title">Design options</h2>
+        <h2 class="panel-title" id="panel-title">Design options</h2>
         <button type="button" class="icon-btn" id="settings-btn" aria-haspopup="dialog" aria-controls="settings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5L19.4 13ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg></button>
       </div>
+      <section class="block" id="profile-views" aria-labelledby="views-h" hidden>
+        <h3 class="fl" id="views-h">Views</h3>
+        <div class="viewlist" id="views-list"></div>
+      </section>
       <div class="cat-tabs" role="tablist" aria-label="Design choices" id="cat-tabs"></div>
       <div class="cat-panel" role="tabpanel" data-cat="layout" id="cat-layout">
         <section class="block" aria-labelledby="layout-h">
@@ -200,7 +204,7 @@
         </section>
       </div>
 
-      <footer>
+      <footer class="panel-foot">
         <span>More pictures and notes: <a href="../renders/">the renders page</a>.</span>
       </footer>
     </div>
@@ -221,6 +225,11 @@
         <div class="chips" role="group" aria-label="Picture quality" id="opt-quality"></div>
       </div>
       <button type="button" class="linkbtn" id="show-help">How to walk around</button>
+      <div class="field copy-design" id="copy-design-field">
+        <button type="button" class="linkbtn" id="copy-design">Copy design for Bob</button>
+        <span class="copy-note" id="copy-design-note" role="status"></span>
+        <textarea id="copy-design-text" readonly rows="8" hidden aria-label="The design as JSON, to copy"></textarea>
+      </div>
     </form>
   </dialog>
 </div>

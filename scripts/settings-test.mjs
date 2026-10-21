@@ -72,6 +72,41 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   check('?t= and ?date= override the clock', s.minutes === 885 && s.date === '2027-01-16', `${s.date} ${s.minutes}`);
   await ctx.close();
 }
+// 4. "Copy design for Bob" in the settings: the design on screen as /bob/profile.json, and nothing else changes
+{
+  const KEYS = ['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck', 'corner'];
+  const ctx = await b.newContext({ viewport: { width: 1400, height: 850 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://localhost:4173' });
+  let { p, errs } = await open(ctx, '&layout=b');
+  await p.evaluate(() => { __viewer.setOption('kitchen', 'kitchen_lounge'); __viewer.setOption('wallcap', 'wallcap_limestone'); __viewer.setOption('lighting', 'lights_resort'); });
+  const saved = await p.evaluate(() => localStorage.getItem('pool-settings'));
+  const before = await p.evaluate(() => ({ cam: __viewer.camera.position.toArray(), opts: JSON.stringify(Object.fromEntries(Object.keys(__viewer.model).filter(k => typeof __viewer.model[k] === 'string').map(k => [k, __viewer.model[k]]))) }));
+  await p.locator('#settings-btn').click();
+  const label = await p.locator('#copy-design').textContent();
+  check('settings: a "Copy design for Bob" button', label === 'Copy design for Bob' && await p.locator('#copy-design').isVisible(), label);
+  await p.locator('#copy-design').click(); await p.waitForTimeout(300);
+  const note = await p.locator('#copy-design-note').textContent();
+  const clip = await p.evaluate(() => navigator.clipboard.readText());
+  let j = null; try { j = JSON.parse(clip); } catch {}
+  const live = await p.evaluate(() => ({ layout: __viewer.layout, m: Object.fromEntries(['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck', 'corner'].map(k => [k, __viewer.model[k]])), lighting: __viewer.model.lighting }));
+  check('  copies the design as profile.json, says "Copied"', /^Copied/.test(note) && j && j.layout === 'b' && j.scenario === 'proposed' && /^\d{4}-\d{2}-\d{2}$/.test(j.revised)
+    && JSON.stringify(Object.keys(j.options).sort()) === JSON.stringify([...KEYS].sort()) && KEYS.every(k => j.options[k] === live.m[k]) && j.lights?.scheme === live.lighting && 'adjust' in j.lights,
+    j ? `${j.layout} kitchen ${j.options.kitchen} wallcap ${j.options.wallcap} lights ${j.lights.scheme}` : clip.slice(0, 60));
+  const after = await p.evaluate(() => ({ cam: __viewer.camera.position.toArray(), opts: JSON.stringify(Object.fromEntries(Object.keys(__viewer.model).filter(k => typeof __viewer.model[k] === 'string').map(k => [k, __viewer.model[k]]))) }));
+  check('  and changes nothing else (options, camera, saved settings)', after.opts === before.opts && JSON.stringify(after.cam) === JSON.stringify(before.cam) && (await p.evaluate(() => localStorage.getItem('pool-settings'))) === saved);
+  // the clipboard refused: the JSON in a selected read-only box instead
+  await p.evaluate(() => { navigator.clipboard.writeText = () => Promise.reject(new Error('denied')); });
+  await p.locator('#copy-design').click(); await p.waitForTimeout(300);
+  const box = await p.evaluate(() => { const t = document.getElementById('copy-design-text'); return { shown: !t.hidden && t.offsetHeight > 0, ro: t.readOnly, selected: t.selectionStart === 0 && t.selectionEnd === t.value.length && t.value.length > 0, focused: document.activeElement === t, json: (() => { try { return JSON.parse(t.value).layout; } catch { return null; } })() }; });
+  check('  clipboard refused: the JSON shows read-only and selected', box.shown && box.ro && box.selected && box.focused && box.json === 'b', JSON.stringify(box));
+  await p.close();
+  // not offered in Bob's locked profile
+  ({ p } = await open(ctx, '&profile=bob'));
+  await p.locator('#settings-btn').click();
+  check('  not shown in the ?profile=bob walkthrough', !(await p.locator('#copy-design').isVisible()));
+  check('  console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await ctx.close();
+}
 console.log(fail ? `FAIL (${fail})` : 'PASS');
 await b.close();
 process.exit(fail ? 1 : 0);

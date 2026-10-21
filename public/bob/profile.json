@@ -1,0 +1,9 @@
+{
+  "layout": "b",
+  "scenario": "proposed",
+  "options": { "roller": "none", "kitchen": "kitchen_none", "post": "post_as_drawn", "pump": "pump_doors", "play": "play_as_is",
+               "spaCover": "spa_cover_none", "pier": "pier_straight_edge", "nfence": "nfence_as_drawn", "passage": "passage_pavers",
+               "bfence": "bfence_perforated", "bplant": "bplant_bed", "wallcap": "wallcap_aggregate", "deck": "deck_wide", "corner": "corner_timber" },
+  "lights": { "scheme": "lights_specced", "adjust": null },
+  "revised": "2026-10-21"
+}

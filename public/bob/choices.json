@@ -1,0 +1,348 @@
+{
+ "groups": [
+  {
+   "key": "layout",
+   "name": "Layout",
+   "options": {
+    "a": {
+     "title": "As drawn (SK02)",
+     "short": "SK02's lounge and pool, as drawn."
+    },
+    "b": {
+     "title": "Lounge wall in line, pool moved",
+     "short": "A wider lounge in line with the house; pool moved."
+    }
+   }
+  },
+  {
+   "key": "roller",
+   "name": "Pool cover",
+   "options": {
+    "none": {
+     "title": "No pool cover",
+     "short": "Nothing at either end of the pool."
+    },
+    "roller_shallow": {
+     "title": "Roller, shallow end",
+     "short": "A roller on stands by the north fence."
+    },
+    "roller_deep": {
+     "title": "Roller, deep end",
+     "short": "A roller on stands by the canal. Tight fit."
+    },
+    "roller_pit": {
+     "title": "Hidden box, deep end",
+     "short": "Blanket rolls into a box under the coping."
+    },
+    "roller_pit_shallow": {
+     "title": "Hidden box, shallow end",
+     "short": "The same box at the house end."
+    },
+    "roller_lowpro": {
+     "title": "Low roller, deep end",
+     "short": "A short roller that keeps the canal view."
+    },
+    "roller_channel": {
+     "title": "Open channel, deep end",
+     "short": "A Daisy SQ roller in an open trench."
+    },
+    "roller_rollon_shallow": {
+     "title": "Soft cover, shallow end",
+     "short": "A padded cover you roll up by hand."
+    },
+    "roller_rollon_deep": {
+     "title": "Soft cover, deep end",
+     "short": "The same soft cover, parked by the canal."
+    }
+   }
+  },
+  {
+   "key": "spaCover",
+   "name": "Hot tub cover",
+   "options": {
+    "spa_cover_none": {
+     "title": "No cover",
+     "short": "The hot tub stays open."
+    },
+    "spa_cover_rolled": {
+     "title": "Cover rolled up",
+     "short": "A soft cover rolled up beside the tub."
+    },
+    "spa_cover_on": {
+     "title": "Cover on",
+     "short": "The soft cover over the tub."
+    }
+   }
+  },
+  {
+   "key": "deck",
+   "name": "Spa deck",
+   "options": {
+    "deck_wide": {
+     "title": "Timber to the edges",
+     "short": "Out to the walls and along the east strip."
+    },
+    "deck_wide_framed": {
+     "title": "Timber with a cap border",
+     "short": "The wide deck, edged with the wall tops."
+    },
+    "deck_as_is": {
+     "title": "Squared deck",
+     "short": "The squared deck as drawn."
+    }
+   }
+  },
+  {
+   "key": "pump",
+   "name": "Pump room",
+   "options": {
+    "pump_doors": {
+     "title": "Slatted doors",
+     "short": "Doors that open onto the canal path."
+    },
+    "pump_open": {
+     "title": "Open bay",
+     "short": "The same opening with no doors."
+    }
+   }
+  },
+  {
+   "key": "kitchen",
+   "name": "Outdoor kitchen",
+   "options": {
+    "kitchen_split": {
+     "title": "Split by the gate",
+     "short": "Oven one side of the gate, BBQ the other."
+    },
+    "kitchen_continuous": {
+     "title": "One long bench",
+     "short": "Gate moves south for one long bench."
+    },
+    "kitchen_freestanding": {
+     "title": "Freestanding",
+     "short": "A BBQ trolley and an oven table."
+    },
+    "kitchen_none": {
+     "title": "No kitchen",
+     "short": "The alfresco stays open."
+    },
+    "kitchen_lounge": {
+     "title": "Facing the lounge",
+     "short": "A bench facing the lounge from the alfresco."
+    }
+   }
+  },
+  {
+   "key": "post",
+   "name": "Roof posts",
+   "options": {
+    "post_as_drawn": {
+     "title": "One post (as drawn)",
+     "short": "A post in the middle of the alfresco."
+    },
+    "post_corner": {
+     "title": "Corner post",
+     "short": "The post moves to the far corner."
+    },
+    "post_west": {
+     "title": "Post on the pool side",
+     "short": "One post on the pool edge, nothing at the lounge."
+    },
+    "post_two": {
+     "title": "Two posts",
+     "short": "Two posts along the lounge edge."
+    },
+    "post_corner_steps": {
+     "title": "Corner post, steps moved",
+     "short": "Corner post, lounge steps moved over."
+    }
+   }
+  },
+  {
+   "key": "corner",
+   "name": "Bench corner",
+   "options": {
+    "corner_timber": {
+     "title": "Timber corner",
+     "short": "Bench slats run across the corner."
+    },
+    "corner_aggregate": {
+     "title": "Aggregate corner",
+     "short": "A precast slab 10 cm above the seat."
+    }
+   }
+  },
+  {
+   "key": "pier",
+   "name": "Fence by the pillar",
+   "options": {
+    "pier_as_drawn": {
+     "title": "As drawn",
+     "short": "Pillar sits close to the fence. May fail rules."
+    },
+    "pier_tall": {
+     "title": "Taller fence",
+     "short": "A 1.8 m fence beside the pillar."
+    },
+    "pier_across": {
+     "title": "Across the deck",
+     "short": "Fence cuts straight across the deck."
+    },
+    "pier_around": {
+     "title": "Round the pillar",
+     "short": "Fence wraps round the pillar."
+    },
+    "pier_inset": {
+     "title": "Pulled in (Kelsie)",
+     "short": "Fence pulled into the alfresco. Best with no kitchen."
+    },
+    "pier_straight": {
+     "title": "Straight past the pillar",
+     "short": "One straight line just past the pillar."
+    },
+    "pier_straight_edge": {
+     "title": "Deck edge, then past the pillar",
+     "short": "Along the deck edge, then straight past the pillar."
+    },
+    "pier_straight_deck": {
+     "title": "Straight past the pillar, deck under the roof",
+     "short": "The straight fence, and the deck carried under the roof."
+    }
+   }
+  },
+  {
+   "key": "nfence",
+   "name": "North fence",
+   "options": {
+    "nfence_as_drawn": {
+     "title": "As drawn",
+     "short": "North fence where the plans have it."
+    },
+    "nfence_moved": {
+     "title": "Moved 1.5 m north",
+     "short": "More room inside the pool fence."
+    }
+   }
+  },
+  {
+   "key": "bfence",
+   "name": "Boundary fence",
+   "options": {
+    "bfence_perforated": {
+     "title": "Perforated",
+     "short": "Perforated aluminium, like the pool fence."
+    },
+    "bfence_colorbond": {
+     "title": "Colorbond",
+     "short": "Colorbond sheet in Monument."
+    },
+    "bfence_slat": {
+     "title": "Slat screen",
+     "short": "Timber-look aluminium slats."
+    },
+    "bfence_masonry": {
+     "title": "Raised wall",
+     "short": "The limestone wall built up to 1.8 m."
+    },
+    "bfence_tubular": {
+     "title": "Taller tubular",
+     "short": "A taller version of the green tube fence."
+    },
+    "bfence_existing": {
+     "title": "Keep existing",
+     "short": "Today's wall and tube fence, unchanged."
+    }
+   }
+  },
+  {
+   "key": "bplant",
+   "name": "Along the boundary wall",
+   "options": {
+    "bplant_bed": {
+     "title": "Planter bed",
+     "short": "A low planted bed against the wall."
+    },
+    "bplant_pots": {
+     "title": "Pots",
+     "short": "A row of big pots along the wall."
+    },
+    "bplant_none": {
+     "title": "Nothing",
+     "short": "Just the paving."
+    }
+   }
+  },
+  {
+   "key": "wallcap",
+   "name": "Wall tops",
+   "options": {
+    "wallcap_aggregate": {
+     "title": "Aggregate cap",
+     "short": "Matches the pool coping."
+    },
+    "wallcap_limestone": {
+     "title": "Limestone cap",
+     "short": "A limestone cap on the walls."
+    },
+    "wallcap_none": {
+     "title": "No cap",
+     "short": "The aggregate runs to the wall's edge."
+    }
+   }
+  },
+  {
+   "key": "passage",
+   "name": "Side path",
+   "options": {
+    "passage_pavers": {
+     "title": "Old pavers stay",
+     "short": "New paving stops at the pool fence."
+    },
+    "passage_aggregate": {
+     "title": "New paving all the way",
+     "short": "New paving runs up to the play area."
+    }
+   }
+  },
+  {
+   "key": "play",
+   "name": "Play area",
+   "options": {
+    "play_as_is": {
+     "title": "Where it is",
+     "short": "The play area stays put."
+    },
+    "play_moved": {
+     "title": "Moved north",
+     "short": "Play area 1.75 m further up the side."
+    }
+   }
+  }
+ ],
+ "lighting": {
+  "lights_specced": {
+   "title": "As specced",
+   "short": "Warm and practical, as drawn."
+  },
+  "lights_resort": {
+   "title": "Resort",
+   "short": "Warm, low and calm, like a hotel."
+  },
+  "lights_festoon": {
+   "title": "Festoon",
+   "short": "Festoon strings over the lounge and spa."
+  },
+  "lights_architectural": {
+   "title": "Architectural",
+   "short": "Crisp grazing light and a ceiling cove."
+  },
+  "lights_colour": {
+   "title": "Colour",
+   "short": "Colour-changing pool, spa, benches and wall."
+  },
+  "lights_garden": {
+   "title": "Garden",
+   "short": "Soft moonlight from the eaves, and bollards."
+  }
+ }
+}
