@@ -1,0 +1,46 @@
+[
+ {
+  "file": "A3-01_floor-plan.svg",
+  "pdf": "A3-01_floor-plan.pdf",
+  "title": "Floor plan",
+  "sheet": "A3-01",
+  "scale": "1:100",
+  "date": "21 Oct 2026",
+  "rev": "A",
+  "layout": "b",
+  "profile": "model/profiles/bob.json"
+ },
+ {
+  "file": "A3-02_sections.svg",
+  "pdf": "A3-02_sections.pdf",
+  "title": "Sections A-A and B-B",
+  "sheet": "A3-02",
+  "scale": "1:50",
+  "date": "21 Oct 2026",
+  "rev": "A",
+  "layout": "b",
+  "profile": "model/profiles/bob.json"
+ },
+ {
+  "file": "A3-03_pool-barrier.svg",
+  "pdf": "A3-03_pool-barrier.pdf",
+  "title": "Pool barrier plan",
+  "sheet": "A3-03",
+  "scale": "1:100",
+  "date": "21 Oct 2026",
+  "rev": "A",
+  "layout": "b",
+  "profile": "model/profiles/bob.json"
+ },
+ {
+  "file": "A3-04_alfresco-roof.svg",
+  "pdf": "A3-04_alfresco-roof.pdf",
+  "title": "Alfresco roof plan",
+  "sheet": "A3-04",
+  "scale": "1:50",
+  "date": "21 Oct 2026",
+  "rev": "A",
+  "layout": "b",
+  "profile": "model/profiles/bob.json"
+ }
+]

@@ -1,0 +1,502 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 420 297">
+<rect width="100%" height="100%" fill="#fff"/>
+
+<defs>
+  <pattern id="hatch45" patternUnits="userSpaceOnUse" width="1.1" height="1.1" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="1.1" stroke="#000" stroke-width="0.09"/></pattern>
+  <pattern id="hatch45w" patternUnits="userSpaceOnUse" width="1.8" height="1.8" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="1.8" stroke="#000" stroke-width="0.07"/></pattern>
+  <pattern id="hatchx" patternUnits="userSpaceOnUse" width="1.4" height="1.4" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="1.4" stroke="#000" stroke-width="0.07"/>
+    <line x1="0" y1="0" x2="1.4" y2="0" stroke="#000" stroke-width="0.07"/></pattern>
+  <pattern id="hatch135" patternUnits="userSpaceOnUse" width="1.1" height="1.1" patternTransform="rotate(-45)">
+    <line x1="0" y1="0" x2="0" y2="1.1" stroke="#000" stroke-width="0.09"/></pattern>
+  <pattern id="dots" patternUnits="userSpaceOnUse" width="1.3" height="1.3">
+    <circle cx="0.3" cy="0.3" r="0.09" fill="#555"/><circle cx="0.95" cy="0.95" r="0.07" fill="#777"/></pattern>
+  <pattern id="finedots" patternUnits="userSpaceOnUse" width="0.8" height="0.8">
+    <circle cx="0.2" cy="0.2" r="0.06" fill="#666"/><circle cx="0.6" cy="0.6" r="0.05" fill="#888"/></pattern>
+  <pattern id="lawn" patternUnits="userSpaceOnUse" width="3" height="3">
+    <path d="M0.5,1.2 l0.25,-0.6 l0.25,0.6 M2,2.7 l0.25,-0.6 l0.25,0.6" fill="none" stroke="#7a7a7a" stroke-width="0.07"/></pattern>
+  <pattern id="earth" patternUnits="userSpaceOnUse" width="2.2" height="2.2" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="1.0" stroke="#444" stroke-width="0.08"/></pattern>
+  <pattern id="water" patternUnits="userSpaceOnUse" width="6" height="3">
+    <rect width="6" height="3" fill="#eef5fa"/>
+    <path d="M0.6,1.0 h1.6 M3.6,2.4 h1.6" stroke="#9fbdd3" stroke-width="0.08"/></pattern>
+  <pattern id="ncz" patternUnits="userSpaceOnUse" width="1.2" height="1.2" patternTransform="rotate(45)">
+    <rect width="1.2" height="1.2" fill="#fbe3e3"/>
+    <line x1="0" y1="0" x2="0" y2="1.2" stroke="#c0392b" stroke-width="0.12"/></pattern>
+  <pattern id="conc" patternUnits="userSpaceOnUse" width="2.4" height="2.4">
+    <rect width="2.4" height="2.4" fill="#f2f2f2"/>
+    <circle cx="0.5" cy="0.6" r="0.12" fill="none" stroke="#666" stroke-width="0.05"/>
+    <path d="M1.5,1.4 l0.3,0.4 l-0.45,0.05 z" fill="none" stroke="#666" stroke-width="0.05"/></pattern>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#000"/></marker>
+<clipPath id="clipA"><rect x="14" y="20" width="304" height="112"/></clipPath>
+<clipPath id="clipB"><rect x="14" y="143" width="304" height="109"/></clipPath>
+</defs>
+
+<path d="M296.652,129.8 L314,129.8 L314,138 L296.652,138 Z" fill="url(#water)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M131.974,100.6 L196.234,100.6 L196.234,109.6 L131.974,109.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M42,87.6 L43.187,87.6 L43.187,96.6 L42,96.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M263.329,113.6 L289.758,113.6 L289.758,122.6 L263.329,122.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M43.187,88.6 L127.774,88.6 L127.774,97.6 L43.187,97.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M204.235,110.6 L249,110.6 L249,110.6 L204.235,110.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M249,110.6 L258.13,110.6 L258.13,110.6 L249,110.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M238.614,88.8 L238.614,94.2 L232.914,94.7 L232.614,102.1 L211.214,102.1 L210.914,94.7 L205.214,94.2 L205.214,88.8 Z" fill="url(#water)" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M24,86.6 L37,86.6 L37,95.6 L24,95.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M266.26,221.4 L319,221.4 L319,230.4 L266.26,230.4 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M187.058,223.6 L262.267,223.6 L262.267,232.6 L187.058,232.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M42.176,211.6 L83.606,211.6 L83.606,220.6 L42.176,220.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M165.601,211.6 L182.857,211.6 L182.857,220.6 L165.601,220.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M79.606,211.8 L169.602,211.8 L169.602,254.6 L79.606,254.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M84.606,212.6 L84.606,246 L84.729,246.932 L85.088,247.8 L85.66,248.546 L86.406,249.118 L87.274,249.477 L88.206,249.6 L161.002,249.6 L161.934,249.477 L162.802,249.118 L163.548,248.546 L164.12,247.8 L164.479,246.932 L164.602,246 L164.602,212.6 Z" fill="url(#water)" fill-rule="evenodd" stroke="#000" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="296.652,129.8 314,129.8" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="131.974,100.6 196.234,100.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<path d="M42,86.4 L43.187,86.4 L43.187,87.6 L42,87.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M263.329,112.4 L289.758,112.4 L289.758,113.6 L263.329,113.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M43.187,86.6 L127.774,86.6 L127.774,88.6 L43.187,88.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M204.235,108.6 L249,108.6 L249,110.6 L204.235,110.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M249,108.6 L258.13,108.6 L258.13,110.6 L249,110.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M289.758,113.6 L296.652,113.6 L296.652,166 L289.758,166 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M200.434,87.6 L204.214,87.6 L204.214,110.6 L200.434,110.6 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M258.329,108.6 L263.329,108.6 L263.329,113.4 L258.329,113.4 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M258.329,87 L263.329,87 L263.329,89.6 L258.329,89.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M127.974,87 L131.974,87 L131.974,101.6 L127.974,101.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M196.234,87 L200.234,87 L200.234,101.6 L196.234,101.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M127.374,86.2 L132.573,86.2 L132.573,87.1 L127.374,87.1 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M263.386,86.6 L263.787,86.6 L263.787,89.6 L263.386,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M195.795,86.6 L196.194,86.6 L196.194,89.6 L195.795,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M200.275,86.6 L200.395,86.6 L200.395,89.6 L200.275,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M196.275,86.6 L200.195,86.6 L200.195,87.1 L196.275,87.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M200.475,86.6 L201.919,86.6 L201.919,87.1 L200.475,87.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M241.908,86.6 L249,86.6 L249,87.1 L241.908,87.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M249,86.6 L263.307,86.6 L263.307,87.1 L249,87.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="241.914,87.4 241.914,86.2 239.514,86.1 238.714,86.6 238.714,94.2 232.914,94.8 232.514,102.2 221.914,102.2" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="241.914,87.4 239.314,87.4 239.314,95.4 233.514,95.4 233.114,102.8 221.914,102.8" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="201.914,87.4 201.914,86.2 204.314,86.1 205.114,86.6 205.114,94.2 210.914,94.8 211.314,102.2 221.914,102.2" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="201.914,87.4 204.514,87.4 204.514,95.4 210.314,95.4 210.714,102.8 221.914,102.8" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="236.114,108.6 236.114,95.44" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="207.714,108.6 207.714,95.44" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="207.114,95.44 236.714,95.44" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="227.914,108.6 227.914,102.84" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="215.914,108.6 215.914,102.84" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="215.314,102.84 228.514,102.84" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<path d="M132.4,91.6 L150,91.6 L150,92.2 L132.4,92.2 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M132.8,92.2 L149,92.2 L149,93.4 L132.8,93.4 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M144,93.4 L145.2,93.4 L145.2,100.6 L144,100.6 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M138.4,90 L149.6,90 L149.6,91.6 L138.4,91.6 Z" fill="#f3f3f3" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="138,90.8 134.4,81.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="43.701,84.6 43.701,60.6 110.401,60.6 110.401,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="77.051,84.6 77.051,60.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="110.401,84.6 110.401,60.6 112,60.6 112,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="112,84.6 112,60.6 132.349,60.6 132.349,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="132.349,86.4 132.349,60.6 136.872,60.6 136.872,86.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="136.872,86.56 136.872,60.6 201.984,60.6 201.984,86.56" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="169.428,86.56 169.428,60.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="201.984,86.56 201.984,60.6 237.863,60.6 237.863,86.56" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<path d="M24,84.6 L42,84.6 L42,86.6 L24,86.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M37,84.6 L42,84.6 L42,87 L37,87 Z" fill="#bbb" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M37,37.6 L42,37.6 L42,41.6 L37,41.6 Z" fill="#bbb" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="38.8,84.6 38.8,41.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="40.2,84.6 40.2,41.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="42,41.6 52,41.6 52,37.6 24,24.712" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="51.6,37.416 24,24.312" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<path d="M52,38 L54.4,38 L54.4,41 L52,41 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M48,27.383 L131,27.383 L131,31.383 L48,31.383 Z" fill="#e9e9e9" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M130.4,26.983 L131.4,26.983 L131.4,32.183 L130.4,32.183 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M204.235,87.6 L249,87.6 L249,89.4 L204.235,89.4 Z" fill="none" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="204.235,108.6 249,108.6" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<path d="M249,87.6 L258.13,87.6 L258.13,89.4 L249,89.4 Z" fill="none" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="249,108.6 258.13,108.6" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="249,114.6 249,82" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="3,0.8,0.5,0.8" clip-path="url(#clipA)"/>
+<path d="M262.129,89.6 L262.929,89.6 L262.929,108.6 L262.129,108.6 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<polyline points="266.26,221.4 319,221.4" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<polyline points="187.058,223.6 262.267,223.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<path d="M42.176,209.6 L83.606,209.6 L83.606,211.6 L42.176,211.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M165.601,209.6 L182.857,209.6 L182.857,211.6 L165.601,211.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M183.057,210 L187.058,210 L187.058,224.6 L183.057,224.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M262.267,210 L266.268,210 L266.268,224.6 L262.267,224.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M280.521,210 L284.119,210 L284.119,223 L280.521,223 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M39.845,202 L44.507,202 L44.507,237.4 L39.845,237.4 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M76.606,209.48 L85.206,209.48 L85.206,210.8 L76.606,210.8 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M164.002,209.48 L172.602,209.48 L172.602,210.8 L164.002,210.8 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M182.458,209.2 L187.658,209.2 L187.658,210.1 L182.458,210.1 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M261.828,209.6 L262.227,209.6 L262.227,212.6 L261.828,212.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M262.308,209.6 L284.08,209.6 L284.08,210.1 L262.308,210.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="84.606,210.6 84.606,246 84.729,246.932 85.088,247.8 85.66,248.546 86.406,249.118 87.274,249.477 88.206,249.6 161.002,249.6 161.934,249.477 162.802,249.118 163.548,248.546 164.12,247.8 164.479,246.932 164.602,246 164.602,210.6" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<polyline points="84.606,212.6 164.602,212.6" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<polyline points="84.606,221.6 94.206,221.6 94.206,249.2" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<path d="M84.606,221.6 L94.206,221.6 L94.206,249.6 L84.606,249.6 Z" fill="#fff" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="84.606,221.6 94.206,221.6 94.206,249.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<path d="M244.24,214.6 L261.84,214.6 L261.84,215.2 L244.24,215.2 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M245.24,215.2 L261.44,215.2 L261.44,216.4 L245.24,216.4 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M249.04,216.4 L250.24,216.4 L250.24,223.6 L249.04,223.6 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M244.64,213 L255.84,213 L255.84,214.6 L244.64,214.6 Z" fill="#f3f3f3" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="256.24,213.8 259.84,204.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
+<path d="M215.364,223.6 L220.164,223.6 L220.564,223.2 L219.764,221.2 L221.364,220.4 L224.564,216.4 L224.764,215.6 L224.164,215.6 L221.364,218.8 L215.364,219.2 L215.364,219.2 L209.364,218.8 L206.564,215.6 L205.964,215.6 L206.164,216.4 L209.364,220.4 L210.964,221.2 L210.164,223.2 L210.564,223.6 L215.364,223.6 Z" fill="#8a4a2a" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M283.683,183.6 L284.683,183.6 L284.683,209.56 L283.683,209.56 Z" fill="#555" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M41.676,173.4 L42.676,173.4 L42.676,202 L41.676,202 Z" fill="#555" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M173,152.708 L262,149.6 L262,153.6 L173,156.708 L173,152.708 Z" fill="#f1f1f1" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M170.6,153.308 L173,153.308 L173,156.308 L170.6,156.308 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M183,161.124 L185,161.124 L185,209.2 L183,209.2 Z" fill="#333" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M183.1,156.324 L184.9,156.324 L184.9,161.124 L183.1,161.124 Z" fill="#777" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M262.708,210.1 L283.68,210.1 L283.68,213 L262.708,213 Z" fill="none" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-dasharray="0.8,0.5" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="133.574,100.6 138.174,100.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="133.574,86.6 138.174,86.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="136.974,101.8 136.974,85.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="137.61,101.236 136.337,99.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="137.61,87.236 136.337,85.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="138.059" y="93.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 138.059 93.6)">700</text>
+<polyline points="151.6,100.6 153.7,100.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="151.6,91.6 153.7,91.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="152.5,101.8 152.5,90.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="153.136,101.236 151.863,99.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="153.136,92.236 151.863,90.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="153.585" y="96.1" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 153.585 96.1)">450</text>
+<polyline points="27.4,86.6 22.8,86.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="27.4,84.6 22.8,84.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="24,87.8 24,83.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="24.636,87.236 23.364,85.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="24.636,85.236 23.364,83.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="22.915" y="85.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 22.915 85.6)">100</text>
+<polyline points="63.4,86.6 59.8,86.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="63.4,31.383 59.8,31.383" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="61,87.8 61,30.183" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="61.636,87.236 60.364,85.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="61.636,32.019 60.364,30.746" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="59.915" y="58.991" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 59.915 58.991)">2761 CLR</text>
+<polyline points="252.53,108.6 248.93,108.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="252.53,89.4 248.93,89.4" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="250.13,109.8 250.13,88.2" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="250.767,109.236 249.494,107.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="250.767,90.036 249.494,88.764" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="249.045" y="99" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 249.045 99)">960</text>
+<polyline points="252.53,108.6 242.93,108.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="252.53,86.6 242.93,86.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="244.13,109.8 244.13,85.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="244.767,109.236 243.494,107.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="244.767,87.236 243.494,85.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="243.045" y="97.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 243.045 97.6)">1100</text>
+<polyline points="264.329,112.4 268.929,112.4" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="264.329,86.2 268.929,86.2" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="267.729,113.6 267.729,85" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="268.365,113.036 267.093,111.764" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="268.365,86.836 267.093,85.564" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="268.814" y="99.3" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 268.814 99.3)">1310</text>
+<polyline points="299.252,129.8 303.852,129.8" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="299.252,113.6 303.852,113.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="302.652,131 302.652,112.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="303.288,130.436 302.015,129.164" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="303.288,114.236 302.015,112.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="303.737" y="121.7" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 303.737 121.7)">810</text>
+<polyline points="219.914,103.4 219.914,85" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="220.55,102.836 219.277,101.564" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="220.55,86.836 219.277,85.564" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="218.829" y="94.2" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 218.829 94.2)">800</text>
+<polyline points="42,87.4 42,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="127.974,87.4 127.974,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="131.974,87.4 131.974,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="196.234,101.4 196.234,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="201.914,87.4 201.914,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="241.914,87.4 241.914,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="263.329,113.2 263.329,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="289.758,114.4 289.758,126" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="40.8,125 129.174,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="41.364,125.636 42.636,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="127.337,125.636 128.61,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="84.987" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">4300</text>
+<polyline points="126.774,125 133.174,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="127.337,125.636 128.61,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="131.337,125.636 132.61,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="129.974" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">200</text>
+<polyline points="130.774,125 197.434,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="131.337,125.636 132.61,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="195.598,125.636 196.871,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="164.104" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">3213</text>
+<polyline points="195.034,125 203.114,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="195.598,125.636 196.871,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="201.277,125.636 202.55,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="199.074" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">284</text>
+<polyline points="200.714,125 243.114,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="201.277,125.636 202.55,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="241.277,125.636 242.55,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="221.914" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">2000</text>
+<polyline points="240.714,125 264.529,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="241.277,125.636 242.55,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="262.693,125.636 263.965,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="252.621" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">1071</text>
+<polyline points="262.129,125 290.958,125" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="262.693,125.636 263.965,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="289.122,125.636 290.395,124.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="276.544" y="124.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">1321</text>
+<polyline points="42,85.4 42,40" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="131,32.183 131,40" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="40.8,39 132.2,39" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="41.364,39.636 42.636,38.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="130.364,39.636 131.636,38.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="86.5" y="38.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">4450</text>
+<polyline points="158.602,250.8 158.602,208.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="159.238,250.236 157.966,248.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="159.238,210.236 157.966,208.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="157.517" y="229.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 157.517 229.6)">2000</text>
+<polyline points="104.606,250.8 104.606,211.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="105.242,250.236 103.969,248.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="105.242,213.236 103.969,211.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="103.521" y="231.1" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 103.521 231.1)">1850</text>
+<polyline points="281.583,209.6 278.983,209.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="281.583,183.6 278.983,183.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="280.183,210.8 280.183,182.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="280.82,210.236 279.547,208.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="280.82,184.236 279.547,182.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="279.098" y="196.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 279.098 196.6)">1300</text>
+<polyline points="287.783,221.4 290.383,221.4" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="287.783,183.6 290.383,183.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="289.183,222.6 289.183,182.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="289.82,222.036 288.547,220.764" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="289.82,184.236 288.547,182.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="290.268" y="202.5" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 290.268 202.5)">1890</text>
+<polyline points="45.776,209.6 48.376,209.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="45.776,173.4 48.376,173.4" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="47.176,210.8 47.176,172.2" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="47.812,210.236 46.54,208.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="47.812,174.036 46.54,172.764" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="48.261" y="191.5" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 48.261 191.5)">1800</text>
+<polyline points="188.658,223.6 192.258,223.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="188.658,209.6 192.258,209.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="191.058,224.8 191.058,208.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="191.694,224.236 190.421,222.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="191.694,210.236 190.421,208.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="192.143" y="216.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 192.143 216.6)">700</text>
+<polyline points="44.507,207.8 44.507,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="84.606,210.4 84.606,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="164.602,210.4 164.602,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="183.057,210.4 183.057,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="187.058,210.4 187.058,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="262.267,210.4 262.267,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="266.268,210.4 266.268,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="284.119,210.4 284.119,247" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="43.307,246 85.806,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="43.871,246.636 45.144,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="83.969,246.636 85.242,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="64.557" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">2005</text>
+<polyline points="83.406,246 165.802,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="83.969,246.636 85.242,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="163.966,246.636 165.238,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="124.604" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">4000</text>
+<polyline points="163.402,246 184.257,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="163.966,246.636 165.238,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="182.421,246.636 183.694,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="173.83" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">923</text>
+<polyline points="181.857,246 188.258,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="182.421,246.636 183.694,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="186.421,246.636 187.694,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="185.057" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">200</text>
+<polyline points="185.858,246 263.467,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="186.421,246.636 187.694,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="261.631,246.636 262.904,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="224.662" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">3760</text>
+<polyline points="261.067,246 267.468,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="261.631,246.636 262.904,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="265.631,246.636 266.904,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="264.267" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">200</text>
+<polyline points="265.068,246 285.319,246" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="265.631,246.636 266.904,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="283.483,246.636 284.756,245.364" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="275.193" y="245.008" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">893</text>
+<polyline points="242.64,223.6 240.54,223.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="242.64,214.6 240.54,214.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="241.74,224.8 241.74,213.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="242.377,224.236 241.104,222.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="242.377,215.236 241.104,213.964" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="240.655" y="219.1" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke" transform="rotate(-90 240.655 219.1)">450</text>
+<text x="33" y="66" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">KITCHEN</text>
+<text x="250.6" y="79" font-family="Helvetica, Arial, sans-serif" font-size="1.3" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.455" stroke-linejoin="round" paint-order="stroke">JOG</text>
+<path d="M30.3,83.6 L31.7,83.6 L31,84.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="31,83.6 31,82.4 29.6,82.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="29.2" y="82.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">FFL RL +0.100</text>
+<text x="29.2" y="84.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.47)</text>
+<path d="M73.3,85.6 L74.7,85.6 L74,86.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="74,85.6 74,84.4 75.4,84.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="75.8" y="84.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL 0.000</text>
+<text x="75.8" y="86.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.37)</text>
+<path d="M173.3,99.6 L174.7,99.6 L174,100.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="174,99.6 174,98.4 175.4,98.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="175.8" y="98.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL −0.700</text>
+<text x="175.8" y="100.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.67)</text>
+<path d="M205.3,85.6 L206.7,85.6 L206,86.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="206,85.6 206,84.4 204.6,84.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="204.2" y="84.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">DECK RL 0.000</text>
+<text x="204.2" y="86.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.37)</text>
+<path d="M261.3,107.6 L262.7,107.6 L262,108.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="262,107.6 262,106.4 263.4,106.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="263.8" y="106.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">PUMP FL RL −1.100</text>
+<text x="263.8" y="108.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.27)</text>
+<path d="M276.3,111.4 L277.7,111.4 L277,112.4 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="277,111.4 277,110.2 275.6,110.2" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="275.2" y="110.15" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL −1.290</text>
+<text x="275.2" y="111.935" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.08)</text>
+<path d="M292.058,112.6 L293.458,112.6 L292.758,113.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="292.758,112.6 292.758,111.4 294.158,111.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="294.558" y="111.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">CANAL WALL RL −1.350</text>
+<text x="294.558" y="113.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.02)</text>
+<path d="M309.3,128.8 L310.7,128.8 L310,129.8 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="310,128.8 310,127.6 311.4,127.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="311.8" y="127.55" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">WATER RL −2.160</text>
+<text x="311.8" y="129.335" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 0.21)</text>
+<path d="M101.3,26.383 L102.7,26.383 L102,27.383 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="102,26.383 102,25.183 103.4,25.183" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="103.8" y="25.133" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">ROOF RL +2.961</text>
+<text x="103.8" y="26.918" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 5.33)</text>
+<path d="M48.3,40.6 L49.7,40.6 L49,41.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="49,40.6 49,39.4 50.4,39.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="50.8" y="39.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">EAVE SOFFIT RL +2.250</text>
+<text x="50.8" y="41.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 4.62)</text>
+<polyline points="86,29.383 92.5,17 93.6,17" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="86" cy="29.383" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="94" y="17" font-family="Helvetica, Arial, sans-serif" font-size="1.55" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.542" stroke-linejoin="round" paint-order="stroke">SMARTSPAN ROOF, 2° FALL TO WEST (ACROSS THIS CUT), PALE GREY</text>
+<polyline points="140,90 148.5,74 149.6,74" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="140" cy="90" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="150" y="74" font-family="Helvetica, Arial, sans-serif" font-size="1.55" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.542" stroke-linejoin="round" paint-order="stroke">BENCH 900 DEEP, SEAT RL −0.250</text>
+<polyline points="130,96 109.5,103 108.4,103" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="130" cy="96" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="108" y="103" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">LIMESTONE FACEBRICK WALL + AGGREGATE CAP</text>
+<polyline points="229.914,92.8 185.5,66 184.4,66" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="229.914" cy="92.8" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="184" y="66" font-family="Helvetica, Arial, sans-serif" font-size="1.55" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.542" stroke-linejoin="round" paint-order="stroke">SPA Ø2000, RIM RL +0.020, SHELL ON GALV STAND</text>
+<polyline points="242,88.6 241.5,75 240.4,75" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="242" cy="88.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="240" y="75" font-family="Helvetica, Arial, sans-serif" font-size="1.55" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.542" stroke-linejoin="round" paint-order="stroke">DECK BOARDS ON 90x45 JOISTS @ 450 (RUN N-S)</text>
+<polyline points="250,102 258.5,95 259.6,95" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="250" cy="102" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="260" y="95" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">PUMP ROOM (PUMPS, FILTER, CHLORINATOR)</text>
+<polyline points="262.529,99 281.5,83 282.6,83" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="262.529" cy="99" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="283" y="83" font-family="Helvetica, Arial, sans-serif" font-size="1.55" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.542" stroke-linejoin="round" paint-order="stroke">PUMP ROOM DOORS 1700 W, HEAD RL −0.150</text>
+<polyline points="224,64 201.5,52 200.4,52" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="224" cy="64" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="200" y="52" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">1200H POOL FENCE BEYOND (EAST), TOP RL +1.300</text>
+<polyline points="184,189 149.5,182 148.4,182" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="184" cy="189" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="148" y="182" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">100 SHS POST + 240 BEAM (BEYOND)</text>
+<polyline points="215,153.241 208.5,171 207.4,171" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="215" cy="153.241" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="207" y="171" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">ALFRESCO ROOF BEYOND: 2° FALL TO WEST, GUTTER ON WEST EDGE</text>
+<path d="M71.906,208.6 L73.306,208.6 L72.606,209.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="72.606,208.6 72.606,207.4 71.206,207.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="70.806" y="207.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL 0.000</text>
+<text x="70.806" y="209.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.37)</text>
+<path d="M109.906,211.6 L111.306,211.6 L110.606,212.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="110.606,211.6 110.606,210.4 112.006,210.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="112.406" y="210.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">WATER RL −0.150</text>
+<text x="112.406" y="212.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.22)</text>
+<polyline points="88.606,225.6 54.106,233 53.006,233" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="88.606" cy="225.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="52.606" y="233" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">BENCH 480 W, 450 BELOW WATER</text>
+<text x="124.604" y="239" font-family="Helvetica, Arial, sans-serif" font-size="2" text-anchor="middle" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="0.7" stroke-linejoin="round" paint-order="stroke">POOL (DEEP END)</text>
+<path d="M233.3,222.6 L234.7,222.6 L234,223.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="234,222.6 234,221.4 235.4,221.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="235.8" y="221.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL −0.700</text>
+<text x="235.8" y="223.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.67)</text>
+<path d="M272.3,208.6 L273.7,208.6 L273,209.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="273,208.6 273,207.4 274.4,207.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="274.8" y="207.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">DECK RL 0.000</text>
+<text x="274.8" y="209.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 2.37)</text>
+<path d="M302.3,220.4 L303.7,220.4 L303,221.4 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="303,220.4 303,219.2 304.4,219.2" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="304.8" y="219.15" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">RL −0.590</text>
+<text x="304.8" y="220.935" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 1.78)</text>
+<path d="M282.483,182.6 L283.883,182.6 L283.183,183.6 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="283.183,182.6 283.183,181.4 281.783,181.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="281.383" y="181.35" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">FENCE TOP RL +1.300</text>
+<text x="281.383" y="183.135" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="end" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 3.67)</text>
+<polyline points="284.183,189.6 294.683,172 295.783,172" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="284.183" cy="189.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="296.183" y="172" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">1200H POOL FENCE (PERFORATED ALU)</text>
+<path d="M42.476,172.4 L43.876,172.4 L43.176,173.4 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.18" stroke-linejoin="round"/>
+<polyline points="43.176,172.4 43.176,171.2 44.576,171.2" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="44.976" y="171.15" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">FENCE TOP RL +1.810</text>
+<text x="44.976" y="172.935" font-family="Helvetica, Arial, sans-serif" font-size="1.326" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.464" stroke-linejoin="round" paint-order="stroke">(AHD 4.18)</text>
+<polyline points="42.176,181.4 68.676,172 69.776,172" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="42.176" cy="181.4" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="70.176" y="172" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">1800H BOUNDARY POOL BARRIER (TUBULAR)</text>
+<polyline points="221.364,217.6 231.864,202 232.964,202" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="221.364" cy="217.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="233.364" y="202" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">CORTEN FIRE PIT</text>
+<polyline points="273.194,211.6 290.58,231 291.68,231" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
+<circle cx="273.194" cy="211.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
+<text x="292.08" y="231" font-family="Helvetica, Arial, sans-serif" font-size="1.4" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.49" stroke-linejoin="round" paint-order="stroke">DECK ON FRAMING OVER FILL (NO ROOM BELOW)</text>
+<path d="M8,8 L412,8 L412,289 L8,289 Z" fill="none" fill-rule="evenodd" stroke="#000" stroke-width="0.35" stroke-linejoin="round"/>
+<polyline points="8,259 412,259" fill="none" stroke="#000" stroke-width="0.35" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="118,259 118,289" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="238,259 238,289" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<polyline points="352,259 352,289" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="11" y="263.5" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">STATUS</text>
+<text x="11" y="268.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.805" stroke-linejoin="round" paint-order="stroke">Design intent from the 3D model.</text>
+<text x="11" y="272.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.805" stroke-linejoin="round" paint-order="stroke">For Bob Bruce to draw up.</text>
+<text x="11" y="276.8" font-family="Helvetica, Arial, sans-serif" font-size="2.9" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="1.015" stroke-linejoin="round" paint-order="stroke">NOT FOR CONSTRUCTION</text>
+<text x="121" y="265" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">Project:</text>
+<text x="134" y="265" font-family="Helvetica, Arial, sans-serif" font-size="3" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="1.05" stroke-linejoin="round" paint-order="stroke">PROPOSED POOL, SPA &amp; ALFRESCO</text>
+<text x="121" y="273.5" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">Client:</text>
+<text x="134" y="273.5" font-family="Helvetica, Arial, sans-serif" font-size="3" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="1.05" stroke-linejoin="round" paint-order="stroke">CANN</text>
+<text x="121" y="282" font-family="Helvetica, Arial, sans-serif" font-size="1.7" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.595" stroke-linejoin="round" paint-order="stroke">Site:</text>
+<text x="134" y="282" font-family="Helvetica, Arial, sans-serif" font-size="2.6" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.91" stroke-linejoin="round" paint-order="stroke">35 KEEL RETREAT, PORT GEOGRAPHE</text>
+<text x="241" y="263.2" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">Sheet title</text>
+<text x="261" y="263.2" font-family="Helvetica, Arial, sans-serif" font-size="2.4" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="0.84" stroke-linejoin="round" paint-order="stroke">SECTIONS A-A AND B-B</text>
+<text x="241" y="270.1" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">Date</text>
+<text x="261" y="270.1" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">21 Oct 2026</text>
+<polyline points="238,266.65 352,266.65" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="241" y="277" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">Revision</text>
+<text x="261" y="277" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">A</text>
+<polyline points="238,273.55 352,273.55" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="241" y="283.9" font-family="Helvetica, Arial, sans-serif" font-size="1.6" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#333" stroke="#fff" stroke-width="0.56" stroke-linejoin="round" paint-order="stroke">Scale</text>
+<text x="261" y="283.9" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">1:50</text>
+<polyline points="238,280.45 352,280.45" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="382" y="266" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">SHEET</text>
+<text x="382" y="276" font-family="Helvetica, Arial, sans-serif" font-size="7.5" text-anchor="middle" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="2.625" stroke-linejoin="round" paint-order="stroke">A3-02</text>
+<text x="382" y="284.5" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">Rev A</text>
+<text x="24" y="15" font-family="Helvetica, Arial, sans-serif" font-size="4.2" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="1.47" stroke-linejoin="round" paint-order="stroke">SECTION A-A</text>
+<polyline points="24,17.8 52.644,17.8" fill="none" stroke="#000" stroke-width="0.35" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="24" y="20.4" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">SCALE 1:50 @ A3  (LOOKING EAST; JOGS WEST AT THE PUMP ROOM TO CUT ITS DOORS)</text>
+<text x="24" y="138" font-family="Helvetica, Arial, sans-serif" font-size="4.2" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="1.47" stroke-linejoin="round" paint-order="stroke">SECTION B-B</text>
+<polyline points="24,140.8 52.644,140.8" fill="none" stroke="#000" stroke-width="0.35" stroke-linecap="butt" stroke-linejoin="round"/>
+<text x="24" y="143.4" font-family="Helvetica, Arial, sans-serif" font-size="2.2" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.77" stroke-linejoin="round" paint-order="stroke">SCALE 1:50 @ A3  (LOOKING NORTH)</text>
+<path d="M322,26 L332,26 L332,27.4 L322,27.4 Z" fill="#000" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-linejoin="round"/>
+<path d="M332,26 L342,26 L342,27.4 L332,27.4 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-linejoin="round"/>
+<path d="M342,26 L362,26 L362,27.4 L342,27.4 Z" fill="#000" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-linejoin="round"/>
+<path d="M362,26 L382,26 L382,27.4 L362,27.4 Z" fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-linejoin="round"/>
+<path d="M382,26 L402,26 L402,27.4 L382,27.4 Z" fill="#000" fill-rule="evenodd" stroke="#000" stroke-width="0.1" stroke-linejoin="round"/>
+<text x="322" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">0</text>
+<text x="332" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">0.5</text>
+<text x="342" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">1</text>
+<text x="362" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">2</text>
+<text x="382" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">3</text>
+<text x="402" y="29.4" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="middle" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">4</text>
+<text x="404" y="26.7" font-family="Helvetica, Arial, sans-serif" font-size="1.8" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.63" stroke-linejoin="round" paint-order="stroke">m</text>
+<text x="322" y="24" font-family="Helvetica, Arial, sans-serif" font-size="1.9" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.665" stroke-linejoin="round" paint-order="stroke">SCALE 1:50 @ A3</text>
+<text x="322" y="40" font-family="Helvetica, Arial, sans-serif" font-size="2.1" text-anchor="start" dominant-baseline="central" font-weight="bold" fill="#000" stroke="#fff" stroke-width="0.735" stroke-linejoin="round" paint-order="stroke">NOTES</text>
+<text x="322" y="43.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Levels: RL 0.000 = AHD 2.37 (existing rear</text>
+<text x="322" y="45.875" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   paving, SK02's datum). House FFL RL +0.100.</text>
+<text x="322" y="48.75" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Cut from the 3D model's geometry</text>
+<text x="322" y="51.025" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   (model/data/site-b.json). Heights in mm.</text>
+<text x="322" y="53.9" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Concourse, alfresco and deck all RL 0.000.</text>
+<text x="322" y="56.175" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   Lounge floor RL −0.700, 4 risers of 175 to</text>
+<text x="322" y="58.45" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   the deck. Pump room floor RL −1.100.</text>
+<text x="322" y="61.325" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Pump room: 960 clear under the joists (kneel,</text>
+<text x="322" y="63.6" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   not stand), as SK02's levels. Doors only,</text>
+<text x="322" y="65.875" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   from the promenade.</text>
+<text x="322" y="68.75" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Pool: fibreglass, 1000 shallow (N) to 2000</text>
+<text x="322" y="71.025" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   deep (S) from coping top; floor falls</text>
+<text x="322" y="73.3" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   between 3.0 and 5.4 m from the shallow end.</text>
+<text x="322" y="75.575" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   Water 150 below coping.</text>
+<text x="322" y="78.45" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Spa: round 2000, rim 20 above the deck, shell</text>
+<text x="322" y="80.725" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   on a galvanised stand off the pump room</text>
+<text x="322" y="83" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   floor.</text>
+<text x="322" y="85.875" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Alfresco roof: Stratco Smartspan at 2°, top</text>
+<text x="322" y="88.15" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   3000 above paving at the high (east) side.</text>
+<text x="322" y="90.425" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   Flies over the house gutter on brackets.</text>
+<text x="322" y="93.3" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Retaining wall to promenade: 1310 from</text>
+<text x="322" y="95.575" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   promenade to cap (the pool barrier on the</text>
+<text x="322" y="97.85" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   canal side; see A3-03).</text>
+<text x="322" y="100.725" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">Footings, drainage (PVC drain from the lounge,</text>
+<text x="322" y="103" font-family="Helvetica, Arial, sans-serif" font-size="1.75" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.612" stroke-linejoin="round" paint-order="stroke">   as SK02) and structure by others.</text>
+</svg>
