@@ -55,7 +55,7 @@
       {
         "id": "boundary",
         "title": "West boundary barrier",
-        "detail": "The boundary fence along the pool is part of the barrier, so it needs to be 1.8 m from our new paving with nothing climbable in the top 900 mm on our side. Measured in the model, the existing wall and fence drop from 1.81 m at the north end to 0.83 m at the terrace end. We're thinking a 1.8 m tubular fence to replace it, with pots along it rather than a planter bed. We'll talk to the neighbours, but can you check that works as the barrier?"
+        "detail": "The boundary fence along the pool is part of the barrier, so it needs to be 1.8 m from our new paving with nothing climbable in the top 900 mm on our side. Measured in the model, the existing wall and fence drop from 1.81 m at the north end to 0.83 m at the terrace end. We're thinking a 1.8 m tubular fence to replace it, with pots along it rather than a planter bed. We'll talk to the neighbours, but can you check that works as the barrier? The pots we'd put along it are about 0.55 m tall, which leaves only about 1.25 m of fence above them. Should they stay clear of the fence?"
       },
       {
         "id": "fence-type",
