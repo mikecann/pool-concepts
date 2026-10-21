@@ -1,7 +1,7 @@
 // Round 28 tests: the Bench corner (corner_*, both layouts). Cards and the default, each option's parts (in SK02's
 // layout with the drawn post and with the corner post's moved steps, whose bench has its own post_corner_steps+corner_*
 // pieces), the bench_corner dims following, no camera jump when switching (walking in the lounge, flying), ?corner=,
-// remembered choices and goToCam('24_lounge_corner'). Then the pavilion deck's furniture (sofa set, egg chair, pots,
+// remembered choices and goToCam('24_lounge_corner'). Then the pavilion deck's furniture (sofa set, pots,
 // wall baskets, BBQ; in both scenarios now): walking across the deck with key presses, you move, never end up inside
 // a piece's footprint, and stay on the deck. Screenshots of each option and the deck. Headless on the real GPU.
 //   node scripts/r28-test.mjs [--out review/round22corner]
@@ -107,7 +107,7 @@ for (const L of ['a', 'b']) {
 }
 
 // ---- the pavilion deck's furniture: unmerged (?merge0) so the pieces keep their names
-const FURN = /^(deck_pot_|deck_sofa_|egg_chair_|wall_basket_|bbq_covered)/;
+const FURN = /^(deck_pot_|deck_sofa_|wall_basket_)/;
 for (const L of ['a', 'b']) for (const sc of ['existing', 'proposed']) {
   const ctx = await b.newContext();
   const p = await open(ctx, `&layout=${L}&scenario=${sc}&panel=0&merge0`);
@@ -123,7 +123,7 @@ for (const L of ['a', 'b']) for (const sc of ['existing', 'proposed']) {
     return { furn: furn.map(o => { const bx = box(o), c = bx.getCenter(new T.Vector3()); return [o.name, +c.x.toFixed(2), +c.z.toFixed(2)]; }), deck: d && [d.min.x, d.min.z, d.max.x, d.max.z, d.max.y].map(v => +v.toFixed(2)) };
   }, FURN.source);
   const names = found.furn.map(f => f[0]);
-  const wantAll = ['deck_sofa_frame', 'egg_chair_shell', 'deck_pot_geranium', 'deck_pot_charcoal', 'wall_basket_0', sc === 'existing' ? 'bbq_covered' : 'bbq_covered_moved'];
+  const wantAll = ['deck_sofa_frame', 'deck_pot_geranium', 'deck_pot_charcoal', 'wall_basket_0'];   // Mike had the BBQ and the egg chair taken out (21 Oct)
   check(`${L}, ${sc}: the deck and its furniture are there`, !!found.deck && wantAll.every(n => names.includes(n)), `deck ${JSON.stringify(found.deck)}; missing ${wantAll.filter(n => !names.includes(n)).join(', ') || 'none'}`);
   if (!found.deck) { await p.close(); await ctx.close(); continue; }
   // a start on the open deck, and a walk at each piece on it (x 3..9.6, z 0..6), plus straight across and back
