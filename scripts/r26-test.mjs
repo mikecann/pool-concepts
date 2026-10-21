@@ -102,7 +102,7 @@ await p.locator('#light-adjust .adj-row[data-group="pool"] input[type=color]').f
 const red = await slot(p, 'pool_light_rgb');
 const glowRed = await p.evaluate(() => __viewer.model.poolGlowColor.value.toArray());
 check('  pool to red: the light is red, and so is its glow', red.c[0] > red.c[1] * 3 && glowRed[0] > glowRed[1], `${red.c} glow ${glowRed.map(v => v.toFixed(3))}`);
-await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await p.evaluate(() => __viewer.setMode('drone')); await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await p.waitForTimeout(1500);
+await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await p.evaluate(() => __viewer.setMode('fly')); await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await p.waitForTimeout(1500);
 await p.screenshot({ path: `${OUT}/adjust_colour_red_pool.png` });
 await p.locator('#light-adjust').screenshot({ path: `${OUT}/adjust_colour.png` });
 // reset
@@ -152,12 +152,12 @@ await p.close(); await ctx.close();
 // ---------------- the pump room's battens: on inside, off from the canal
 ctx = await b.newContext();
 p = await open(ctx, '&layout=a&date=2027-01-16&t=1260&panel=0');
-await p.evaluate(() => { __viewer.setMode('drone'); __viewer.goToCam('01_canal_view', true); }); await p.waitForTimeout(800);
+await p.evaluate(() => { __viewer.setMode('fly'); __viewer.goToCam('01_canal_view', true); }); await p.waitForTimeout(800);
 const far = await level(p, 'pump_room_light');
 await p.evaluate(() => { const h = __viewer.hinges.list.find(h => h.group === 'pump_doors'); __viewer.hinges.toggle(h, true); __viewer.place(h.centre.x, 1.6, h.centre.z - 1.2, 0, -5); }); await p.waitForTimeout(800);
 const near = await level(p, 'pump_room_light');
 check('pump room battens: off from the canal, on at the doors', far === 0 && near > 0, `${far} / ${near.toFixed(2)}`);
-await p.evaluate(() => { __viewer.setMode('drone'); __viewer.goToCam('01_canal_view', true); }); await p.waitForTimeout(2500);
+await p.evaluate(() => { __viewer.setMode('fly'); __viewer.goToCam('01_canal_view', true); }); await p.waitForTimeout(2500);
 await p.screenshot({ path: `${OUT}/canal_01_night_fixed.png` });
 await p.close(); await ctx.close();
 

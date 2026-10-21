@@ -1,4 +1,4 @@
-// Screenshot the page chrome: sidebar open (desktop, light + dark), drone mode, winter, and a phone at Low.
+// Screenshot the page chrome: sidebar open (desktop, light + dark), an aerial view flying, winter, and a phone at Low.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 const OUT = process.argv[2] ?? 'review/ui';
@@ -24,9 +24,9 @@ await desk.screenshot({ path: `${OUT}/desktop_panel_light.png` });
 await desk.evaluate(() => { document.documentElement.dataset.theme = 'dark'; document.getElementById('panel-scroll').scrollTop = 1400; });
 await frames(desk, 10);
 await desk.screenshot({ path: `${OUT}/desktop_panel_dark.png` });
-await desk.evaluate(() => { delete document.documentElement.dataset.theme; __viewer.setPanel(false); __viewer.goToCam('07_aerial_southwest'); __viewer.setTime(16 * 60); });
+await desk.evaluate(() => { delete document.documentElement.dataset.theme; __viewer.setPanel(false); __viewer.setMode('fly'); __viewer.goToCam('07_aerial_southwest', true); __viewer.setTime(16 * 60); });
 await frames(desk, 60);
-await desk.screenshot({ path: `${OUT}/drone_aerial_1600.png` });
+await desk.screenshot({ path: `${OUT}/fly_aerial_1600.png` });
 await desk.evaluate(() => { __viewer.setDate('2027-06-21'); __viewer.setTime(13 * 60); __viewer.place(1.3, 3.0, 2.6, 156, -5); });
 await frames(desk, 60);
 await desk.screenshot({ path: `${OUT}/winter_alfresco_1300.png` });

@@ -1,7 +1,6 @@
 import * as THREE_NS from 'three/webgpu';
 import { AgXToneMapping, Box3, type Object3D, Raycaster, BasicShadowMap, PCFShadowMap, VSMShadowMap, PerspectiveCamera, Scene, Vector2, Vector3, WebGPURenderer } from 'three/webgpu';
 import { float, fog, rangeFogFactor, uniform } from 'three/tsl';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Atmosphere } from './atmosphere';
 import { LIGHT_GROUPS, LIGHT_SWAP, MODEL_FILES, Model, type CameraDef, type Gate, type Layout, type LightAdjust, type Scenario } from './model';
 import { Post, QUALITY, type Quality } from './post';
@@ -14,7 +13,7 @@ import { Covers } from './covers';
 import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
-import { VIEWS, VIEW_NAMES } from './views';
+import { VIEW_NAMES } from './views';
 import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, CORNER_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
@@ -96,6 +95,8 @@ if (settings.date !== undefined || settings.minutes !== undefined) {
   delete settings.date; delete settings.minutes;
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch { /* private mode */ }
 }
+/** A remembered or handed-over mode: walk or fly. Drone mode is gone; a saved 'drone' flies instead. */
+const toMode = (m: unknown): Mode | null => m === 'walk' ? 'walk' : m === 'fly' || m === 'drone' ? 'fly' : null;
 const remember = (patch: Settings) => {
   if (fromUrl) return;
   if (profile) { patch = { ...patch }; for (const k of DESIGN_SETTINGS) delete patch[k]; if (!Object.keys(patch).length) return; }
@@ -112,7 +113,7 @@ let fromUrl = false;   // true while applying URL values, so remember() leaves t
 // Round 19: the layout (SK02's, or B with the lounge wall in line and the pool moved) is a whole model of its own, so
 // switching loads the page again with the other one. What you had going (where you were and where you looked, the
 // mode, the time and date, Today or Proposed, every option) is handed to that load through sessionStorage.
-type Handoff = { layout: Layout; at: number; mode: Mode; feet: number[]; cam: number[]; target: number[]; yaw: number; pitch: number;
+type Handoff = { layout: Layout; at: number; mode: Mode; feet: number[]; cam: number[]; yaw: number; pitch: number;
   minutes: number; date: string; scenario: Scenario; people: boolean; options: NonNullable<Settings['options']> };
 const HANDOFF_KEY = 'pool-layout-swap';
 const urlLayout = params.get('layout') === 'a' || params.get('layout') === 'b' ? params.get('layout') as Layout : null;
@@ -210,11 +211,6 @@ async function main() {
   mark('model');
 
   const walker = new Walker(camera, canvas);
-  const orbit = new OrbitControls(camera, canvas);
-  orbit.enabled = false;
-  orbit.enableDamping = true;
-  orbit.maxPolarAngle = Math.PI * 0.52;   // a little above level, for the canal view (Round 12: 0.49 lifted camera 01 by 0.8 m)
-  orbit.minDistance = 2; orbit.maxDistance = 220;
 
   let post!: Post;
   let renderQualityChips: (() => void) | null = null;
@@ -619,8 +615,10 @@ async function main() {
   const peopleBox = $<HTMLInputElement>('opt-people');
   peopleBox.checked = model.people;
   peopleBox.onchange = () => { model.people = peopleBox.checked; optChanged(); remember({ people: model.people }); };
-  renderQualityChips = chipRow($('opt-quality'), (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q === 'Ultra' ? 'Ultra (slow)' : q] as [string, string]), () => S.quality,
-    v => { remember({ quality: v as Quality }); setQuality(v as Quality); });
+  // the settings dialog's quality chips, and the same in a profile's side panel
+  const qualityRows = [$('opt-quality'), $('ps-quality')].map(box => chipRow(box, (['Low', 'Medium', 'High', 'Ultra'] as Quality[]).map(q => [q, q === 'Ultra' ? 'Ultra (slow)' : q] as [string, string]), () => S.quality,
+    v => { remember({ quality: v as Quality }); setQuality(v as Quality); }));
+  renderQualityChips = () => qualityRows.forEach(r => r());
   const fpsEl = $('fps');
   const fpsBox = $<HTMLInputElement>('opt-fps');
   fpsBox.checked = settings.fps ?? true;   // on by default
@@ -631,7 +629,7 @@ async function main() {
   const DEFAULT_FOV = camera.fov;
   let targetFov = DEFAULT_FOV;
   // ---------- tape measure (Round 15): M or the button; click/tap two points ----------
-  const measureBar = $('measure-bar'), measureBtn = $('measure-btn');
+  const measureBar = $('measure-bar'), measureBtn = $('measure-btn'), psMeasure = $('ps-measure');
   const tape = new TapeMeasure(model.root, camera, $('measure-labels'), t => { $('measure-text').textContent = t; });
   scene.add(tape.group);
   const measuring = () => tape.active;
@@ -641,9 +639,11 @@ async function main() {
     () => [S.scenario, ...Object.values(currentOptions()), model.poolCover, model.spaCoverMoving].join());
   scene.add(dims.group);
   if (settings.dimGroups) { dims.on.clear(); for (const g of settings.dimGroups) if (DIM_GROUPS.some(d => d.id === g)) dims.on.add(g); }
-  const dimsBox = $<HTMLInputElement>('opt-dims');
-  const setDims = (on: boolean) => { dimsBox.checked = on; void dims.setEnabled(on); remember({ dims: on }); };
+  // the switch in Settings and, in a profile, Show dimensions in the side panel: both follow L too
+  const dimsBox = $<HTMLInputElement>('opt-dims'), psDims = $<HTMLInputElement>('ps-dims');
+  const setDims = (on: boolean) => { dimsBox.checked = psDims.checked = on; void dims.setEnabled(on); remember({ dims: on }); };
   dimsBox.onchange = () => setDims(dimsBox.checked);
+  psDims.onchange = () => setDims(psDims.checked);
   const dimChips = $('opt-dimgroups');
   const renderDimChips = () => {
     dimChips.innerHTML = '';
@@ -663,11 +663,13 @@ async function main() {
   const setMeasure = (on: boolean) => {
     tape.active = on;
     measureBtn.setAttribute('aria-pressed', String(on));
+    psMeasure.setAttribute('aria-pressed', String(on));
     measureBar.hidden = !on;
     world.classList.toggle('measuring', on);
-    if (on && !document.pointerLockElement) showHint?.(walker.mode === 'drone' || isTouch ? 'Tap two points to measure' : 'Click two points to measure<small>M or Done to put the tape away</small>', 3500);
+    if (on && !document.pointerLockElement) showHint?.(isTouch ? 'Tap two points to measure' : 'Click two points to measure<small>M or Done to put the tape away</small>', 3500);
   };
   measureBtn.onclick = () => setMeasure(!tape.active);
+  psMeasure.onclick = () => { setMeasure(!tape.active); if (tape.active && mobile.matches) setPanel(false); };
   $('measure-done').onclick = () => setMeasure(false);
   $('measure-clear').onclick = () => tape.clear();
   addEventListener('keydown', e => {
@@ -684,7 +686,7 @@ async function main() {
   };
 
   /**
-   * Round 14: where Drone -> Walk may land you: inside our lot (not the canal path or the neighbours), on a real floor
+   * Round 14: where Fly -> Walk may land you: inside our lot (not the canal path or the neighbours), on a real floor
    * (paving, deck, lawn, steps, bark...: the top of the climbing frame, a table or a roof doesn't count), and walkable
    * (not water). Returns the floor height, or null to fall back to where you last stood.
    */
@@ -712,35 +714,25 @@ async function main() {
     return hit ? { y: hit.point.y, floor: FLOORS.test((hit.object as any).material?.name ?? '') } : null;
   };
   let restoringMode = false;
-  const setMode = (m: Mode) => {
-    const from = walker.mode;
-    if (m === from && m !== 'walk') return;
+  /** Walk or fly ('drone', from old scripts and saved settings, flies). */
+  const setMode = (to: Mode | 'drone') => {
+    const m = toMode(to) ?? 'walk', from = walker.mode;
+    if (m === 'fly' && from === 'fly') return;
     const fwd = new Vector3(); camera.getWorldDirection(fwd);
     const yaw = Math.atan2(-fwd.x, -fwd.z), pitch = Math.asin(Math.max(-1, Math.min(1, fwd.y)));
     walker.mode = m;
-    world.classList.toggle('drone', m === 'drone');
     world.classList.toggle('flying', m === 'fly');
-    for (const k of ['walk', 'fly', 'drone']) $(`mode-${k}`).setAttribute('aria-pressed', String(m === k));
-    orbit.enabled = m === 'drone';
-    if (m === 'drone') {
-      if (document.pointerLockElement) document.exitPointerLock();
-      if (camera.position.y < 8) {
-        // lift off from where you're standing
-        const tgt = camera.position.clone().addScaledVector(fwd, 10); tgt.y = 2.4;
-        camera.position.add(new Vector3(-fwd.x * 14, 14, -fwd.z * 14));
-        orbit.target.copy(tgt);
-      } else orbit.target.copy(camera.position.clone().addScaledVector(fwd, 25));
-      orbit.update();
-    } else if (m === 'fly') {
-      // Round 15: fly from exactly where you are and where you're looking (from the drone too)
+    for (const k of ['walk', 'fly']) for (const id of [`mode-${k}`, `ps-${k}`]) $(id).setAttribute('aria-pressed', String(m === k));
+    if (m === 'fly') {
+      // Round 15: fly from exactly where you are and where you're looking
       walker.startFly(camera.position, yaw, Math.max(-1.4, Math.min(1.4, pitch)));
-      if (!isTouch) showHint('Flying<small>Left mouse: forward · Right mouse or Space: up · C: down · E: open gates, lids and doors</small>', 4000);
+      if (restoringMode) { /* back in fly from last time: no hint over the loading cover */ }
+      else if (!isTouch) showHint('Flying<small>Left mouse: forward · Right mouse or Space: up · C: down · E: open gates, lids and doors</small>', 4000);
       else showHint('Flying<small>The arrows on the right go up and down; the button that appears opens things</small>', 4000);
-    } else {
-      // land where the drone was looking (or straight below you when flying), if you could stand there; otherwise
-      // back where you last stood, or the start spot (Round 13: from the lounge or spa views the drone looks over
-      // the canal, and you fell into the void)
-      const t = from === 'fly' ? camera.position : orbit.target, g = landingAt(t.x, t.z);
+    } else if (from === 'fly') {
+      // land straight below you, if you could stand there; otherwise back where you last stood, or the start spot
+      // (Round 13: over the canal there's nothing to stand on, and you fell into the void)
+      const t = camera.position, g = landingAt(t.x, t.z);
       const spot = g !== null ? new Vector3(t.x, g, t.z)
         : walker.walkableAt(walker.lastStood.x, walker.lastStood.z, walker.lastStood.y + 1.5) !== null ? walker.lastStood.clone() : new Vector3(1.3, 2.37, 2.6);
       walker.place(spot.x, spot.y + 0.4, spot.z, yaw, 0);
@@ -770,9 +762,8 @@ async function main() {
   };
   for (const ev of ['pointerdown', 'pointermove', 'pointerup'] as const) addEventListener(ev, flyMouse);
   canvas.addEventListener('contextmenu', e => { if (walker.mode === 'fly') e.preventDefault(); });
-  $('mode-walk').onclick = () => setMode('walk');
-  $('mode-fly').onclick = () => setMode('fly');
-  $('mode-drone').onclick = () => setMode('drone');
+  $('mode-walk').onclick = $('ps-walk').onclick = () => setMode('walk');
+  $('mode-fly').onclick = $('ps-fly').onclick = () => setMode('fly');
 
   const fovFor = (lens: number) => {
     const hfov = 2 * Math.atan(18 / lens);
@@ -789,12 +780,10 @@ async function main() {
     const aerial = p.y > 8 || /aerial|overview|canal_view/.test(name);
     if (matchLens) targetFov = fovFor(c.lens);
     const yaw = Math.atan2(-d.x, -d.z), pitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
-    // Round 17b: 'go to' never changes the mode. Fly and drone go anywhere, at the render camera's own height. Walking
-    // can't stand at an aerial or out-on-the-canal view: stand at the nearest safe spot towards it instead, and say
-    // that fly or drone gets the full view.
-    if (walker.mode === 'drone') {
-      camera.position.copy(p); orbit.target.copy(t); orbit.update();
-    } else if (walker.mode === 'fly') {
+    // Round 17b: 'go to' never changes the mode. Fly goes anywhere, to the render camera's own place and direction.
+    // Walking can't stand at an aerial or out-on-the-canal view: stand at the nearest safe spot towards it instead,
+    // and say that fly gets the full view.
+    if (walker.mode === 'fly') {
       if (instant) walker.startFly(p, yaw, pitch); else walker.flyTo(p, yaw, pitch, 1.4);
     } else if (aerial) {
       // the first floor you could stand on along the line from where the camera looks back towards the camera
@@ -806,7 +795,7 @@ async function main() {
       spot ??= walker.lastStood.clone();
       const look = t.clone().sub(spot), lookYaw = Math.hypot(look.x, look.z) > 1 ? Math.atan2(-look.x, -look.z) : yaw;
       if (instant) walker.place(spot.x, spot.y + 0.4, spot.z, lookYaw, 0); else walker.glideTo(spot, lookYaw, 0, 1.4);
-      showHint(`${VIEW_NAMES[name] ?? 'That view'} is from the air<small>Switch to Fly or Drone for the full view</small>`, 3500);
+      showHint(`${VIEW_NAMES[name] ?? 'That view'} is from the air<small>Switch to Fly for the full view</small>`, 3500);
     } else {
       // stand where the render camera is (its height says if it's seated or standing)
       // Round 20: unless a standing camera is over something that isn't a floor (view 10 is above the boundary wall and
@@ -831,7 +820,7 @@ async function main() {
     if (to === layoutPick || profile) return;
     layoutPick = to;
     remember({ layout: to });
-    const h: Handoff = { layout: to, at: Date.now(), mode: walker.mode, feet: walker.feet.toArray(), cam: camera.position.toArray(), target: orbit.target.toArray(),
+    const h: Handoff = { layout: to, at: Date.now(), mode: walker.mode, feet: walker.feet.toArray(), cam: camera.position.toArray(),
       yaw: walker.yaw, pitch: walker.pitch, minutes: S.minutes, date: S.date, scenario: S.scenario, people: model.people, options: currentOptions() };
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
@@ -858,21 +847,14 @@ async function main() {
   panelToggle.onclick = () => setPanel(mobile.matches ? !app.classList.contains('drawer-open') : app.classList.contains('panel-closed'));
   setPanel(!mobile.matches && store.get('pool-panel') !== '0' && params.get('panel') !== '0');
   if (mobile.matches) app.classList.remove('panel-closed');
-  // a profile (one fixed design): no choices in the panel (style.css hides them), just the render viewpoints
+  // a profile (one fixed design): no choices in the panel (style.css hides them), the settings right there instead
   if (profile) {
     $('panel-title').textContent = 'Design for construction';
-    $('panel').setAttribute('aria-label', 'Walkthrough settings and views');
-    $('panel-toggle').querySelector('.open-label')!.textContent = 'Views';
+    $('panel').setAttribute('aria-label', 'Walkthrough settings');
+    $('panel-toggle').querySelector('.open-label')!.textContent = 'Settings';
     const back = $<HTMLAnchorElement>('back-btn');
     back.href = `/${profile.name}/`; back.title = 'Back to the design page'; back.setAttribute('aria-label', 'Back to the design page');
-    const list = $('views-list');
-    for (const [id, name] of VIEWS) {
-      const b = document.createElement('button'); b.type = 'button'; b.dataset.view = id;
-      b.innerHTML = `<b>${id.slice(0, 2)}</b>${name}`;
-      b.onclick = () => { goToCam(id); if (mobile.matches) setPanel(false); };
-      list.appendChild(b);
-    }
-    $('profile-views').hidden = false;
+    $('profile-settings').hidden = false;
   }
   // drag the drawer's grab bar
   let dragY: number | null = null;
@@ -886,15 +868,15 @@ async function main() {
   let downAt = { x: 0, y: 0 };
   canvas.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY }; });
   canvas.addEventListener('click', e => {
-    // a click that wasn't a drag measures while the tape is out (in the drone, orbiting is a drag)
+    // a click that wasn't a drag measures while the tape is out (a drag looks around)
     if (measuring() && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) < 6) { measureAt(e.clientX, e.clientY); return; }
-    if (walker.mode !== 'drone' && !measuring() && !isTouch && document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
+    if (!measuring() && !isTouch && document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
   });
   document.addEventListener('pointerlockchange', () => world.classList.toggle('locked', document.pointerLockElement === canvas));
   // drag to look (touch, or mouse without pointer lock)
   let look: { id: number; x: number; y: number } | null = null;
   canvas.addEventListener('pointerdown', e => {
-    if (walker.mode === 'drone' || document.pointerLockElement === canvas) return;
+    if (document.pointerLockElement === canvas) return;
     if (e.pointerType === 'mouse' && !isTouch) return;
     look = { id: e.pointerId, x: e.clientX, y: e.clientY };
   });
@@ -1035,7 +1017,7 @@ async function main() {
     // pool: then you stand at the nearest place you can
     const name = title(LAYOUT_CHOICES, LAYOUT);
     swapHint = name;
-    if (handoff.mode === 'walk') {
+    if (toMode(handoff.mode) === 'walk') {
       const [x, y, z] = handoff.feet, spot = walker.nearestStand(x, z, y);
       if (spot) {
         walker.place(spot.x, spot.y, spot.z, handoff.yaw, handoff.pitch);
@@ -1043,15 +1025,16 @@ async function main() {
         if (d > 0.05) swapHint = `${name}<small>Moved you ${d < 1 ? `${Math.round(d * 100)} cm` : `${d.toFixed(1)} m`}: where you stood isn't a floor in this layout</small>`;
       } else swapHint = `${name}<small>Back at the start: there's nowhere to stand near where you were</small>`;
     } else {
-      restoringMode = true; setMode(handoff.mode); restoringMode = false;
-      const cam = new Vector3().fromArray(handoff.cam);
-      if (handoff.mode === 'fly') walker.startFly(cam, handoff.yaw, handoff.pitch);   // pushed out of anything it's now inside
-      else { camera.position.copy(cam); orbit.target.fromArray(handoff.target); orbit.update(); }
+      // flying (or an older page's drone): fly on from the same place, pushed out of anything it's now inside
+      restoringMode = true; setMode('fly'); restoringMode = false;
+      walker.startFly(new Vector3().fromArray(handoff.cam), handoff.yaw, handoff.pitch);
     }
     if (dropped.length) swapHint += `<small>Not built in this layout yet: ${dropped.join(', ')}</small>`;
   } else {
-    // Round 17: back in the mode you were in last time (walk, fly or drone), before any deep-linked view
-    if (settings.mode === 'fly' || settings.mode === 'drone') { restoringMode = true; setMode(settings.mode); restoringMode = false; }
+    // Round 17: back in the mode you were in last time (walk or fly; an old saved drone flies), before any deep-linked
+    // view. A profile (Bob's view) starts flying from the walk's start spot, unless its viewer chose to walk.
+    const startMode = toMode(settings.mode) ?? (profile ? 'fly' : 'walk');
+    if (startMode === 'fly') { restoringMode = true; setMode('fly'); restoringMode = false; }
     if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   }
   // Round 26: Layout B's own default pillar fence is "Deck edge, then past the pillar" (Mike, 18 Oct); SK02's stays as
@@ -1374,7 +1357,8 @@ async function main() {
 
   // ---------- loop ----------
   let last = performance.now(), frames = 0, fpsT = last, firstFrame = true;
-  const shadowFocus = new Vector3(), lastFocus = new Vector3(1e9, 0, 0);
+  const shadowFocus = new Vector3(), lastFocus = new Vector3(1e9, 0, 0), lookDir = new Vector3();
+  let lastHalf = 0;
   renderer.setAnimationLoop(() => {
     if (world.clientWidth < 1 || world.clientHeight < 1) return;   // nothing to draw into while hidden
     const now = performance.now();
@@ -1387,11 +1371,10 @@ async function main() {
       setTime(S.minutes + rate * dt);
     }
     walker.update(dt);
-    if (walker.mode === 'drone') orbit.update();
     if (tape.count || tape.hasPending) tape.update(world.clientWidth, world.clientHeight);
     if (dims.enabled) dims.update(world.clientWidth, world.clientHeight);
     // Round 15: under the pool or spa surface (walking and ducking, or flying in)
-    const underwater = walker.mode !== 'drone' && camera.position.y < walker.waterTop - 0.02;
+    const underwater = camera.position.y < walker.waterTop - 0.02;
     if (post) {
       post.underU.value = underwater ? 1 : 0;
       if (underwater) {
@@ -1408,9 +1391,12 @@ async function main() {
     model.grass.update(camera, QUALITY[S.quality].grass > 0);
     // sun shadows: re-render only when the sun moves or the viewer leaves the snapped box
     const cfg = QUALITY[S.quality];
-    const half = walker.mode === 'drone' ? Math.max(cfg.shadowHalf, 60) : cfg.shadowHalf;
-    if (walker.mode === 'drone') shadowFocus.copy(orbit.target); else camera.getWorldPosition(shadowFocus).add(new Vector3(0, 0, 0));
-    if (shadowFocus.distanceTo(lastFocus) > half * 0.25) { lastFocus.copy(shadowFocus); shadowDirty = true; }
+    // flying high (an aerial view): a wider box, centred on the ground where you're looking, not under you
+    const aloft = walker.mode === 'fly' && camera.position.y > 8;
+    const half = aloft ? Math.max(cfg.shadowHalf, 60) : cfg.shadowHalf;
+    camera.getWorldPosition(shadowFocus);
+    if (aloft) { camera.getWorldDirection(lookDir); shadowFocus.addScaledVector(lookDir, lookDir.y < -0.05 ? Math.min(60, (shadowFocus.y - 2.4) / -lookDir.y) : 25); }
+    if (half !== lastHalf || shadowFocus.distanceTo(lastFocus) > half * 0.25) { lastFocus.copy(shadowFocus); lastHalf = half; shadowDirty = true; }
     // A one-off needsUpdate sometimes left a stale map behind (the mirrors render the scene too), so after a
     // change keep refreshing for a few frames. During the timelapse the sun moves every frame: refresh every
     // third frame instead, which is plenty for a sun that moves a fraction of a degree per frame.

@@ -26,7 +26,7 @@ const opt = (k, v) => p.evaluate(([k, v]) => __viewer.setOption(k, v), [k, v]);
 
 // --- the mode is kept and remembered
 await p.evaluate(() => __viewer.setPanel(true));
-for (const m of ['fly', 'drone']) {
+for (const m of ['fly']) {
   await p.locator(`#mode-${m}`).click(); await wait(300);
   await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Corner post$/ }) }).click(); await wait(2000);
   const after1 = await mode();
@@ -40,9 +40,9 @@ for (const m of ['fly', 'drone']) {
   check(`${m}: cards, 'go to' and the scenario keep ${m} mode`, [after1, after2, after3, after4].every(x => x === m), [after1, after2, after3, after4].join(','));
   if (m === 'fly') check('fly: "go to" 06 flies to the seated camera height, not walking height', Math.abs(y - 2.85) < 0.2, `y ${y.toFixed(2)}`);
 }
-// --- Round 17b: a card only switches the option: same place, same mode, in walk, fly and drone
+// --- Round 17b: a card only switches the option: same place, same mode, in walk and fly
 const where = () => p.evaluate(() => ({ m: __viewer.walker.mode, c: __viewer.camera.position.toArray().map(v => +v.toFixed(3)) }));
-for (const m of ['walk', 'fly', 'drone']) {
+for (const m of ['walk', 'fly']) {
   await p.locator(`#mode-${m}`).click(); await wait(800);
   const a = await where();
   await p.locator('#tab-alfresco').click(); await p.locator('#cards-post .card').filter({ has: p.locator('b', { hasText: /^Two posts/ }) }).click(); await wait(1200);
@@ -62,7 +62,7 @@ await p.evaluate(() => __viewer.goToCam('17_pool_overview')); await wait(2000);
 const aw = await p.evaluate(() => ({ m: __viewer.walker.mode, feet: __viewer.walker.feet.y }));
 const hint = (await p.locator('#hint').innerText().catch(() => '')).toLowerCase();
 check("walking: 'go to' an aerial view keeps you walking, standing safely", aw.m === 'walk' && aw.feet >= 1.0, `${aw.m} feet ${aw.feet.toFixed(2)}`);
-check('  with a hint that fly or drone gets the full view', hint.includes('fly or drone'), hint.slice(0, 60));
+check('  with a hint that fly gets the full view (no drone)', hint.includes('switch to fly') && !hint.includes('drone'), hint.slice(0, 60));
 await p.locator('#mode-fly').click(); await wait(300);
 await p.evaluate(() => __viewer.goToCam('17_pool_overview')); await wait(2200);
 const af = await p.evaluate(() => ({ m: __viewer.walker.mode, y: __viewer.camera.position.y }));

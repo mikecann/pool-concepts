@@ -107,6 +107,28 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   check('  console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
   await ctx.close();
 }
+// 5. drone mode is gone: a saved {"mode":"drone"} (the normal walkthrough's or Bob's), or a layout swap handed over
+//    from an older page in the drone, opens flying, with only Walk and Fly to choose from and no console errors
+{
+  const seeded = async (seed, q) => {
+    const ctx = await b.newContext({ viewport: { width: 1200, height: 700 } });
+    await ctx.addInitScript(s => { try { if (location.pathname.startsWith('/model/') && !sessionStorage.seeded) { sessionStorage.seeded = 1; for (const [k, v] of Object.entries(s.local ?? {})) localStorage.setItem(k, v); for (const [k, v] of Object.entries(s.session ?? {})) sessionStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify({ ...v, at: Date.now() })); } } catch {} }, seed);
+    const { p, errs } = await open(ctx, q);
+    const s = await p.evaluate(() => ({ mode: __viewer.walker.mode, drone: !!document.getElementById('mode-drone'), fly: document.getElementById('mode-fly').getAttribute('aria-pressed'), y: __viewer.camera.position.y }));
+    await ctx.close();
+    return { s, errs };
+  };
+  let { s, errs } = await seeded({ local: { 'pool-settings': JSON.stringify({ mode: 'drone' }) } }, '');
+  check('saved {"mode":"drone"} opens flying', s.mode === 'fly' && s.fly === 'true' && !s.drone && s.y > 1, JSON.stringify(s));
+  check('  console clean', errs.length === 0, errs[0] ?? '');
+  ({ s, errs } = await seeded({ local: { 'pool-settings-profile': JSON.stringify({ mode: 'drone' }) } }, '&profile=bob'));
+  check('Bob\'s view with a saved {"mode":"drone"} opens flying', s.mode === 'fly' && !s.drone, JSON.stringify(s));
+  check('  console clean', errs.length === 0, errs[0] ?? '');
+  const handoff = { layout: 'a', mode: 'drone', feet: [1.3, 2.37, 2.6], cam: [2, 25, 30], target: [1, 2.4, 2], yaw: 0, pitch: -0.5, minutes: 780, date: '2027-01-16', scenario: 'proposed', people: true, options: {} };
+  ({ s, errs } = await seeded({ session: { 'pool-layout-swap': handoff } }, '&layout=a'));
+  check('a layout swap handed over in the drone opens flying there', s.mode === 'fly' && Math.abs(s.y - 25) < 0.5, JSON.stringify(s));
+  check('  console clean', errs.length === 0, errs[0] ?? '');
+}
 console.log(fail ? `FAIL (${fail})` : 'PASS');
 await b.close();
 process.exit(fail ? 1 : 0);

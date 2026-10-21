@@ -1,5 +1,5 @@
 // Round 21 tests: the dimensions overlay (off by default, Settings switch and L, ~56 by default, option-specific ones
-// come and go with their options, the chips, Today, walk/fly/drone and phone), the boundary fence options, Layout B's
+// come and go with their options, the chips, Today, walk/fly and phone), the boundary fence options, Layout B's
 // warnings, and crawling through the pump room round the spa in both layouts. Headless on the real GPU.
 //   node scripts/r21-test.mjs [--out review/round21/test]
 import { chromium } from 'playwright';
@@ -79,7 +79,7 @@ await p.evaluate(() => __viewer.setScenario('existing')); await p.waitForTimeout
 const today = await p.evaluate(() => __viewer.dims.current().map(d => d.set));
 check('Today shows only its own dims', today.length > 0 && today.every(s => s !== 'proposed'), `${today.length}`);
 await p.evaluate(() => __viewer.setScenario('proposed'));
-// views: walk, fly, drone (from above the pool and lounge)
+// views: walk, fly, and flying high (from above the pool and lounge)
 await p.evaluate(() => __viewer.place(1.3, 3.0, 2.6, 156, -12)); await p.waitForTimeout(1200);
 await p.screenshot({ path: `${OUT}/dims_walk.png` });
 st = await p.evaluate(() => __viewer.dims.stats());
@@ -87,11 +87,11 @@ check('walking: labels on screen', st.labels > 4, `${st.labels}`);
 await p.evaluate(() => { __viewer.setMode('fly'); __viewer.walker.startFly(new __viewer.THREE.Vector3(-4.2, 6.5, -2.5), Math.PI * 0.95, -0.7); }); await p.waitForTimeout(1200);
 await p.screenshot({ path: `${OUT}/dims_fly.png` });
 check('flying: labels on screen', (await p.evaluate(() => __viewer.dims.stats())).labels > 4);
-await p.evaluate(() => __viewer.setMode('drone')); await p.waitForTimeout(300);
+await p.evaluate(() => __viewer.setMode('fly')); await p.waitForTimeout(300);
 await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await p.waitForTimeout(1500);
-await p.screenshot({ path: `${OUT}/dims_drone_pool_lounge.png` });
+await p.screenshot({ path: `${OUT}/dims_fly_high_pool_lounge.png` });
 const dr = await p.evaluate(() => __viewer.dims.stats());
-check('drone, above the pool and lounge: labels on screen', dr.labels > 8, `${dr.labels} of ${dr.dims}`);
+check('flying high, above the pool and lounge: labels on screen', dr.labels > 8, `${dr.labels} of ${dr.dims}`);
 // labels don't overlap
 const overlaps = await p.evaluate(() => { const r = [...document.querySelectorAll('.dim-label')].filter(e => e.style.display !== 'none').map(e => e.getBoundingClientRect()); let n = 0; for (let i = 0; i < r.length; i++) for (let j = i + 1; j < r.length; j++) if (r[i].left < r[j].right - 2 && r[i].right > r[j].left + 2 && r[i].top < r[j].bottom - 2 && r[i].bottom > r[j].top + 2) n++; return n; });
 check('  labels don\'t pile up', overlaps === 0, `${overlaps} overlapping`);

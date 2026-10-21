@@ -33,7 +33,7 @@ const parts = (p, key) => p.evaluate(k => {
   });
   return [v, n];
 }, key);
-const shot = async (p, name, cam) => { await p.evaluate(c => { __viewer.setMode('drone'); __viewer.goToCam(c, true); }, cam); await p.waitForTimeout(1600); await p.locator('#canvas').screenshot({ path: `${OUT}/${name}.png` }); };
+const shot = async (p, name, cam) => { await p.evaluate(c => { __viewer.setMode('fly'); __viewer.goToCam(c, true); }, cam); await p.waitForTimeout(1600); await p.locator('#canvas').screenshot({ path: `${OUT}/${name}.png` }); };
 const CORNERS = ['corner_timber', 'corner_aggregate'];
 const pos = p => p.evaluate(() => __viewer.camera.position.toArray());
 
@@ -86,7 +86,7 @@ for (const L of ['a', 'b']) {
   check(`${L}, flying: switching the corner, the camera stays put`, Math.hypot(f1[0] - f0[0], f1[2] - f0[2]) < 0.01 && Math.abs(f1[1] - f0[1]) < 0.15, `moved ${Math.hypot(f1[0] - f0[0], f1[2] - f0[2]).toFixed(3)} m`);
   // ---- goToCam('24_lounge_corner'): the camera lands on the render's camera
   const cam = await p.evaluate(async L => (await (await fetch(`../web/cameras${L === 'b' ? '-b' : ''}.json`)).json()).find(c => c.name === '24_lounge_corner'), L);
-  for (const mode of ['drone', 'walk']) {
+  for (const mode of ['fly', 'walk']) {
     await p.evaluate(m => { __viewer.setMode(m); __viewer.goToCam('24_lounge_corner', true); }, mode); await p.waitForTimeout(900);
     const c = await pos(p), dh = Math.hypot(c[0] - cam.pos[0], c[2] - cam.pos[2]), dv = Math.abs(c[1] - cam.pos[1]);
     check(`${L}: goToCam('24_lounge_corner') (${mode})`, !!cam && dh < 0.35 && dv < 0.35, `${dh.toFixed(2)} m off, ${dv.toFixed(2)} m up/down`);

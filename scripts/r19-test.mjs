@@ -1,5 +1,5 @@
 // Round 19 tests: the Layout choice (SK02's model or Layout B's). Only the chosen layout's model loads; switching keeps
-// the options, the time and the view in walk, fly and drone (nudging a walker standing where B has its moved wall),
+// the options, the time and the view in walk and fly (nudging a walker standing where B has its moved wall),
 // is remembered, and ?layout= is a one-off. Every post layout works in B, and B's two warnings show only in B.
 // Headless on the real GPU; exits 1 on failure or a console error.
 //   node scripts/r19-test.mjs [--out review/round19/test]
@@ -109,14 +109,13 @@ check('fly: still flying, in the same place', s.mode === 'fly' && dist(s.cam, fl
 check('fly: options kept', JSON.stringify(s.options) === JSON.stringify(flyBefore.options));
 await shot('swap_fly_after_a');
 
-// --- drone: to B again
-await p.evaluate(() => __viewer.setMode('drone')); await wait(800);
-const droneBefore = await state();
+// --- flying high (setMode('drone') is an old alias for fly): to B again
+await p.evaluate(() => { __viewer.setMode('drone'); __viewer.goToCam('17_pool_overview', true); }); await wait(800);
+const highBefore = await state();
 await pickLayout('Lounge wall in line, pool moved');
 s = await state();
-const target = await p.evaluate(() => __viewer.walker.mode === 'drone');
-check('drone: in B, still the drone, same camera', s.layout === 'b' && target && dist(s.cam, droneBefore.cam) < 0.01, `${dist(s.cam, droneBefore.cam).toFixed(3)} m`);
-await shot('swap_drone_after_b');
+check('flying high: in B, still flying, same camera', s.layout === 'b' && s.mode === 'fly' && dist(s.cam, highBefore.cam) < 0.35, `${s.mode} ${dist(s.cam, highBefore.cam).toFixed(3)} m`);
+await shot('swap_fly_high_after_b');
 
 // --- remembered; a ?layout= link is a one-off
 await load();

@@ -52,7 +52,7 @@ function buildBVH(meshes: Mesh[], limit?: Box3) {
   return new MeshBVH(g);
 }
 
-export type Mode = 'walk' | 'drone' | 'fly';
+export type Mode = 'walk' | 'fly';
 
 export class Walker {
   readonly feet = new Vector3();
@@ -110,7 +110,7 @@ export class Walker {
     addEventListener('keyup', e => this.keys.delete(e.code));
     addEventListener('blur', () => { this.keys.clear(); this.mouseFwd = 0; this.mouseUp = 0; });
     dom.addEventListener('mousemove', e => {
-      if (document.pointerLockElement !== dom || this.mode === 'drone') return;
+      if (document.pointerLockElement !== dom) return;
       this.look(e.movementX * 0.0022, e.movementY * 0.0022);
     });
   }
@@ -204,7 +204,7 @@ export class Walker {
     }
     return null;
   }
-  /** Where the walker last stood on solid ground (for leaving drone mode somewhere sensible). */
+  /** Where the walker last stood on solid ground (for landing from fly mode somewhere sensible). */
   readonly lastStood = new Vector3(1.3, 2.37, 2.6);
 
   /** Put the walker on the floor under (x, z) near height y, facing the given direction. */
@@ -384,7 +384,6 @@ export class Walker {
       this.waterTop = this.poolSurfaceAt(this.fly.x, this.fly.z); this.apply(); return;
     }
     if (this.mode === 'fly') { this.updateFly(Math.min(dt, 0.05)); this.waterTop = this.poolSurfaceAt(this.fly.x, this.fly.z); this.apply(); return; }
-    if (this.mode !== 'walk') return;
     dt = Math.min(dt, 0.05);
     const k = this.keys;
     this.waterTop = this.poolSurfaceAt(this.feet.x, this.feet.z, this.feet.y + 3);
@@ -446,7 +445,6 @@ export class Walker {
 
   apply() {
     if (this.mode === 'fly' && !this.glide) { this.camera.position.copy(this.fly); this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ'); return; }
-    if (this.mode !== 'walk' && !this.glide) return;
     const base = EYE + this.lift;   // crouching blends to the crouch height from wherever the eye is (a seated 'go to' too)
     this.camera.position.set(this.feet.x, this.feet.y + base + (Math.min(base, CROUCH_EYE) - base) * this.crouchK + this.duck, this.feet.z);
     this.camera.rotation.set(this.pitch, this.yaw, 0, 'YXZ');

@@ -33,7 +33,7 @@ export class Mirror {
   /**
    * Objects this mirror can skip, and when. The canal is only seen from the yard over the canal wall, looking
    * south, where it reflects the far bank: the house, pool and garden behind you can't appear in it. So while the
-   * camera is in the yard the canal mirror leaves them out (from the jetty, the path or the drone it doesn't).
+   * camera is in the yard the canal mirror leaves them out (from the jetty, the path or the air it doesn't).
    */
   skip: { objects: Object3D[]; when: (camera: PerspectiveCamera) => boolean } | null = null;
 

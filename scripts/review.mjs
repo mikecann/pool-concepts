@@ -35,7 +35,7 @@ const VIEWS = {
   pooledge: [-2.15, 3.0, 1.2, 178, -10],
   canal: [4.0, 2.0, 16.5, 0, 0],
   house: [-0.6, 3.0, 8.6, 10, 4],
-  drone: null,
+  aerial: null,   // the aerial render camera, flying
 };
 const views = arg('views', 'alfresco,lounge,pooledge').split(',');
 mkdirSync(OUT, { recursive: true });
@@ -60,7 +60,7 @@ for (const v of views) {
     await page.evaluate(([v, pos, minutes, scen, ev]) => {
       const V = window.__viewer;
       V.setScenario(scen);
-      if (pos) V.place(...pos); else V.goToCam('07_aerial_southwest');
+      if (pos) V.place(...pos); else { V.setMode('fly'); V.goToCam('07_aerial_southwest', true); }
       V.setTime(minutes);
       if (ev) (0, eval)(ev);
     }, [v, VIEWS[v] ?? null, minutes, SCEN, EVAL]);

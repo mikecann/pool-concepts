@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
-  <script type="module" crossorigin src="/model/assets/walk-BMrYUFuK.js"></script>
+  <script type="module" crossorigin src="/model/assets/walk-elxK-lj1.js"></script>
   <link rel="modulepreload" crossorigin href="/model/assets/choices-JxNcsR0K.js">
-  <link rel="stylesheet" crossorigin href="/model/assets/walk-CZ08FKHG.css">
+  <link rel="stylesheet" crossorigin href="/model/assets/walk-C64wEHRP.css">
 </head>
 <body>
 <div class="app" id="app">
@@ -29,7 +29,6 @@
         <div class="seg" role="group" aria-label="Camera mode">
           <button id="mode-walk" aria-pressed="true">Walk</button>
           <button id="mode-fly" aria-pressed="false">Fly</button>
-          <button id="mode-drone" aria-pressed="false">Drone</button>
         </div>
         <button class="hud-btn tool" id="measure-btn" aria-pressed="false" title="Tape measure (M)"><span class="long">Measure</span><span class="short">&#8596;</span></button>
         <button class="hud-btn" id="panel-toggle" aria-expanded="true" aria-controls="panel"><span class="open-label">Options</span><span class="close-label">Hide panel</span></button>
@@ -105,9 +104,21 @@
         <h2 class="panel-title" id="panel-title">Design options</h2>
         <button type="button" class="icon-btn" id="settings-btn" aria-haspopup="dialog" aria-controls="settings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1l.4 2.6h4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5L19.4 13ZM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z"/></svg></button>
       </div>
-      <section class="block" id="profile-views" aria-labelledby="views-h" hidden>
-        <h3 class="fl" id="views-h">Views</h3>
-        <div class="viewlist" id="views-list"></div>
+      <section class="block profile-settings" id="profile-settings" aria-label="Settings" hidden>
+        <label class="check ps-dims"><input type="checkbox" id="ps-dims"> Show dimensions <span class="kbd-hint desk-only">(L)</span></label>
+        <div class="field">
+          <span class="fl" id="ps-quality-h">Quality</span>
+          <div class="chips" role="group" aria-labelledby="ps-quality-h" id="ps-quality"></div>
+        </div>
+        <div class="field">
+          <span class="fl" id="ps-mode-h">Walk or fly</span>
+          <div class="chips" role="group" aria-labelledby="ps-mode-h">
+            <button type="button" id="ps-walk" aria-pressed="true">Walk</button>
+            <button type="button" id="ps-fly" aria-pressed="false">Fly</button>
+          </div>
+        </div>
+        <div class="chips"><button type="button" id="ps-measure" aria-pressed="false">Measure<span class="kbd-hint desk-only"> (M)</span></button></div>
+        <p class="ps-help" id="ps-help"><span class="desk-only">Click to look · W A S D to move · Shift run · Fly: left mouse forward, right mouse or Space up, C down · M measure · L dimensions · E opens gates and doors</span><span class="phone-only">The stick to move · drag to look · Fly: the arrows on the right go up and down · tap the button that appears to open gates and doors</span></p>
       </section>
       <div class="cat-tabs" role="tablist" aria-label="Design choices" id="cat-tabs"></div>
       <div class="cat-panel" role="tabpanel" data-cat="layout" id="cat-layout">

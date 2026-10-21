@@ -39,12 +39,12 @@ await p.screenshot({ path: `${OUT}/measure_walk.png` });
 await p.keyboard.press('Escape');
 await wait(200);
 check('Esc clears the measurements', (await p.evaluate(() => __viewer.tape().list())).length === 0 && await p.locator('.measure-label').count() === 0);
-// in the drone
-await p.evaluate(() => __viewer.goToCam('17_pool_overview', true)); await wait(1800);
+// flying, from the aerial view
+await p.evaluate(() => { __viewer.setMode('fly'); __viewer.goToCam('17_pool_overview', true); }); await wait(1800);
 await p.mouse.click(cx - 60, cy + 40); await p.mouse.click(cx + 60, cy + 40); await wait(300);
 m = await p.evaluate(() => __viewer.tape().list());
-check('measuring works in the drone', m.length === 1 && m[0].distance > 0.5, `d=${m[0]?.distance.toFixed(2)}`);
-await p.screenshot({ path: `${OUT}/measure_drone.png` });
+check('measuring works flying high', m.length === 1 && m[0].distance > 0.5, `d=${m[0]?.distance.toFixed(2)}`);
+await p.screenshot({ path: `${OUT}/measure_fly_high.png` });
 await p.locator('#measure-done').click();
 check('Done puts the tape away', !(await p.evaluate(() => __viewer.tape().active)));
 await p.evaluate(() => __viewer.tape().clear());
@@ -103,12 +103,12 @@ const nm = await p.evaluate(() => __viewer.tape().list().length);
 check('with the tape out, clicks measure and don\'t fly', nm === 1 && Math.hypot(b1[0] - b0[0], b1[1] - b0[1], b1[2] - b0[2]) < 0.01, `measurements ${nm}`);
 await p.evaluate(() => { __viewer.tape().clear(); __viewer.setMeasure(false); });
 
-// mode switches, all six
-for (const [a, c] of [['fly', 'drone'], ['drone', 'fly'], ['fly', 'walk'], ['walk', 'drone'], ['drone', 'walk'], ['walk', 'fly']]) {
+// mode switches (setMode('drone') is an old alias for fly)
+for (const [a, c] of [['fly', 'walk'], ['walk', 'fly'], ['fly', 'fly'], ['walk', 'drone'], ['drone', 'walk']]) {
   await p.evaluate(m => __viewer.setMode(m), a); await wait(300);
   await p.evaluate(m => __viewer.setMode(m), c); await wait(500);
   const s = await p.evaluate(() => ({ mode: __viewer.walker.mode, y: __viewer.camera.position.y, feet: __viewer.walker.feet.y }));
-  check(`${a} -> ${c}`, s.mode === c && s.y > 1 && (c !== 'walk' || s.feet >= 1.0), `cam y ${s.y.toFixed(2)}${c === 'walk' ? ` feet ${s.feet.toFixed(2)}` : ''}`);
+  check(`${a} -> ${c}`, s.mode === (c === 'drone' ? 'fly' : c) && s.y > 1 && (c !== 'walk' || s.feet >= 1.0), `cam y ${s.y.toFixed(2)}${c === 'walk' ? ` feet ${s.feet.toFixed(2)}` : ''}`);
 }
 
 // --- the pool: walk in off the coping at the deep end, wade, duck under, climb out

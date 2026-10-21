@@ -1,6 +1,6 @@
 // Bob's page (/bob/) and the walkthrough's locked profile mode (/model/walk/?profile=bob). The profile wins over the
-// visitor's saved design and over URL options; no option UI shows, just the Views list; the visitor's own
-// 'pool-settings' is never written (the profile's per-viewer preferences go to 'pool-settings-profile'), and the
+// visitor's saved design and over URL options; it opens flying; no option UI shows, just the settings in the side
+// panel (Show dimensions, Quality, Walk/Fly, Measure, a help line); the visitor's own 'pool-settings' is never written (the profile's per-viewer preferences go to 'pool-settings-profile'), and the
 // normal walkthrough still opens with their own design afterwards. Then the page: the spec table from profile.json +
 // choices.json, the "to come" states, the questions' ticks (counted, remembered), print (no jump bar, empty boxes).
 // Screenshots and a PDF in review/bob/. Headless on the real GPU; needs `npm run serve` (public/ on :4173).
@@ -10,7 +10,6 @@ import { mkdirSync, readFileSync } from 'node:fs';
 const OUT = process.argv.includes('--out') ? process.argv[process.argv.indexOf('--out') + 1] : 'review/bob';
 const SITE = 'http://localhost:4173';
 mkdirSync(OUT, { recursive: true });
-const VIEW_COUNT = readFileSync('src/views.ts', 'utf8').split('\n').filter(l => /^\s*\["\d\d_/.test(l)).length;
 const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let fail = 0;
 const check = (name, ok, info = '') => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(62)} ${info}`); if (!ok) fail++; };
@@ -45,7 +44,12 @@ check('lighting is the profile\'s', got.lighting === profile.lights.scheme, got.
 check('__viewer.profile is the loaded profile', got.profile?.name === 'bob' && got.profile.layout === profile.layout);
 check('the visitor\'s pool-settings is untouched after load', (await own(p)) === OWN);
 
-// ---- no option UI, just the views
+// ---- it opens flying, at the walk's start spot (eye height on the alfresco)
+const start = await p.evaluate(() => ({ mode: __viewer.walker.mode, cam: __viewer.camera.position.toArray(), fly: document.getElementById('mode-fly').getAttribute('aria-pressed') }));
+check('opens in fly', start.mode === 'fly' && start.fly === 'true', JSON.stringify(start));
+check('  from the walk\'s start spot, at eye height', Math.hypot(start.cam[0] - 1.3, start.cam[2] - 2.6) < 0.3 && start.cam[1] > 3.3 && start.cam[1] < 4.6, start.cam.map(v => v.toFixed(2)).join(','));
+
+// ---- no option UI, just the settings
 await p.evaluate(() => __viewer.setPanel(true)); await p.waitForTimeout(300);
 check('no visible cards in the panel', (await p.locator('#panel .card:visible').count()) === 0, String(await p.locator('#panel .card:visible').count()));
 check('category tabs hidden', !(await p.locator('#cat-tabs').isVisible()));
@@ -53,15 +57,39 @@ check('every category panel hidden', (await p.locator('.cat-panel:visible').coun
 check('Today/Proposed switch hidden', !(await p.locator('#sc-existing').isVisible()) && !(await p.locator('#sc-proposed').isVisible()));
 check('panel heading reads "Design for construction"', (await p.locator('#panel-title').textContent()) === 'Design for construction');
 check('the back arrow goes to /bob/', (await p.locator('#back-btn').getAttribute('href')) === '/bob/');
-const views = p.locator('#views-list button');
-check(`Views list: one button per view (${VIEW_COUNT})`, (await views.count()) === VIEW_COUNT && VIEW_COUNT > 0, String(await views.count()));
-const before = await p.evaluate(() => __viewer.camera.position.toArray());
-await p.locator('#views-list button[data-view="14_spa_to_canal"]').click();
-await p.waitForTimeout(2200);
-const after = await p.evaluate(() => __viewer.camera.position.toArray());
-const moved = Math.hypot(after[0] - before[0], after[1] - before[1], after[2] - before[2]);
-check('a view button moves the camera', moved > 1, `${moved.toFixed(2)} m`);
+check('no views list', (await p.locator('#views-list, #profile-views, [data-view]').count()) === 0);
+check('no design cards anywhere in the panel', (await p.locator('#panel .card:visible, #panel .cat-tab:visible').count()) === 0);
+check('the panel button reads "Settings"', (await p.locator('#panel-toggle .open-label').textContent()) === 'Settings');
+check('side panel: the settings show', await p.locator('#profile-settings').isVisible());
+check('  Show dimensions', await p.locator('#ps-dims').isVisible() && /Show dimensions/.test(await p.locator('#profile-settings label.check').first().textContent()));
+const qchips = (await p.locator('#ps-quality button').allTextContents()).join();
+check('  Quality: Low, Medium, High, Ultra', /^Low,Medium,High,Ultra/.test(qchips), qchips);
+check('  Walk and Fly', await p.locator('#ps-walk').isVisible() && await p.locator('#ps-fly').isVisible() && (await p.locator('#ps-fly').getAttribute('aria-pressed')) === 'true');
+check('  Measure', await p.locator('#ps-measure').isVisible());
+const help = await p.locator('#ps-help').innerText();
+check('  a help line for the keys', /W A S D/.test(help) && /M measure/.test(help) && /L dimensions/.test(help) && /E opens/.test(help), help);
+// Show dimensions, the L key and the Settings checkbox are one setting
+await p.locator('#ps-dims').check(); await p.waitForTimeout(800);
+let dd = await p.evaluate(() => ({ on: __viewer.dims.enabled, dlg: document.getElementById('opt-dims').checked }));
+check('Show dimensions turns the overlay on (and ticks Settings\' box)', dd.on && dd.dlg, JSON.stringify(dd));
+await p.evaluate(() => document.activeElement?.blur());
+await p.keyboard.press('KeyL'); await p.waitForTimeout(300);
+dd = await p.evaluate(() => ({ on: __viewer.dims.enabled, ps: document.getElementById('ps-dims').checked, dlg: document.getElementById('opt-dims').checked }));
+check('  L turns it off, and both boxes follow', !dd.on && !dd.ps && !dd.dlg, JSON.stringify(dd));
+await p.locator('#ps-measure').click(); await p.waitForTimeout(200);
+check('Measure gets the tape out (the top button too)', await p.evaluate(() => __viewer.tape().active) && (await p.locator('#measure-btn').getAttribute('aria-pressed')) === 'true');
+await p.locator('#ps-measure').click(); await p.waitForTimeout(200);
+check('  and puts it away', !(await p.evaluate(() => __viewer.tape().active)) && (await p.locator('#ps-measure').getAttribute('aria-pressed')) === 'false');
+await p.locator('#ps-quality button', { hasText: /^Low$/ }).click(); await p.waitForTimeout(500);
+check('Quality chips switch the quality (the dialog\'s chips follow)', await p.evaluate(() => __viewer.state().quality) === 'Low' && (await p.locator('#opt-quality button[aria-pressed="true"]').textContent()) === 'Low');
 await p.screenshot({ path: `${OUT}/walk-profile-1440.png` });
+// walking still works: Walk lands you on a floor, and W walks
+await p.locator('#ps-walk').click(); await p.waitForTimeout(600);
+const w0 = await p.evaluate(() => ({ mode: __viewer.walker.mode, feet: __viewer.walker.feet.toArray(), top: document.getElementById('mode-walk').getAttribute('aria-pressed') }));
+await p.focus('#canvas'); await p.keyboard.down('KeyW'); await p.waitForTimeout(800); await p.keyboard.up('KeyW'); await p.waitForTimeout(300);
+const w1 = await p.evaluate(() => __viewer.walker.feet.toArray());
+check('Walk: walking, on a floor, top button follows', w0.mode === 'walk' && w0.feet[1] >= 1 && w0.top === 'true', JSON.stringify(w0));
+check('  W walks', Math.hypot(w1[0] - w0.feet[0], w1[2] - w0.feet[2]) > 0.5, `${Math.hypot(w1[0] - w0.feet[0], w1[2] - w0.feet[2]).toFixed(2)} m`);
 
 // ---- per-viewer preferences: quality and dims are remembered apart; pool-settings never changes
 await p.locator('#settings-btn').click();
@@ -71,12 +99,13 @@ await p.waitForTimeout(300);
 await p.keyboard.press('KeyL');
 await p.waitForTimeout(500);
 const mine = await p.evaluate(() => JSON.parse(localStorage.getItem('pool-settings-profile') ?? '{}'));
-check('quality and dims saved under pool-settings-profile', mine.quality === 'High' && mine.dims === true, JSON.stringify(mine));
+check('quality, dims and mode saved under pool-settings-profile', mine.quality === 'High' && mine.dims === true && mine.mode === 'walk', JSON.stringify(mine));
 check('  and none of the design is', !['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen'].some(k => k in mine));
 check('pool-settings byte-identical after changing quality and dims', (await own(p)) === OWN);
 await p.reload(); await settled(p);
-const re = await p.evaluate(() => ({ q: __viewer.state().quality, dims: __viewer.dims.enabled, layout: __viewer.layout, kitchen: __viewer.model.kitchen }));
-check('after a reload: quality and dims kept', re.q === 'High' && re.dims === true, JSON.stringify(re));
+const re = await p.evaluate(() => ({ q: __viewer.state().quality, dims: __viewer.dims.enabled, psDims: document.getElementById('ps-dims').checked, mode: __viewer.walker.mode, layout: __viewer.layout, kitchen: __viewer.model.kitchen }));
+check('after a reload: quality and dims kept (the side panel\'s box too)', re.q === 'High' && re.dims === true && re.psDims, JSON.stringify(re));
+check('after a reload: walking, as the viewer chose', re.mode === 'walk', re.mode);
 check('after a reload: still the profile\'s design', re.layout === profile.layout && re.kitchen === profile.options.kitchen);
 check('pool-settings byte-identical after the reload', (await own(p)) === OWN);
 await p.close();
@@ -93,7 +122,8 @@ await p.close(); await ctx.close();
 const pctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
 p = await pctx.newPage(); watch(p, 'bob');
 const ready = () => p.waitForFunction(() => document.querySelectorAll('#spec-table tr').length > 0 && document.getElementById('q-count').textContent
-  && !document.querySelector('[data-empty="drawings"]').hidden && !document.querySelector('[data-empty="renders"]').hidden, null, { timeout: 20000 });
+  && (document.querySelector('[data-list="drawings"] .entry') || !document.querySelector('[data-empty="drawings"]').hidden)
+  && (document.querySelector('[data-list="renders"] .entry') || !document.querySelector('[data-empty="renders"]').hidden), null, { timeout: 20000 });
 await p.goto(`${SITE}/bob/`); await ready();
 await p.evaluate(() => document.fonts.ready);
 const choices = JSON.parse(readFileSync('public/bob/choices.json', 'utf8'));
@@ -109,8 +139,12 @@ check('robots: noindex meta', (await p.locator('meta[name=robots]').getAttribute
 check('3D tile opens the profile walkthrough with the chosen layout\'s aerial', (await p.locator('#tile3d').getAttribute('href')) === '/model/walk/?profile=bob'
   && (await p.locator('#tile3d-img').getAttribute('src')).includes(profile.layout === 'b' ? 'layoutb_07_aerial_southwest' : '07_aerial_southwest__proposed'));
 check('revised date shown', await p.locator('#revised-row').isVisible() && (await p.locator('#revised').getAttribute('datetime')) === profile.revised);
-check('"Drawings to come"', await p.locator('[data-empty="drawings"]').isVisible() && (await p.locator('[data-list="drawings"] .entry').count()) === 0);
-check('"Renders to come"', await p.locator('[data-empty="renders"]').isVisible() && (await p.locator('[data-list="renders"] .entry').count()) === 0);
+// drawings and renders: one entry per item in their JSON, or the "to come" state when there's none
+for (const kind of ['drawings', 'renders']) {
+  let n = 0; try { n = JSON.parse(readFileSync(`public/bob/${kind}/${kind}.json`, 'utf8')).length; } catch { /* none yet */ }
+  const shown = await p.locator(`[data-list="${kind}"] .entry`).count(), empty = await p.locator(`[data-empty="${kind}"]`).isVisible();
+  check(n ? `${kind}: ${n} shown` : `"${kind[0].toUpperCase() + kind.slice(1)} to come"`, n ? shown === n && !empty : shown === 0 && empty, `${shown} shown`);
+}
 const count = () => p.locator('#q-count').textContent();
 // however many questions public/bob/questions.json has
 const NQ = JSON.parse((await import('node:fs')).readFileSync('public/bob/questions.json', 'utf8')).reduce((n, s) => n + s.items.length, 0);

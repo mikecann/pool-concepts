@@ -57,7 +57,7 @@ await p.evaluate(() => __viewer.setOption('roller', 'none'));
 await p.evaluate(() => __viewer.setDims(true)); await p.waitForTimeout(1500);
 const dims = await p.evaluate(() => { const c = __viewer.dims.current(); return { n: c.length, inset: c.some(d => /inset/.test(d.id)), width: c.find(d => /lounge.*width|width.*lounge/i.test(d.id) || /lounge.*width/i.test(d.label))?.value_m }; });
 check('B: dims show (default options)', dims.n >= 50 && dims.n <= 75 && !dims.inset, `${dims.n} dims, lounge width ${dims.width}`);
-await p.evaluate(() => { __viewer.setMode('drone'); __viewer.goToCam('17_pool_overview', true); }); await p.waitForTimeout(2000);
+await p.evaluate(() => { __viewer.setMode('fly'); __viewer.goToCam('17_pool_overview', true); }); await p.waitForTimeout(2000);
 await p.addStyleTag({ content: '.hint{display:none!important}' });
 await p.locator('#canvas').screenshot({ path: `${OUT}/b_dims_above.png` });
 await p.evaluate(() => { __viewer.setDims(false); __viewer.setMode('walk'); });

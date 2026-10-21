@@ -34,7 +34,7 @@ const parts = (p, key) => p.evaluate(k => {
   });
   return r;
 }, key);
-const shot = async (p, name, cam) => { await p.evaluate(c => { __viewer.setMode('drone'); __viewer.goToCam(c, true); }, cam); await p.waitForTimeout(1600); await p.locator('#canvas').screenshot({ path: `${OUT}/${name}.png` }); };
+const shot = async (p, name, cam) => { await p.evaluate(c => { __viewer.setMode('fly'); __viewer.goToCam(c, true); }, cam); await p.waitForTimeout(1600); await p.locator('#canvas').screenshot({ path: `${OUT}/${name}.png` }); };
 const WALLCAPS = ['wallcap_aggregate', 'wallcap_limestone', 'wallcap_none'];
 
 for (const L of ['a', 'b']) {

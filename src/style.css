@@ -97,7 +97,6 @@ button, select, input { font: inherit; color: inherit; }
 .joystick .knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px; border-radius: 50%;
   background: rgba(244,246,245,.85); box-shadow: 0 2px 8px rgba(0,0,0,.35); }
 .touch .joystick { display: block; }
-.touch .world.drone .joystick { display: none; }
 
 .loading { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: #0d1214 center / cover no-repeat;
   transition: opacity .6s ease; }
@@ -233,10 +232,6 @@ ul.assume li::marker { color: var(--accent); }
 .card b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; font-size: 15px; line-height: 1.15; }
 .card[aria-pressed="true"] b { color: var(--accent); }
 .card span { font-size: 12.5px; line-height: 1.35; color: var(--muted); }
-.viewlist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.viewlist button { text-align: left; border: 1px solid var(--rule); background: var(--sheet); padding: 6px 8px; cursor: pointer; font-size: 13px; line-height: 1.25; min-height: 36px; }
-.viewlist button b { font-family: var(--font-mono); font-weight: 500; margin-right: 5px; color: var(--muted); }
-.viewlist button:hover { border-color: var(--accent); }
 
 /* ---------- gates, background status ---------- */
 .gate-tip { position: absolute; left: 50%; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 92px); transform: translateX(-50%); z-index: 6;
@@ -395,9 +390,12 @@ ul.assume li::marker { color: var(--accent); }
 .adj-foot { display: flex; gap: 8px; justify-content: space-between; }
 .adj-foot button { border: 1px solid var(--rule); background: transparent; padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; min-height: 32px; }
 
-/* ---------- ?profile= (main.ts): one fixed design, so no Today/Proposed, no choices, just the views ---------- */
+/* ---------- ?profile= (main.ts): one fixed design, so no Today/Proposed, no choices, just the settings ---------- */
 .profile #scenario-seg, .profile .cat-tabs, .profile .cat-panel, .profile .panel-foot { display: none !important; }
-.profile .viewlist { grid-template-columns: minmax(0, 1fr); }
+.profile-settings { gap: 14px; }
+.ps-dims { font-size: 15px; font-weight: 500; }
+.ps-dims input { width: 20px; height: 20px; }
+.ps-help { font-size: 13px; line-height: 1.45; color: var(--muted); }
 
 /* Copy design for Bob (settings): a quiet confirmation, or the JSON to copy by hand if the clipboard is refused */
 .copy-design { display: grid; gap: 6px; }
