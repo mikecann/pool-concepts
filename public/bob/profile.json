@@ -1,9 +1,25 @@
 {
   "layout": "b",
   "scenario": "proposed",
-  "options": { "roller": "none", "kitchen": "kitchen_none", "post": "post_as_drawn", "pump": "pump_doors", "play": "play_as_is",
-               "spaCover": "spa_cover_none", "pier": "pier_straight_edge", "nfence": "nfence_as_drawn", "passage": "passage_pavers",
-               "bfence": "bfence_perforated", "bplant": "bplant_bed", "wallcap": "wallcap_aggregate", "deck": "deck_wide", "corner": "corner_timber" },
-  "lights": { "scheme": "lights_specced", "adjust": null },
-  "revised": "2026-10-21"
+  "revised": "2026-10-21",
+  "options": {
+    "roller": "roller_pit",
+    "kitchen": "kitchen_none",
+    "post": "post_corner_steps",
+    "pump": "pump_doors",
+    "play": "play_moved",
+    "spaCover": "spa_cover_rolled",
+    "nfence": "nfence_moved",
+    "passage": "passage_pavers",
+    "bfence": "bfence_tubular",
+    "bplant": "bplant_pots",
+    "wallcap": "wallcap_aggregate",
+    "deck": "deck_wide",
+    "corner": "corner_aggregate",
+    "pier": "pier_straight_edge"
+  },
+  "lights": {
+    "scheme": "lights_resort",
+    "adjust": null
+  }
 }
