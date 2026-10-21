@@ -86,9 +86,8 @@
 <path d="M144,93.4 L145.2,93.4 L145.2,100.6 L144,100.6 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M138.4,90 L149.6,90 L149.6,91.6 L138.4,91.6 Z" fill="#f3f3f3" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <polyline points="138,90.8 134.4,81.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
-<polyline points="43.701,84.6 43.701,60.6 110.401,60.6 110.401,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
-<polyline points="77.051,84.6 77.051,60.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
-<polyline points="110.401,84.6 110.401,60.6 112,60.6 112,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="43.701,84.6 43.701,60.6 111.999,60.6 111.999,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
+<polyline points="77.85,84.6 77.85,60.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
 <polyline points="112,84.6 112,60.6 132.349,60.6 132.349,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
 <polyline points="132.349,86.4 132.349,60.6 136.872,60.6 136.872,86.4" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
 <polyline points="136.872,86.56 136.872,60.6 201.984,60.6 201.984,86.56" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
