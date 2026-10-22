@@ -5,7 +5,10 @@
 set -e
 cd "$(dirname "$0")/.."
 npm run build
-npx wrangler@4.112.0 deploy
+# Our own pinned copy of wrangler, so a broken global install (as on 22 Oct) can't stop a deploy.
+W=.wrangler-cli/node_modules/.bin/wrangler
+[ -x "$W" ] || npm i --silent --no-audit --no-fund --prefix .wrangler-cli wrangler@4.112.0
+"$W" deploy
 V=$(grep -o "pool-model\.glb?v=[A-Za-z0-9_-]*" public/model/assets/walk-*.js | head -1 | sed 's/.*?v=//')
 for f in pool-model.glb cameras.json lights.json dims.json; do
   curl -s -o /dev/null -w "warm $f %{http_code} %{size_download} bytes %{time_total}s\n" "https://pool.mikecann.app/model/web/$f?v=$V"
