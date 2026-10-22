@@ -82,10 +82,6 @@ export function kelvinColor(k: number) {
 const LUM = [0.2126, 0.7152, 0.0722];
 /** Round 24: the slot pool's size per type (16 in all), raised at load if any one scheme needs more of a type. */
 const SLOTS = { SPOT: 6, AREA: 6, POINT: 4 };
-// Round 29: the bench corner is no longer an option (the bench is mitred round it). Older exports still have the
-// corner_timber/corner_aggregate pieces (and their dims), and nothing else fills the corner, so those keep showing the
-// old default, timber; corner_aggregate, like any option nobody can pick, never shows. Newer exports have neither.
-const RETIRED_PARTS = ['corner_timber'];
 export type CameraDef = { name: string; pos: number[]; target: number[]; lens: number };
 export type Layout = 'a' | 'b';
 /** Each layout's export, with its content hash (vite.config.ts) so a new export is never served stale. */
@@ -1067,7 +1063,7 @@ export class Model {
       if (this.scenario !== 'proposed') return false;
       const gate = this.kitchen === 'kitchen_continuous' ? 'gate_south' : 'gate_sk02';
       // "a+b" options (e.g. gate_sk02+pier_tall) show only when every part is chosen
-      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting, this.wallcap, this.deck, ...RETIRED_PARTS];
+      const chosen = [this.roller, this.kitchen, gate, this.pier, this.nfence, this.passage, this.post, this.pump, this.play, this.spaCover, this.bfence, this.bplant, this.lighting, this.wallcap, this.deck];
       // the covers while they're rolling on or off: the flat cover (revealed piece by piece) and the roll both show
       if (this.poolCover !== 'off' && this.roller.startsWith('roller_rollon')) chosen.push('pool_cover_on');
       if (this.spaCoverMoving) chosen.push('spa_cover_on', 'spa_cover_rolled');

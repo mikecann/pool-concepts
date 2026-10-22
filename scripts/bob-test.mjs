@@ -1,8 +1,8 @@
 // Bob's page (/bob/) and the walkthrough's locked profile mode (/model/walk/?profile=bob). The profile wins over the
 // visitor's saved design and over URL options; it opens flying; no option UI shows, just the settings in the side
 // panel (Show dimensions, Quality, Walk/Fly, Measure, a help line); the visitor's own 'pool-settings' is never written (the profile's per-viewer preferences go to 'pool-settings-profile'), and the
-// normal walkthrough still opens with their own design afterwards. Then the page: the spec table from profile.json +
-// choices.json, the "to come" states, the questions' ticks (counted, remembered), print (no jump bar, empty boxes).
+// normal walkthrough still opens with their own design afterwards. Then the page: the 3D tile from profile.json, the
+// drawings and renders, the "to come" states, the questions' ticks (counted, remembered), print (no jump bar, empty boxes).
 // Screenshots and a PDF in review/bob/. Headless on the real GPU; needs `npm run serve` (public/ on :4173).
 //   node scripts/bob-test.mjs [--out review/bob]
 import { chromium } from 'playwright';
@@ -132,20 +132,12 @@ await p.close(); await ctx.close();
 // ---------------- the /bob/ page ----------------
 const pctx = await b.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: 'light' });
 p = await pctx.newPage(); watch(p, 'bob');
-const ready = () => p.waitForFunction(() => document.querySelectorAll('#spec-table tr').length > 0 && document.getElementById('q-count').textContent
+const ready = () => p.waitForFunction(() => document.getElementById('tile3d-img').getAttribute('src') && document.getElementById('q-count').textContent
   && (document.querySelector('[data-list="drawings"] .entry') || !document.querySelector('[data-empty="drawings"]').hidden)
   && (document.querySelector('[data-list="renders"] .entry') || !document.querySelector('[data-empty="renders"]').hidden), null, { timeout: 20000 });
 await p.goto(`${SITE}/bob/`); await ready();
 await p.evaluate(() => document.fonts.ready);
-const choices = JSON.parse(readFileSync('public/bob/choices.json', 'utf8'));
-const rows = await p.$$eval('#spec-table tr', trs => trs.map(t => ({ g: t.dataset.group, name: t.querySelector('th').textContent, title: t.querySelector('.opt-title').textContent })));
-check('spec table: a row per group plus lighting', rows.length === choices.groups.length + 1, `${rows.length} rows`);
-const bad = choices.groups.filter(g => {
-  const r = rows.find(x => x.g === g.key), v = g.key === 'layout' ? profile.layout : profile.options[g.key];
-  return !r || r.name !== g.name || r.title !== g.options[v]?.title;
-});
-check('spec table: every group shows the chosen option\'s title', bad.length === 0, bad.map(g => g.key).join(', '));
-check('spec table: lighting row', rows.find(r => r.g === 'lighting')?.title === choices.lighting[profile.lights.scheme].title);
+check('no "design in words" section, nor a jump link to it', (await p.locator('#spec, #spec-table, .jump a[href="#spec"]').count()) === 0);
 check('robots: noindex meta', (await p.locator('meta[name=robots]').getAttribute('content')) === 'noindex, nofollow');
 check('3D tile opens the profile walkthrough with the chosen layout\'s aerial', (await p.locator('#tile3d').getAttribute('href')) === '/model/walk/?profile=bob'
   && (await p.locator('#tile3d-img').getAttribute('src')).includes(profile.layout === 'b' ? 'layoutb_07_aerial_southwest' : '07_aerial_southwest__proposed'));
@@ -164,12 +156,20 @@ await p.locator('#q-list input[type=checkbox]').first().check();
 check(`ticking one: 1 of ${NQ} done`, (await count()) === `1 of ${NQ} done`, await count());
 await p.reload(); await ready();
 check('the tick survives a reload', (await count()) === `1 of ${NQ} done` && await p.locator('#q-list input[type=checkbox]').first().isChecked(), await count());
+// ---- the layout: at 1440 the questions sit in a right-hand column level with the 3D section; at 390 straight after it
+const rect = sel => p.locator(sel).evaluate(e => { const r = e.getBoundingClientRect(); return { top: r.top + scrollY, bottom: r.bottom + scrollY, left: r.left, right: r.right }; });
+let qr = await rect('#questions'), tr = await rect('#tile3d'), mr = await rect('#model');
+check('1440: questions to the right of the 3D tile', qr.left >= tr.right, `q.left ${qr.left.toFixed(0)}, tile.right ${tr.right.toFixed(0)}`);
+check('1440: questions start level with the 3D section', Math.abs(qr.top - mr.top) <= 40, `q.top ${qr.top.toFixed(0)}, 3D top ${mr.top.toFixed(0)}`);
 await p.screenshot({ path: `${OUT}/bob-1440-light.png`, fullPage: true });
 await p.emulateMedia({ colorScheme: 'dark' });
 await p.screenshot({ path: `${OUT}/bob-1440-dark.png`, fullPage: true });
 await p.setViewportSize({ width: 390, height: 844 });
 await p.waitForTimeout(200);
 check('390 wide: no sideways scroll', await p.evaluate(() => document.documentElement.scrollWidth <= 390), String(await p.evaluate(() => document.documentElement.scrollWidth)));
+qr = await rect('#questions'); mr = await rect('#model');
+const sr = await rect('#drawings');
+check('390 wide: questions come straight after the 3D section', qr.top >= mr.bottom && qr.top - mr.bottom <= 80 && sr.top >= qr.bottom, `3D bottom ${mr.bottom.toFixed(0)}, q ${qr.top.toFixed(0)}-${qr.bottom.toFixed(0)}, drawings top ${sr.top.toFixed(0)}`);
 await p.screenshot({ path: `${OUT}/bob-390-dark.png`, fullPage: true });
 await p.emulateMedia({ colorScheme: 'light' });
 await p.screenshot({ path: `${OUT}/bob-390-light.png`, fullPage: true });
@@ -186,6 +186,7 @@ await p.screenshot({ path: `${OUT}/bob-print.png`, fullPage: true });
 await p.pdf({ path: `${OUT}/bob.pdf`, format: 'A4', printBackground: true });
 await p.close(); await pctx.close();
 
+check('no "Invalid Date" anywhere on the page', !(await (async () => { const q = await b.newPage(); await q.goto(`${SITE}/bob/`); await q.waitForTimeout(1500); const t = await q.locator('body').innerText(); await q.close(); return /Invalid Date/.test(t); })()));
 check('console clean', errs.length === 0, errs.slice(0, 3).join(' | '));
 console.log(fail ? `${fail} FAILED` : 'PASS');
 await b.close();

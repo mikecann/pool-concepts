@@ -11,8 +11,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <style>
 /* Bob's page: the one design to draw. Unlisted (not linked from the front page). Everything on it comes from JSON
-   next to it: profile.json (the design, also what /model/walk/?profile=bob shows), choices.json (the options' titles,
-   written by scripts/bob-choices.mjs on every build), drawings/drawings.json, renders/renders.json, questions.json.
+   next to it: profile.json (the design, also what /model/walk/?profile=bob shows), drawings/drawings.json, renders/renders.json, questions.json.
    Same drawing-sheet look as the front page. */
 :root {
   --paper: #F4F6F5; --sheet: #FFFFFF; --ink: #172225; --muted: #5A686B; --rule: #D3DADA;
@@ -20,6 +19,7 @@
   --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --jump-h: 56px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -32,7 +32,7 @@
   --scrim: rgba(6, 10, 11, 0.94); color-scheme: dark;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+html { scroll-behavior: smooth; scroll-padding-top: var(--jump-h); }
 body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; margin: 0;
   padding-bottom: env(safe-area-inset-bottom, 0px); }
 img { max-width: 100%; display: block; }
@@ -40,7 +40,7 @@ img { max-width: 100%; display: block; }
 a { color: var(--accent); }
 h1, h2, h3, .jump a, .tile b, .btn, .tb-row b { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin: 0; }
 .label, .date { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); font-weight: 400; text-transform: none; }
-.wrap { max-width: 1180px; margin: 0 auto; padding-inline: max(16px, 3vw); }
+.wrap { max-width: 1720px; margin: 0 auto; padding-inline: max(16px, 3vw); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .muted { color: var(--muted); }
 
@@ -74,6 +74,21 @@ section { margin-bottom: 48px; }
 h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
 .empty-note { color: var(--muted); font-style: italic; margin: 0; }
 
+/* the layout: one column (questions straight after the 3D tile, as in the HTML); from 1100 px the questions move to a
+   sticky right-hand column with their own scroll, the count always showing at its top */
+@media screen and (min-width: 1100px) {
+  .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr); grid-template-rows: auto auto 1fr auto;
+    grid-template-areas: "model questions" "drawings questions" "renders questions" "footer questions"; gap: 48px 40px; align-items: start; }
+  .layout > section { margin: 0; min-width: 0; }
+  #model { grid-area: model; }
+  #drawings { grid-area: drawings; }
+  #renders { grid-area: renders; }
+  .layout > footer { grid-area: footer; }
+  #questions { grid-area: questions; position: sticky; top: calc(var(--jump-h) + 14px); max-height: calc(100vh - var(--jump-h) - 28px);
+    overflow: auto; overscroll-behavior: contain; padding-right: 6px; }
+  #questions .sec-head { position: sticky; top: 0; z-index: 1; background: var(--paper); margin-bottom: 12px; }
+}
+
 /* the 3D tile */
 .tile { position: relative; display: block; overflow: hidden; border: 1px solid var(--rule); background: #172225; color: var(--on-scrim); text-decoration: none; aspect-ratio: 16 / 9; }
 .tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
@@ -86,22 +101,8 @@ h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
 .tile .url { display: none; }
 @media (max-width: 520px) { .tile { aspect-ratio: 4 / 3; } }
 
-/* the spec table */
-.spec { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--rule); }
-.spec th, .spec td { text-align: left; vertical-align: top; padding: 9px 12px; border-top: 1px solid var(--rule); }
-.spec tr:first-child > * { border-top: 0; }
-.spec th { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; font-size: 14px; color: var(--muted); width: 26%; }
-.spec .opt-title { font-weight: 600; width: 32%; }
-.spec .opt-short { color: var(--muted); font-size: 14px; }
-@media (max-width: 600px) {
-  .spec tr { display: grid; grid-template-columns: 1fr; padding: 8px 12px; border-top: 1px solid var(--rule); }
-  .spec tr:first-child { border-top: 0; }
-  .spec th, .spec td { padding: 0; border: 0; width: auto !important; }
-  .spec th { font-size: 13px; }
-}
-
 /* drawings and renders */
-.entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 24px 18px; }
+.entries { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 24px 18px; }
 .entry { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .shot { display: block; border: 1px solid var(--rule); background: var(--sheet); cursor: zoom-in; aspect-ratio: 4 / 3; overflow: hidden; }
 .shot img { width: 100%; height: 100%; object-fit: cover; }
@@ -146,16 +147,19 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
   section { margin-bottom: 24px; }
   section.page { break-before: page; }
   section.page.empty { break-before: auto; }
+  /* one column on paper, in this order whatever the HTML's: 3D, questions (all of them), drawings, renders */
+  .layout { display: flex; flex-direction: column; }
+  #model { order: 1; } #questions { order: 2; } #drawings { order: 3; } #renders { order: 4; } .layout > footer { order: 5; }
+  #questions, #questions .sec-head { position: static; max-height: none; overflow: visible; }
   .tile { aspect-ratio: auto; border: 1px solid #000; background: none; color: #000; break-inside: avoid; }
   .tile img { height: auto; transform: none !important; }
   .tile > span { position: static; background: none; padding: 8px 10px; }
   .tile .url { display: block; font-family: var(--font-mono); font-size: 10pt; text-transform: none; letter-spacing: 0; }
   .entries { grid-template-columns: 1fr 1fr; gap: 14px; }
   .drawings .entries { grid-template-columns: 1fr; }
-  .entry, .spec tr, .qlist li { break-inside: avoid; }
+  .entry, .qlist li { break-inside: avoid; }
   .shot { aspect-ratio: auto; border-color: #999; }
   .shot img { height: auto; object-fit: contain; }
-  .spec { border-color: #999; }
   /* the boxes print empty, ticked or not, so Bob can tick them on paper */
   .q input { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1.5px solid #000; border-radius: 0; background: #fff; }
   .q:has(input:checked) b { text-decoration: none; }
@@ -170,10 +174,9 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
     <a class="home" href="#top">35 Keel Retreat</a>
     <nav aria-label="Jump to">
       <a href="#model">3D</a>
-      <a href="#spec">Spec</a>
+      <a href="#questions">Questions</a>
       <a href="#drawings">Drawings</a>
       <a href="#renders">Renders</a>
-      <a href="#questions">Questions</a>
     </nav>
   </div>
 </header>
@@ -191,6 +194,7 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
     </div>
   </div>
 
+  <div class="layout">
   <section id="model" aria-labelledby="model-h">
     <div class="sec-head"><h2 id="model-h">The design in 3D</h2></div>
     <a class="tile" id="tile3d" href="/model/walk/?profile=bob">
@@ -199,10 +203,10 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
     </a>
   </section>
 
-  <section id="spec" class="page" aria-labelledby="spec-h">
-    <div class="sec-head"><h2 id="spec-h">The design in words</h2></div>
-    <table class="spec" id="spec-table"><tbody></tbody></table>
-    <p class="empty-note" id="spec-error" hidden>The design couldn't be loaded.</p>
+  <section id="questions" class="page" aria-labelledby="questions-h">
+    <div class="sec-head"><h2 id="questions-h">Questions for Bob</h2><span class="count" id="q-count" aria-live="polite"></span></div>
+    <div id="q-list"></div>
+    <p class="empty-note" id="q-empty" hidden>Questions to come.</p>
   </section>
 
   <section id="drawings" class="page drawings" aria-labelledby="drawings-h">
@@ -217,13 +221,8 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
     <p class="empty-note" data-empty="renders" hidden>Renders to come.</p>
   </section>
 
-  <section id="questions" class="page" aria-labelledby="questions-h">
-    <div class="sec-head"><h2 id="questions-h">Questions for Bob</h2><span class="count" id="q-count" aria-live="polite"></span></div>
-    <div id="q-list"></div>
-    <p class="empty-note" id="q-empty" hidden>Questions to come.</p>
-  </section>
-
   <footer>Family project page, just for Bob. It isn't listed on search engines.</footer>
+  </div>
 </main>
 
 <dialog id="zoom" aria-label="Enlarged image">
@@ -235,7 +234,8 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
 // Everything is fetched from the site root. A missing file (404) shows that part's quiet "to come" state.
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const fmt = d => new Date(d + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+// ISO dates get formatted; anything else ("21 Oct 2026" from the drawings export) is shown as written
+const fmt = d => /^\d{4}-\d\d-\d\d$/.test(d) ? new Date(d + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }) : String(d);
 const getJSON = url => fetch(url, { cache: "no-cache" }).then(r => (r.ok ? r.json() : null)).catch(() => null);
 const store = {
   get() { try { return JSON.parse(localStorage.getItem("bob-questions") ?? "{}") ?? {}; } catch { return {}; } },
@@ -245,21 +245,13 @@ const store = {
 // the 3D tile's address, printed under it
 $("tile3d-url").textContent = new URL($("tile3d").getAttribute("href"), location.href).href;
 
-// ---- the design: profile.json + choices.json
-Promise.all([getJSON("/bob/profile.json"), getJSON("/bob/choices.json")]).then(([profile, choices]) => {
-  if (!profile || !choices) { $("spec-error").hidden = false; return; }
+// ---- the design's revision date and the chosen layout's aerial for the 3D tile, from profile.json
+getJSON("/bob/profile.json").then(profile => {
+  if (!profile) return;
   if (profile.revised) { $("revised").textContent = fmt(profile.revised); $("revised").dateTime = profile.revised; $("revised-row").hidden = false; }
   const img = $("tile3d-img");
   img.src = `/model/img/${profile.layout === "b" ? "layoutb_07_aerial_southwest.jpg" : "07_aerial_southwest__proposed.jpg"}`;
   img.hidden = false;
-  const rows = choices.groups.map(g => {
-    const v = g.key === "layout" ? profile.layout : profile.options?.[g.key];
-    return [g.key, g.name, g.options[v]];
-  });
-  const lit = choices.lighting[profile.lights?.scheme];
-  rows.push(["lighting", "Lighting", lit && { ...lit, short: lit.short + (profile.lights?.adjust ? " Adjusted from the design in the 3D model." : "") }]);
-  $("spec-table").tBodies[0].innerHTML = rows.map(([key, name, o]) =>
-    `<tr data-group="${esc(key)}"><th scope="row">${esc(name)}</th><td class="opt-title">${esc(o?.title ?? "Not chosen")}</td><td class="opt-short">${esc(o?.short)}</td></tr>`).join("");
 });
 
 // ---- drawings and renders: a grid of thumbnails, each opening the lightbox

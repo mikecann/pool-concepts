@@ -4,8 +4,18 @@
     "items": [
       {
         "id": "layout-b",
-        "title": "The layout has moved on a bit from SK02",
-        "detail": "We've shifted the sunken lounge's pool-side wall 0.88 m east so its outer face lines up with the side of the house, moved the pool 0.5 m east, and taken the lounge out east to the old garden bed (about 3.75 m inside). That means the walkway to the spa deck is now down the pool side, about 0.9 m from the water's edge to the lounge wall. The 3D model and the drawings on this page show it all."
+        "title": "The layout changed slightly since your SK02 drawing",
+        "detail": "The lounge wall moved 0.88 m east to line up with the house, the pool moved 0.5 m east, and the lounge now runs out to the old garden bed. The 3D model and drawings show it all."
+      }
+    ]
+  },
+  {
+    "section": "Lighting",
+    "items": [
+      {
+        "id": "lighting",
+        "title": "Lighting (keen to talk this one through)",
+        "detail": "Lighting's a big one for us. We like the warm, low \"resort\" look in the 3D model (try it at dusk): LED strips under the pool coping, the lounge coping, the benches and step nosings, warm pool and spa lights, uplights on the boundary plants and dimmed downlights. Can we work out with you the best way to do it so it looks good, and where the power needs to go?"
       }
     ]
   },
@@ -14,23 +24,23 @@
     "items": [
       {
         "id": "east-fence",
-        "title": "East fence line past the pavilion pillar",
-        "detail": "The pavilion's concrete pillar is 0.52 m tall and close to the fence, so it would be a climbable object. We'd like the fence to run straight from the house wall, past the east face of the pillar (so the pillar is inside the pool area), then along the outside edge of the deck to the terrace's south-east corner, as in the model. It needs a small kink near the house so it lands on the wall and not on the big slider. Does that work for you?"
+        "title": "East fence past the pillar",
+        "detail": "Can the fence run straight past the east face of the pavilion pillar (so the pillar's inside the pool area), then along the deck edge?"
       },
       {
         "id": "kitchen-slider",
-        "title": "Kitchen slider into the pool area",
-        "detail": "The kitchen slider opens into the pool area, so it's getting a fixed security screen with tool-only fixings, as discussed with the builder. Can the drawings show that, and is the City likely to be happy with it?"
+        "title": "Kitchen slider",
+        "detail": "It opens into the pool area, so it's getting a fixed security screen. Can the drawings show that?"
       },
       {
         "id": "north-fence",
         "title": "North fence moved north",
-        "detail": "We'd like the north pool fence about 1.5 m further north than SK02, across the side passage, so there's room for a couple of loungers and an umbrella. The play area moves 1.75 m north too, which keeps the trampoline clear of the fence's 900 mm zone. The passage pavers sit about 3 cm above the concourse, so the 1.2 m needs measuring from the passage side."
+        "detail": "About 1.5 m further north than SK02, with the play area moved north too so it stays clear."
       },
       {
         "id": "boundary",
-        "title": "West boundary barrier",
-        "detail": "The boundary fence along the pool is part of the barrier, so it needs to be 1.8 m from our new paving with nothing climbable in the top 900 mm on our side. Measured in the model, the existing wall and fence drop from 1.81 m at the north end to 0.83 m at the terrace end. We're thinking a 1.8 m tubular fence to replace it, with pots along it rather than a planter bed. We'll talk to the neighbours, but can you check that works as the barrier? The pots we'd put along it are about 0.55 m tall, which leaves only about 1.25 m of fence above them. Should they stay clear of the fence?"
+        "title": "West boundary fence",
+        "detail": "It's part of the barrier, so it needs to be 1.8 m from our new paving. We're thinking 1.8 m tubular. Does that work, and do pots need to stay 900 mm clear of it?"
       }
     ]
   },
@@ -39,18 +49,18 @@
     "items": [
       {
         "id": "deck-edges",
-        "title": "Timber deck details",
-        "detail": "The spa deck's timber now starts in line with the lounge's south steps, and the 3D model shows how far it runs out to the edges. Can you detail how it bears on the wall tops, the framing where there's no pump room underneath, and fixing the fence posts through the boards?"
+        "title": "Timber deck to the edges",
+        "detail": "How should the timber sit on the wall tops, and how do the fence posts fix through it?"
       },
       {
         "id": "equipment",
-        "title": "Room for the equipment",
-        "detail": "Pool and spa pumps, filter, chlorinator, spa blower, plus a future heat pump, with ventilation and room to get at it all."
+        "title": "Pump room",
+        "detail": "Room for the pool and spa gear plus a future heat pump, with ventilation, and access through the doors."
       },
       {
         "id": "spa-cover",
         "title": "Spa cover",
-        "detail": "We're planning a roll-up cover on the hot tub. Rolled up, it lies north to south on the deck east of the spa, next to the fence."
+        "detail": "A roll-up cover that sits on the deck beside the spa when it's off."
       }
     ]
   },
@@ -60,12 +70,7 @@
       {
         "id": "bench-corner",
         "title": "Bench corner",
-        "detail": "We'd like the bench like you drew it on SK02, with the two runs meeting in a 45 degree mitre at the corner and the seat and slanted back both wrapping round. We tried a corner table and ended up back at your version."
-      },
-      {
-        "id": "led-power",
-        "title": "Power for lighting",
-        "detail": "Power in the lounge for LED strips under the benches and in the step nosings."
+        "detail": "Same as your SK02: the two runs meet in a mitre at the corner."
       }
     ]
   },
@@ -75,12 +80,12 @@
       {
         "id": "roof-sheet",
         "title": "Roof sheeting",
-        "detail": "Stratco Smartspan at 2 degrees, instead of Custom Orb. Downlights to go in during construction."
+        "detail": "Stratco Smartspan at 2 degrees, with downlights."
       },
       {
         "id": "roof-post",
-        "title": "One post, at the roof corner",
-        "detail": "We'd like a single post right at the roof's south-west corner, standing on the corner of the lounge's north wall (with a pier built into the wall as its footing), and just a beam along the west edge. The lounge's north-west steps move about 0.45 m east to clear it. Can the wall take it, and can you check the beam span with the engineer?"
+        "title": "One post at the roof corner",
+        "detail": "A single post at the south-west corner, sitting on the lounge wall with a pier as its footing. Can the wall take it?"
       }
     ]
   },
@@ -90,7 +95,7 @@
       {
         "id": "coping-edge",
         "title": "Coping edge",
-        "detail": "400 x 400 precast aggregate coping round the pool. Square or drop edge isn't chosen yet. A drop edge is kinder on the pool blanket."
+        "detail": "400 x 400 aggregate coping. Square or drop edge? Drop is kinder on the pool blanket."
       }
     ]
   },
@@ -100,12 +105,12 @@
       {
         "id": "roller-pit",
         "title": "Below ground pool roller at the deep end",
-        "detail": "We'd like a below ground pool roller at the deep end. At the tight (west) corner there's only 0.41 m of paving between the coping and the retaining wall's cap. The standard below ground units need a 550 to 600 mm trench, so they won't fit. A narrow builder-formed pit (about 390 to 400 mm, with the pool's bond beam as one wall) might, if the wall's footing isn't in the way. Could you do a section through the deep end showing the bond beam, the wall footing and the roller pit? We'd also like the lid finished to match the paving."
+        "detail": "Will a narrow pit (about 400 mm) fit between the coping and the retaining wall, with the wall's footing? Could you do a section through there?"
       },
       {
         "id": "roller-alt",
         "title": "If it doesn't fit",
-        "detail": "One option is moving the pool 0.2 to 0.3 m north, which widens that corner to about 0.6 to 0.7 m. Otherwise it's a standard above ground roller at the shallow end."
+        "detail": "We could move the pool 0.2 to 0.3 m north, or go with an above ground roller at the shallow end."
       }
     ]
   }
