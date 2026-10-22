@@ -75,7 +75,7 @@ h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
 .empty-note { color: var(--muted); font-style: italic; margin: 0; }
 
 /* the layout: one column (questions straight after the 3D tile, as in the HTML); from 1100 px the questions move to a
-   sticky right-hand column with their own scroll, the count always showing at its top */
+   right-hand column that scrolls with the page */
 @media screen and (min-width: 1100px) {
   .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(340px, 1fr); grid-template-rows: auto auto 1fr auto;
     grid-template-areas: "model questions" "drawings questions" "renders questions" "footer questions"; gap: 48px 40px; align-items: start; }
@@ -84,9 +84,8 @@ h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
   #drawings { grid-area: drawings; }
   #renders { grid-area: renders; }
   .layout > footer { grid-area: footer; }
-  #questions { grid-area: questions; position: sticky; top: calc(var(--jump-h) + 14px); max-height: calc(100vh - var(--jump-h) - 28px);
-    overflow: auto; overscroll-behavior: contain; padding-right: 6px; }
-  #questions .sec-head { position: sticky; top: 0; z-index: 1; background: var(--paper); margin-bottom: 12px; }
+  #questions { grid-area: questions; }   /* scrolls with the page: one scroll bar (Mike, 22 Oct) */
+  #questions .sec-head { margin-bottom: 12px; }
 }
 
 /* the 3D tile */
