@@ -10,16 +10,6 @@
     ]
   },
   {
-    "section": "Lighting",
-    "items": [
-      {
-        "id": "lighting",
-        "title": "Lighting (keen to talk this one through)",
-        "detail": "Lighting's a big one for us. We like the warm, low \"resort\" look in the 3D model (try it at dusk): LED strips under the pool coping, the lounge coping, the benches and step nosings, warm pool and spa lights, uplights on the boundary plants and dimmed downlights. Can we work out with you the best way to do it so it looks good, and where the power needs to go?"
-      }
-    ]
-  },
-  {
     "section": "Pool barrier",
     "items": [
       {
@@ -111,6 +101,16 @@
         "id": "roller-alt",
         "title": "If it doesn't fit",
         "detail": "We could move the pool 0.2 to 0.3 m north, or go with an above ground roller at the shallow end."
+      }
+    ]
+  },
+  {
+    "section": "Lighting",
+    "items": [
+      {
+        "id": "lighting",
+        "title": "Lighting (keen to talk this one through)",
+        "detail": "Lighting's a big one for us. We like the warm, low \"resort\" look in the 3D model (try it at dusk): LED strips under the pool coping, the lounge coping, the benches and step nosings, warm pool and spa lights, uplights on the boundary plants and dimmed downlights. Can we work out with you the best way to do it so it looks good, and where the power needs to go?"
       }
     ]
   }
