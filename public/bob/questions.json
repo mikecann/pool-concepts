@@ -55,22 +55,12 @@
     ]
   },
   {
-    "section": "Sunken lounge",
-    "items": [
-      {
-        "id": "bench-corner",
-        "title": "Bench corner",
-        "detail": "Same as your SK02: the two runs meet in a mitre at the corner."
-      }
-    ]
-  },
-  {
     "section": "Alfresco roof",
     "items": [
       {
         "id": "roof-sheet",
-        "title": "Roof sheeting",
-        "detail": "Stratco Smartspan at 2 degrees, with downlights."
+        "title": "Roof sheeting changed to Stratco Smartspan",
+        "detail": "The roof is only 2 degrees and Custom Orb needs at least 5, so the builder's swapped it for Stratco Smartspan. Downlights in the ceiling too."
       },
       {
         "id": "roof-post",
