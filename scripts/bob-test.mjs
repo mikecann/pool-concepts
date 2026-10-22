@@ -35,7 +35,7 @@ await settled(p);
 await p.addStyleTag({ content: '.fps,.joystick,.hint-pill{display:none!important}' });
 
 const got = await p.evaluate(() => { const V = __viewer, m = V.model; return { layout: V.layout, scenario: V.state().scenario, modelScenario: m.scenario, lighting: m.lighting, profile: V.profile,
-  options: Object.fromEntries(['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck', 'corner'].map(k => [k, m[k]])) }; });
+  options: Object.fromEntries(['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck'].map(k => [k, m[k]])) }; });
 check('layout comes from the profile, not ?layout= or saved', got.layout === profile.layout, got.layout);
 const wrong = Object.entries(profile.options).filter(([k, v]) => got.options[k] !== v);
 check('every option is the profile\'s (not ?kitchen= or saved)', wrong.length === 0, wrong.map(([k, v]) => `${k}: ${got.options[k]} != ${v}`).join(', '));
@@ -116,6 +116,17 @@ await p.goto(`${SITE}/model/walk/?nohelp`); await settled(p);
 const norm = await p.evaluate(() => ({ layout: __viewer.layout, profile: __viewer.profile, kitchen: __viewer.model.kitchen, roller: __viewer.model.roller, wallcap: __viewer.model.wallcap }));
 check('normal walkthrough: the visitor\'s own layout and options', norm.layout === 'a' && norm.kitchen === 'kitchen_split' && norm.roller === 'roller_deep' && norm.wallcap === 'wallcap_none', JSON.stringify(norm));
 check('normal walkthrough: no profile, options UI back', norm.profile === null && await p.evaluate(() => { __viewer.setPanel(true); return true; }) && await p.locator('#cat-tabs').isVisible() && await p.locator('#sc-existing').isVisible());
+await p.close();
+
+// ---- Round 29: a profile.json with a stale bench corner (no longer an option) loads quietly, without it
+p = await ctx.newPage(); watch(p, 'walk stale corner');
+const stale = [];
+p.on('console', m => { if (m.type() === 'warning' || m.type() === 'error') stale.push(m.text().slice(0, 200)); });
+await p.route('**/bob/profile.json', r => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ...profile, options: { ...profile.options, corner: 'corner_aggregate' } }) }));
+await p.goto(`${SITE}/model/walk/?profile=bob&nohelp`); await settled(p);
+const sc = await p.evaluate(() => ({ corner: __viewer.model.corner, options: __viewer.profile?.options }));
+check('a stale "corner" in profile.json: no warning, not loaded', !stale.some(t => /corner/i.test(t)) && sc.corner === undefined && sc.options && !('corner' in sc.options), stale.filter(t => /corner/i.test(t)).join(' | ') || JSON.stringify(sc.corner));
+check('  and the rest of the profile still applies', !!sc.options && Object.entries(profile.options).every(([k, v]) => sc.options[k] === v));
 await p.close(); await ctx.close();
 
 // ---------------- the /bob/ page ----------------

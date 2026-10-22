@@ -31,12 +31,12 @@
      "short": "A roller on stands by the canal. Tight fit."
     },
     "roller_pit": {
-     "title": "Hidden box, deep end",
-     "short": "Blanket rolls into a box under the coping."
+     "title": "Below ground pool roller, deep end",
+     "short": "Rolls away below the coping, deep end."
     },
     "roller_pit_shallow": {
-     "title": "Hidden box, shallow end",
-     "short": "The same box at the house end."
+     "title": "Below ground pool roller, shallow end",
+     "short": "The same, at the house end."
     },
     "roller_lowpro": {
      "title": "Low roller, deep end",
@@ -155,20 +155,6 @@
     "post_corner_steps": {
      "title": "Corner post, steps moved",
      "short": "Corner post, lounge steps moved over."
-    }
-   }
-  },
-  {
-   "key": "corner",
-   "name": "Bench corner",
-   "options": {
-    "corner_timber": {
-     "title": "Timber corner",
-     "short": "Bench slats run across the corner."
-    },
-    "corner_aggregate": {
-     "title": "Aggregate corner",
-     "short": "A precast slab 10 cm above the seat."
     }
    }
   },

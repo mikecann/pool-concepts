@@ -74,7 +74,7 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
 }
 // 4. "Copy design for Bob" in the settings: the design on screen as /bob/profile.json, and nothing else changes
 {
-  const KEYS = ['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck', 'corner'];
+  const KEYS = ['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck'];
   const ctx = await b.newContext({ viewport: { width: 1400, height: 850 } });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://localhost:4173' });
   let { p, errs } = await open(ctx, '&layout=b');
@@ -88,9 +88,9 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   const note = await p.locator('#copy-design-note').textContent();
   const clip = await p.evaluate(() => navigator.clipboard.readText());
   let j = null; try { j = JSON.parse(clip); } catch {}
-  const live = await p.evaluate(() => ({ layout: __viewer.layout, m: Object.fromEntries(['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck', 'corner'].map(k => [k, __viewer.model[k]])), lighting: __viewer.model.lighting }));
+  const live = await p.evaluate(() => ({ layout: __viewer.layout, m: Object.fromEntries(['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck'].map(k => [k, __viewer.model[k]])), lighting: __viewer.model.lighting }));
   check('  copies the design as profile.json, says "Copied"', /^Copied/.test(note) && j && j.layout === 'b' && j.scenario === 'proposed' && /^\d{4}-\d{2}-\d{2}$/.test(j.revised)
-    && JSON.stringify(Object.keys(j.options).sort()) === JSON.stringify([...KEYS].sort()) && KEYS.every(k => j.options[k] === live.m[k]) && j.lights?.scheme === live.lighting && 'adjust' in j.lights,
+    && JSON.stringify(Object.keys(j.options).sort()) === JSON.stringify([...KEYS].sort()) && !('corner' in j.options) && KEYS.every(k => j.options[k] === live.m[k]) && j.lights?.scheme === live.lighting && 'adjust' in j.lights,
     j ? `${j.layout} kitchen ${j.options.kitchen} wallcap ${j.options.wallcap} lights ${j.lights.scheme}` : clip.slice(0, 60));
   const after = await p.evaluate(() => ({ cam: __viewer.camera.position.toArray(), opts: JSON.stringify(Object.fromEntries(Object.keys(__viewer.model).filter(k => typeof __viewer.model[k] === 'string').map(k => [k, __viewer.model[k]]))) }));
   check('  and changes nothing else (options, camera, saved settings)', after.opts === before.opts && JSON.stringify(after.cam) === JSON.stringify(before.cam) && (await p.evaluate(() => localStorage.getItem('pool-settings'))) === saved);

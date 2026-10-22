@@ -60,7 +60,7 @@
       {
         "id": "bench-corner",
         "title": "Bench corner",
-        "detail": "The corner seat where the two bench runs meet is too awkward to sit on, so we'd like a precast aggregate slab there instead, matching the coping, about 10 cm above the bench seat, with no backrest running across it. Somewhere to put a drink."
+        "detail": "We'd like the bench like you drew it on SK02, with the two runs meeting in a 45 degree mitre at the corner and the seat and slanted back both wrapping round. We tried a corner table and ended up back at your version."
       },
       {
         "id": "led-power",
@@ -95,17 +95,17 @@
     ]
   },
   {
-    "section": "Pool blanket roller",
+    "section": "Below ground pool roller",
     "items": [
       {
         "id": "roller-pit",
-        "title": "In-ground blanket box at the deep end",
-        "detail": "We'd like an in-ground box at the deep end. At the tight (west) corner there's only 0.41 m of paving between the coping and the retaining wall's cap. Standard boxes need a 550 to 600 mm trench, so they won't fit. A narrow builder-formed pit (about 390 to 400 mm, with the pool's bond beam as one wall) might, if the wall's footing isn't in the way. Could you do a section through the deep end showing the bond beam, the wall footing and the box? We'd also like the lid finished to match the paving."
+        "title": "Below ground pool roller at the deep end",
+        "detail": "We'd like a below ground pool roller at the deep end. At the tight (west) corner there's only 0.41 m of paving between the coping and the retaining wall's cap. The standard below ground units need a 550 to 600 mm trench, so they won't fit. A narrow builder-formed pit (about 390 to 400 mm, with the pool's bond beam as one wall) might, if the wall's footing isn't in the way. Could you do a section through the deep end showing the bond beam, the wall footing and the roller pit? We'd also like the lid finished to match the paving."
       },
       {
         "id": "roller-alt",
         "title": "If it doesn't fit",
-        "detail": "One option is moving the pool 0.2 to 0.3 m north, which widens that corner to about 0.6 to 0.7 m. Otherwise the standard roller goes at the shallow end."
+        "detail": "One option is moving the pool 0.2 to 0.3 m north, which widens that corner to about 0.6 to 0.7 m. Otherwise it's a standard above ground roller at the shallow end."
       }
     ]
   }

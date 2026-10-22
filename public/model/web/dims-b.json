@@ -311,7 +311,7 @@
  },
  {
   "id": "bench_north_length",
-  "label": "North bench, seat length (to the corner)",
+  "label": "North bench, along its back to the corner",
   "group": "lounge",
   "a": [
    0.276,
@@ -319,82 +319,28 @@
    5.092
   ],
   "b": [
-   2.133,
+   3.031,
    2.12,
-   5.221
+   5.284
   ],
-  "value_m": 1.862,
+  "value_m": 2.762,
   "set": "proposed"
  },
  {
-  "id": "bench_corner",
-  "label": "Bench corner, width (no cushion, no backrest)",
-  "group": "lounge",
-  "a": [
-   2.133,
-   2.14,
-   5.221
-  ],
-  "b": [
-   2.991,
-   2.14,
-   5.281
-  ],
-  "value_m": 0.86,
-  "set": "proposed",
-  "note": "0.90 m deep, to the wall"
- },
- {
-  "id": "bench_corner_timber_height",
-  "label": "Bench corner (timber, at the seat's height), height above the lounge floor",
-  "group": "lounge",
-  "a": [
-   2.52,
-   1.67,
-   5.849
-  ],
-  "b": [
-   2.52,
-   2.12,
-   5.849
-  ],
-  "value_m": 0.45,
-  "set": "proposed",
-  "option": "corner_timber"
- },
- {
-  "id": "bench_corner_aggregate_height",
-  "label": "Bench corner (aggregate slab, 0.10 m above the seat), height above the lounge floor",
-  "group": "lounge",
-  "a": [
-   2.52,
-   1.67,
-   5.849
-  ],
-  "b": [
-   2.52,
-   2.22,
-   5.849
-  ],
-  "value_m": 0.55,
-  "set": "proposed",
-  "option": "corner_aggregate"
- },
- {
   "id": "bench_east_length",
-  "label": "East bench length",
+  "label": "East bench, along its back from the corner",
   "group": "lounge",
   "a": [
-   2.969,
+   3.031,
    2.12,
-   6.181
+   5.284
   ],
   "b": [
    2.811,
    2.12,
    8.456
   ],
-  "value_m": 2.28,
+  "value_m": 3.18,
   "set": "proposed"
  },
  {

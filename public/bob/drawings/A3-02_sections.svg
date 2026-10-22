@@ -84,8 +84,7 @@
 <path d="M132.4,91.6 L150,91.6 L150,92.2 L132.4,92.2 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M132.8,92.2 L149,92.2 L149,93.4 L132.8,93.4 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M144,93.4 L145.2,93.4 L145.2,100.6 L144,100.6 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
-<path d="M138.4,90 L149.6,90 L149.6,91.6 L138.4,91.6 Z" fill="#f3f3f3" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
-<polyline points="138,90.8 134.4,81.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
+<polyline points="138,91.6 134.4,82.4" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
 <polyline points="43.701,84.6 43.701,60.6 111.999,60.6 111.999,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
 <polyline points="77.85,84.6 77.85,60.6" fill="none" stroke="#000" stroke-width="0.07" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
 <polyline points="112,84.6 112,60.6 132.349,60.6 132.349,84.6" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round" stroke-dasharray="1.2,0.6" clip-path="url(#clipA)"/>
@@ -130,9 +129,7 @@
 <path d="M244.24,214.6 L261.84,214.6 L261.84,215.2 L244.24,215.2 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M245.24,215.2 L261.44,215.2 L261.44,216.4 L245.24,216.4 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M249.04,216.4 L250.24,216.4 L250.24,223.6 L249.04,223.6 Z" fill="#ddd" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
-<path d="M244.64,213 L255.84,213 L255.84,214.6 L244.64,214.6 Z" fill="#f3f3f3" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipB)" stroke-linejoin="round"/>
-<polyline points="256.24,213.8 259.84,204.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
-<path d="M215.364,223.6 L220.164,223.6 L220.564,223.2 L219.764,221.2 L221.364,220.4 L224.564,216.4 L224.764,215.6 L224.164,215.6 L221.364,218.8 L215.364,219.2 L215.364,219.2 L209.364,218.8 L206.564,215.6 L205.964,215.6 L206.164,216.4 L209.364,220.4 L210.964,221.2 L210.164,223.2 L210.564,223.6 L215.364,223.6 Z" fill="#8a4a2a" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<polyline points="256.24,214.6 259.84,205.4" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
 <path d="M283.683,183.6 L284.683,183.6 L284.683,209.56 L283.683,209.56 Z" fill="#555" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M41.676,173.4 L42.676,173.4 L42.676,202 L41.676,202 Z" fill="#555" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M173,152.708 L262,149.6 L262,153.6 L173,156.708 L173,152.708 Z" fill="#f1f1f1" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
@@ -418,9 +415,6 @@
 <polyline points="42.176,181.4 68.676,172 69.776,172" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
 <circle cx="42.176" cy="181.4" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
 <text x="70.176" y="172" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">1800H BOUNDARY POOL BARRIER (TUBULAR)</text>
-<polyline points="221.364,217.6 231.864,202 232.964,202" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
-<circle cx="221.364" cy="217.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
-<text x="233.364" y="202" font-family="Helvetica, Arial, sans-serif" font-size="1.5" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.525" stroke-linejoin="round" paint-order="stroke">CORTEN FIRE PIT</text>
 <polyline points="273.194,211.6 290.58,231 291.68,231" fill="none" stroke="#000" stroke-width="0.1" stroke-linecap="butt" stroke-linejoin="round"/>
 <circle cx="273.194" cy="211.6" r="0.35" fill="#000" stroke="#000" stroke-width="0"/>
 <text x="292.08" y="231" font-family="Helvetica, Arial, sans-serif" font-size="1.4" text-anchor="start" dominant-baseline="central" font-weight="normal" fill="#000" stroke="#fff" stroke-width="0.49" stroke-linejoin="round" paint-order="stroke">DECK ON FRAMING OVER FILL (NO ROOM BELOW)</text>

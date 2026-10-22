@@ -15,7 +15,6 @@ const GROUPS = [
   ['pump', 'Pump room', C.PUMP_CHOICES],
   ['kitchen', 'Outdoor kitchen', C.KITCHEN_CHOICES],
   ['post', 'Roof posts', C.POST_CHOICES],
-  ['corner', 'Bench corner', C.CORNER_CHOICES],
   ['pier', 'Fence by the pillar', C.PIER_CHOICES],
   ['nfence', 'North fence', C.NFENCE_CHOICES],
   ['bfence', 'Boundary fence', C.BFENCE_CHOICES],

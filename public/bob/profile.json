@@ -15,7 +15,6 @@
     "bplant": "bplant_pots",
     "wallcap": "wallcap_aggregate",
     "deck": "deck_wide",
-    "corner": "corner_aggregate",
     "pier": "pier_straight_edge"
   },
   "lights": {

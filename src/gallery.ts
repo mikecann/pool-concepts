@@ -3,10 +3,10 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { PROPOSED_ONLY, VIEWS } from './views';
-import { BFENCE_CHOICES, BPLANT_CHOICES, CORNER_CHOICES, DECK_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, BPLANT_CHOICES, DECK_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string; corner?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -24,10 +24,10 @@ const ROLLER = [
     <p>The easy fit. There's 1.66 m between the coping and the north fence, so the roller takes about 0.7 m and leaves about 1 m to walk past. It's in full view from the alfresco, and the east stand sits about 1 m in front of the north gate, so you step around it.</p>`],
   ["roller_deep", "Deep end", `<b>Deep end, by the canal</b>
     <p>Standard roller at the deep end. At the west corner there's only 0.5 m from the coping to the drop to the lawn (0.24 m of paving plus the wall cap), so the stands sit half on the coping and half on the wall cap. It fits, just.</p>`],
-  ["roller_pit", "In-ground box", `<b>Blanket box at the deep end</b>
-    <p>In-ground box at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],
-  ["roller_pit_shallow", "In-ground box, shallow end", `<b>Blanket box at the shallow end</b>
-    <p>The same in-ground box behind the shallow-end wall, lids flush with the coping. 1.44 m clear to the north fence as drawn (2.94 m with the fence moved), so there's room to walk behind it with the lids up.</p>`],
+  ["roller_pit", "Below ground pool roller, deep end", `<b>Below ground pool roller at the deep end</b>
+    <p>A below ground pool roller at the deep end, between the pool wall and the terrace wall, under a lid flush with the coping. Nothing to step around, but Bob has to build it in, and it only just fits at the west corner.</p>`],
+  ["roller_pit_shallow", "Below ground pool roller, shallow end", `<b>Below ground pool roller at the shallow end</b>
+    <p>The same below ground pool roller behind the shallow-end wall, lids flush with the coping. 1.44 m clear to the north fence as drawn (2.94 m with the fence moved), so there's room to walk behind it with the lids up.</p>`],
   ["roller_rollon_shallow", "Roll-on cover, shallow end", `<b>Roll-on cover, rolled at the shallow end</b>
     <p>Australian Spa Covers' Roll-On: a soft, padded, segmented cover with no frame or roller. It rolls off piece by piece and sits as a 0.8 m roll on the coping, its pool side at the water's edge. In the walkthrough, press E by the pool to roll it on or off.</p>`],
   ["roller_rollon_deep", "Roll-on cover, deep end", `<b>Roll-on cover, rolled at the deep end</b>
@@ -35,7 +35,7 @@ const ROLLER = [
   ["roller_lowpro", "Low-profile, deep end", `<b>Low-profile roller at the deep end</b>
     <p>A low-profile roller: short stands with the roll just above the coping, so it fits the narrow strip at the deep end and stays below the view to the canal.</p>`],
   ["roller_channel", "Open channel, deep end", `<b>Open channel at the deep end</b>
-    <p>An open, concrete-lined trench 0.42 m deep behind the deep-end coping, with a <a href="https://daisypoolcovers.com.au/pool-rollers/stationary/sq-pool-roller" target="_blank" rel="noopener">Daisy SQ</a> roller standing in it and no lid. A standard roller doesn't fit: its stands need 0.6 m of floor and it would need a 0.75 m trench. The open trench is a trip hazard beside the coping and collects leaves and water, so it needs a drain; a grate or a short rail may come later.</p>`],
+    <p>An open channel version of a below ground pool roller: an open, concrete-lined trench 0.42 m deep behind the deep-end coping, with a <a href="https://daisypoolcovers.com.au/pool-rollers/stationary/sq-pool-roller" target="_blank" rel="noopener">Daisy SQ</a> roller standing in it and no lid. A standard roller doesn't fit: its stands need 0.6 m of floor and it would need a 0.75 m trench. The open trench is a trip hazard beside the coping and collects leaves and water, so it needs a drain; a grate or a short rail may come later.</p>`],
 ];
 const KITCHEN = [
   ["kitchen_split", "Split by the gate", `<b>Either side of SK02's gate</b>
@@ -129,9 +129,6 @@ const lightsSrc = (o: string, v: string) => `img/night_${v.slice(0, -5)}_${o}_${
 // Round 27: the wall tops (both layouts, B beside) and Layout B's spa deck outline
 const WALLCAP = WALLCAP_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
 const WALLCAP_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['17_pool_overview', 'From above'], ['06_sunken_lounge', 'In the lounge']];
-// Round 28: the lounge's bench corner (both layouts, B beside)
-const CORNER = CORNER_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
-const CORNER_VIEWS = [['24_lounge_corner', 'From the bench'], ['15_lounge_from_alfresco', 'Over the lounge']];
 const SPADECK = DECK_CHOICES.map(c => [c.value, c.title, `<b>${c.title}</b><p>${c.note}</p>`]);
 const SPADECK_VIEWS = [['14_spa_to_canal', 'Spa to the canal'], ['17_pool_overview', 'From above'], ['06_sunken_lounge', 'In the lounge'], ['07_aerial_southwest', 'From the air']];
 const DECK_VIEWS = [['10_alfresco_corner', 'North-west corner'], ['04_from_kitchen_door', 'Kitchen door'], ['15_lounge_from_alfresco', 'Over the lounge'], ['16_outdoor_kitchen', 'East fence'], ['18_pier_fence', 'At the pillar'], ['08_aerial_southeast', 'From the air']];
@@ -151,8 +148,6 @@ const LAYOUTB_OPTION_RENDERS = new Set([
   ...BPLANT_VIEWS.flatMap(([v]) => BPLANT_CHOICES.map(c => `${v}_${c.value}`)),
   // Round 27: the wall tops
   ...WALLCAP_VIEWS.flatMap(([v]) => WALLCAP_CHOICES.map(c => `${v}_${c.value}`)),
-  // Round 28: the bench corner
-  ...CORNER_VIEWS.flatMap(([v]) => CORNER_CHOICES.map(c => `${v}_${c.value}`)),
   // Round 25: the lighting schemes
   ...['15_lounge_from_alfresco', '17_pool_overview'].flatMap(v => LIGHTING_CHOICES.flatMap(c => ['1940', '2100'].map(t => `${v}_${c.value}_${t}`))),
   // Round 22: the kitchens (the lounge kitchen's plain name is with SK02's post, as A's pictures are)
@@ -184,7 +179,6 @@ export function allImageUrls() {
     ...DECK_VIEWS.map(([v]) => `img/options_${v}_pier_straight_deck_kitchen_none.jpg`),
     ...LIGHTS.flatMap(([o]) => LIGHTS_VIEWS.map(([v]) => lightsSrc(o, v))),
     ...WALLCAP.flatMap(([o]) => WALLCAP_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
-    ...CORNER.flatMap(([o]) => CORNER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...SPADECK.flatMap(([o]) => SPADECK_VIEWS.map(([v]) => `img/layoutb_${v}_${o}.jpg`)),
     ...BPLANT.flatMap(([o]) => BPLANT_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...[...LAYOUTB_OPTION_RENDERS].map(n => `img/${n}`),
@@ -344,18 +338,6 @@ const HTML = /* html */ `
   <div class="chips" role="group" aria-label="Wall tops" id="wc-opts"></div>
   <div class="chips" id="wc-views" role="group" aria-label="Viewpoint"></div>
   <div class="optnote" id="wc-note"></div>
-</section>
-
-<div class="section-head">
-  <span class="label">Options to decide</span>
-  <h2>Bench corner</h2>
-  <p>Where the lounge's two benches meet: the timber slats carried across, or a precast aggregate slab a little higher.</p>
-</div>
-<section class="block" aria-label="Bench corner options">
-  <div class="fstage"><img id="bc-img" alt=""><span class="tag l" id="bc-tag"></span><button class="fly" id="bc-fly" type="button">Open in 3D</button></div>
-  <div class="chips" role="group" aria-label="Bench corner" id="bc-opts"></div>
-  <div class="chips" id="bc-views" role="group" aria-label="Viewpoint"></div>
-  <div class="optnote" id="bc-note"></div>
 </section>
 
 <div class="section-head">
@@ -652,9 +634,6 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   picker({ opts: WALLCAP, optBox: $('wc-opts'), viewBox: $('wc-views'), img: 'wc-img', tag: 'wc-tag', note: 'wc-note', flyBtn: 'wc-fly',
     views: WALLCAP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
     onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', wallcap: o }) });
-  picker({ opts: CORNER, optBox: $('bc-opts'), viewBox: $('bc-views'), img: 'bc-img', tag: 'bc-tag', note: 'bc-note', flyBtn: 'bc-fly',
-    views: CORNER_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', corner: o }) });
   // (Layout B's own renders: no SK02 picture beside them, and Open in 3D opens Layout B)
   picker({ opts: SPADECK, optBox: $('sd-opts'), viewBox: $('sd-views'), img: 'sd-img', tag: 'sd-tag', note: 'sd-note', flyBtn: 'sd-fly',
     views: SPADECK_VIEWS, src: (o, v) => `${I}layoutb_${v}_${o}.jpg`,

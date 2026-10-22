@@ -14,7 +14,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, CORNER_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -32,13 +32,14 @@ const store = { get: (k: string) => { try { return localStorage.getItem(k); } ca
  *     "layout": "a" | "b",
  *     "scenario": "proposed",                    always proposed
  *     "options": { "<field>": "<option key>" },  the fields of currentOptions() (roller, kitchen, post, pump, play,
- *                                                spaCover, pier, nfence, passage, bfence, bplant, wallcap, deck,
- *                                                corner); the values are option keys from choices.ts
+ *                                                spaCover, pier, nfence, passage, bfence, bplant, wallcap, deck);
+ *                                                the values are option keys from choices.ts
  *     "lights": { "scheme": "lights_…", "adjust": { "master": 1, "groups": { … } } | null },
  *                                                adjust as model.setAdjust (a LightAdjust); null or missing: as designed
  *     "revised": "YYYY-MM-DD"                    optional, shown on the /<name>/ page
  *   }
- * A missing, unknown or invalid value falls back to that group's default (with a console warning). Saved settings,
+ * A missing, unknown or invalid value falls back to that group's default (with a console warning; a retired group's
+ * key, like corner, is ignored quietly). Saved settings,
  * URL options, ?layout=, ?scenario= and the layout-swap handoff can't change it, and the visitor's own remembered
  * design ('pool-settings') is never written: the per-viewer preferences go under 'pool-settings-profile'.
  */
@@ -46,7 +47,9 @@ type OptionField = Exclude<keyof typeof OPTION_DEFAULTS, 'lighting'>;
 type Profile = { name: string; layout: Layout; scenario: 'proposed'; options: Record<OptionField, string>; lights: { scheme: string; adjust: LightAdjust | null }; revised?: string };
 const OPTION_LISTS: Record<OptionField, Choice[]> = { roller: ROLLER_CHOICES, kitchen: KITCHEN_CHOICES, post: POST_CHOICES, pump: PUMP_CHOICES, play: PLAY_CHOICES,
   spaCover: SPA_COVER_CHOICES, pier: PIER_CHOICES, nfence: NFENCE_CHOICES, passage: PASSAGE_CHOICES, bfence: BFENCE_CHOICES, bplant: BPLANT_CHOICES,
-  wallcap: WALLCAP_CHOICES, deck: DECK_CHOICES, corner: CORNER_CHOICES };
+  wallcap: WALLCAP_CHOICES, deck: DECK_CHOICES };
+/** Option groups that have been dropped (Round 29: the bench corner, now mitred in the model): ignored without a warning. */
+const RETIRED_OPTIONS = ['corner'];
 const PROFILES = ['bob'];
 async function loadProfile(name: string): Promise<Profile> {
   const warn = (what: string) => console.warn(`profile ${name}: ${what}`);
@@ -59,7 +62,7 @@ async function loadProfile(name: string): Promise<Profile> {
   const layout: Layout = raw.layout === 'a' || raw.layout === 'b' ? raw.layout : (warn(`layout ${JSON.stringify(raw.layout)} isn't a or b, using a`), 'a');
   if (raw.scenario !== undefined && raw.scenario !== 'proposed') warn(`scenario ${JSON.stringify(raw.scenario)}: a profile is always proposed`);
   const given = raw.options && typeof raw.options === 'object' ? raw.options : {};
-  for (const k of Object.keys(given)) if (!(k in OPTION_LISTS)) warn(`unknown option ${k}, ignored`);
+  for (const k of Object.keys(given)) if (!(k in OPTION_LISTS) && !RETIRED_OPTIONS.includes(k)) warn(`unknown option ${k}, ignored`);
   const options = Object.fromEntries((Object.keys(OPTION_LISTS) as OptionField[]).map(k => {
     // Layout B's own default pillar fence (see the Round 26 note in main())
     const def = k === 'pier' && layout === 'b' ? 'pier_straight_edge' : OPTION_DEFAULTS[k], v = given[k];
@@ -84,7 +87,7 @@ if (profile) document.documentElement.classList.add('profile');
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
   /** Round 26: the lighting adjust panel's settings, per scheme. */ lightAdjust?: Record<string, LightAdjust>;
   /** Round 26: a pillar fence was picked on purpose (so Layout B's own default doesn't replace it). */ pierChosen?: boolean;
-  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting' | 'wallcap' | 'deck' | 'corner', string>> };
+  options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting' | 'wallcap' | 'deck', string>> };
 // a profile keeps its viewer's preferences (quality, fps, people, mode, dims) apart, and never any of the design
 const SETTINGS_KEY = profile ? 'pool-settings-profile' : 'pool-settings';
 const DESIGN_SETTINGS = ['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen'] as const;
@@ -340,7 +343,7 @@ async function main() {
   let heldPier: string | null = null;
   /** A scheme's light adjustments: your own (Round 26), or in a profile only the profile's, for its scheme. */
   const adjustFor = (scheme: string) => profile ? (scheme === profile.lights.scheme ? profile.lights.adjust : null) : settings.lightAdjust?.[scheme] ?? null;
-  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence, bplant: model.bplant, lighting: model.lighting, wallcap: model.wallcap, deck: model.deck, corner: model.corner });
+  const currentOptions = () => ({ roller: model.roller, kitchen: model.kitchen, post: model.post, pump: model.pump, play: model.play, spaCover: model.spaCover, pier: heldPier ?? model.pier, nfence: model.nfence, passage: model.passage, bfence: model.bfence, bplant: model.bplant, lighting: model.lighting, wallcap: model.wallcap, deck: model.deck });
   const optChanged = () => {
     for (const b of blanketsRef?.boxes ?? []) if (model.roller !== b.group && b.phase !== 'in') blanketsRef!.reset(b, hingesRef!);
     model.apply(); syncCovers(); walker.rebuild(model.root); shadowDirty = true; shadowHold = 60;
@@ -426,7 +429,6 @@ async function main() {
   group('bplant', BPLANT_CHOICES, 'bplant', () => '13_deep_end_to_house');
   group('wallcap', WALLCAP_CHOICES, 'wallcap', () => '13_deep_end_to_house');
   group('deck', DECK_CHOICES, 'deck', () => '14_spa_to_canal');
-  group('corner', CORNER_CHOICES, 'corner', () => '24_lounge_corner');
   // Round 27: the spa deck's outline is a Layout B option; SK02's layout has the one squared deck, so grey them there
   if (LAYOUT === 'a') {
     for (const card of $('cards-deck').querySelectorAll<HTMLButtonElement>('.card')) {
@@ -573,7 +575,7 @@ async function main() {
     { id: 'layout', name: 'Layout', summary: () => title(LAYOUT_CHOICES, LAYOUT) },
     { id: 'pool', name: 'Pool cover', summary: () => title(ROLLER_CHOICES, model.roller) },
     { id: 'spacover', name: 'Hot tub cover', summary: () => title(SPA_COVER_CHOICES, model.spaCover) },
-    { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()} · ${title(CORNER_CHOICES, model.corner).toLowerCase()}` },
+    { id: 'alfresco', name: 'Alfresco', summary: () => `${title(KITCHEN_CHOICES, model.kitchen)} · ${title(POST_CHOICES, model.post).toLowerCase()}` },
     { id: 'fences', name: 'Fences', summary: () => `Pillar: ${title(PIER_CHOICES, model.pier).toLowerCase()} · North: ${title(NFENCE_CHOICES, model.nfence).toLowerCase()}` },
     { id: 'boundary', name: 'Boundary fence', summary: () => title(BFENCE_CHOICES, model.bfence) },
     { id: 'bplant', name: 'Along the boundary wall', summary: () => title(BPLANT_CHOICES, model.bplant) },
@@ -948,7 +950,6 @@ async function main() {
   model.bplant = valid(o.bplant, BPLANT_CHOICES) ?? model.bplant;
   model.wallcap = valid(o.wallcap, WALLCAP_CHOICES) ?? model.wallcap;
   model.deck = valid(o.deck, DECK_CHOICES) ?? model.deck;
-  model.corner = valid(o.corner, CORNER_CHOICES) ?? model.corner;
   model.lighting = valid(o.lighting, lightingChoices) ?? model.lighting;
   if (profile && model.lighting !== profile.lights.scheme) console.warn(`profile ${profile.name}: lights.scheme ${JSON.stringify(profile.lights.scheme)} isn't a scheme in this model, using ${model.lighting}`);
   if (settings.scenario === 'existing' && !params.has('scenario') && !profile) setScenario('existing');
@@ -974,9 +975,8 @@ async function main() {
     model.bplant = fromParam('bplant', BPLANT_CHOICES, 'bplant_') ?? model.bplant;
     model.wallcap = fromParam('wallcap', WALLCAP_CHOICES, 'wallcap_') ?? model.wallcap;
     model.deck = fromParam('deck', DECK_CHOICES, 'deck_') ?? model.deck;
-    model.corner = fromParam('corner', CORNER_CHOICES, 'corner_') ?? model.corner;
     model.lighting = fromParam('lighting', lightingChoices, 'lights_') ?? model.lighting;
-    if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting', 'wallcap', 'deck', 'corner'].some(k => params.has(k))) { optChanged(); renderRoller(); }
+    if (['roller', 'kitchen', 'post', 'pump', 'play', 'spacover', 'pier', 'pillar', 'nfence', 'passage', 'bfence', 'bplant', 'lighting', 'wallcap', 'deck'].some(k => params.has(k))) { optChanged(); renderRoller(); }
     fromUrl = false;
   }
   /**
@@ -1008,7 +1008,6 @@ async function main() {
     model.bplant = keep('bplant', valid(ho.bplant, BPLANT_CHOICES)); model.lighting = valid(ho.lighting, lightingChoices) ?? model.lighting;
     // (the deck outline only exists in Layout B: carried over as it is, never "not built here")
     model.wallcap = keep('wallcap', valid(ho.wallcap, WALLCAP_CHOICES)); model.deck = valid(ho.deck, DECK_CHOICES) ?? model.deck;
-    model.corner = keep('corner', valid(ho.corner, CORNER_CHOICES));
     model.people = handoff.people; peopleBox.checked = model.people;
     if (handoff.scenario !== S.scenario) setScenario(handoff.scenario);
     optChanged(); renderRoller();

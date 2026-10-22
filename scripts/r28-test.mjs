@@ -1,9 +1,8 @@
-// Round 28 tests: the Bench corner (corner_*, both layouts). Cards and the default, each option's parts (in SK02's
-// layout with the drawn post and with the corner post's moved steps, whose bench has its own post_corner_steps+corner_*
-// pieces), the bench_corner dims following, no camera jump when switching (walking in the lounge, flying), ?corner=,
-// remembered choices and goToCam('24_lounge_corner'). Then the pavilion deck's furniture (sofa set, pots,
+// Round 28 tests (the Bench corner option is gone since Round 29: the bench is mitred round the corner). No Bench
+// corner cards, ?corner= ignored quietly, and an older export's corner pieces never doubled up (only the old default,
+// timber, shows). goToCam('24_lounge_corner') in fly and walk. Then the pavilion deck's furniture (sofa set, pots,
 // wall baskets, BBQ; in both scenarios now): walking across the deck with key presses, you move, never end up inside
-// a piece's footprint, and stay on the deck. Screenshots of each option and the deck. Headless on the real GPU.
+// a piece's footprint, and stay on the deck. Screenshots of the corner and the deck. Headless on the real GPU.
 //   node scripts/r28-test.mjs [--out review/round22corner]
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
@@ -34,56 +33,22 @@ const parts = (p, key) => p.evaluate(k => {
   return [v, n];
 }, key);
 const shot = async (p, name, cam) => { await p.evaluate(c => { __viewer.setMode('fly'); __viewer.goToCam(c, true); }, cam); await p.waitForTimeout(1600); await p.locator('#canvas').screenshot({ path: `${OUT}/${name}.png` }); };
-const CORNERS = ['corner_timber', 'corner_aggregate'];
 const pos = p => p.evaluate(() => __viewer.camera.position.toArray());
 
 for (const L of ['a', 'b']) {
   const ctx = await b.newContext();
   let p = await open(ctx, `&layout=${L}`);
-  // ---- cards and the default
+  // ---- no Bench corner group, and an older export's corner pieces show once (timber), never both
   await p.evaluate(() => { __viewer.setPanel(true); window.__openCategory('alfresco'); });
-  const cc = await p.evaluate(() => [...document.querySelectorAll('#cards-corner .card')].map(c => ({ t: c.querySelector('b').textContent, off: c.disabled })));
-  check(`${L}: Alfresco > Bench corner: two cards, timber by default`, cc.map(c => c.t).join(' | ') === 'Timber corner | Aggregate corner' && !cc.some(c => c.off) && (await p.evaluate(() => __viewer.model.corner)) === 'corner_timber', cc.map(c => c.t).join(' | '));
+  check(`${L}: Alfresco has no Bench corner cards`, (await p.locator('#cards-corner, #corner-h').count()) === 0 && (await p.evaluate(() => __viewer.model.corner)) === undefined);
   await p.screenshot({ path: `${OUT}/${L}_panel_alfresco.png` });
-  // ---- each option's parts: in SK02's layout the plain pieces go with the drawn post, the steps' bench with post_corner_steps
   for (const post of ['post_as_drawn', 'post_corner_steps']) {
-    await opt(p, 'post', post);
-    for (const k of CORNERS) {
-      await opt(p, 'corner', k); await p.waitForTimeout(150);
-      const other = CORNERS.find(c => c !== k), steps = post === 'post_corner_steps' && L === 'a';
-      const mine = await parts(p, k), mineSteps = await parts(p, `post_corner_steps+${k}`);
-      const theirs = await parts(p, other), theirsSteps = await parts(p, `post_corner_steps+${other}`);
-      const ok = mine[1] > 0 && theirs[0] === 0 && theirsSteps[0] === 0 &&
-        (steps ? mine[0] === 0 && mineSteps[1] > 0 && mineSteps[0] === mineSteps[1] : mine[0] === mine[1] && mineSteps[0] === 0) &&
-        (L === 'a' ? mineSteps[1] > 0 : mineSteps[1] === 0);
-      check(`${L} (${post}): ${k} shows, the other doesn't`, ok, `plain ${mine[0]}/${mine[1]}, steps ${mineSteps[0]}/${mineSteps[1]}; other ${theirs[0]}/${theirs[1]}, ${theirsSteps[0]}/${theirsSteps[1]}`);
-      // ---- the dims follow (the bench corner's height, and the steps' version with the corner post in A)
-      await p.evaluate(() => __viewer.setDims(true)); await p.waitForTimeout(300);
-      const ids = await p.evaluate(() => __viewer.dims.current().map(x => x.id));
-      const pre = steps ? 'bench_steps_corner' : 'bench_corner';
-      const want = [`${pre}_${k.slice(7)}_height`, pre], notWant = [`bench_corner_${other.slice(7)}_height`, `bench_steps_corner_${other.slice(7)}_height`, ...(L === 'a' ? [steps ? `bench_corner_${k.slice(7)}_height` : `bench_steps_corner_${k.slice(7)}_height`] : [])];
-      check(`${L} (${post}): ${k}: the dims follow`, want.every(i => ids.includes(i)) && !notWant.some(i => ids.includes(i)), want.filter(i => !ids.includes(i)).concat(notWant.filter(i => ids.includes(i))).join(', '));
-      await p.evaluate(() => __viewer.setDims(false));
-      if (post === 'post_as_drawn') { await shot(p, `${L}_${k}_24`, '24_lounge_corner'); await shot(p, `${L}_${k}_15`, '15_lounge_from_alfresco'); }
-    }
+    await opt(p, 'post', post); await p.waitForTimeout(150);
+    const agg = [...await parts(p, 'corner_aggregate'), ...await parts(p, 'post_corner_steps+corner_aggregate')];
+    check(`${L} (${post}): no aggregate corner pieces show`, agg[0] === 0 && agg[2] === 0, `${agg[0]}/${agg[1]}, steps ${agg[2]}/${agg[3]}`);
   }
-  await opt(p, 'post', 'post_as_drawn'); await opt(p, 'corner', 'corner_timber');
-  // ---- no camera jump: standing in the lounge just off the corner, and flying
-  const dx = L === 'b' ? 0.76 : 0;
-  await p.evaluate(x => { __viewer.setMode('walk'); __viewer.place(0.9 + x, 1.8, 6.45, 315, -10); }, dx); await p.waitForTimeout(800);
-  for (const k of ['corner_aggregate', 'corner_timber', 'corner_aggregate']) {
-    const a = await pos(p);
-    await opt(p, 'corner', k); await p.waitForTimeout(500);
-    const c = await pos(p);
-    const dxz = Math.hypot(c[0] - a[0], c[2] - a[2]), dy = c[1] - a[1];
-    check(`${L}, walking by the corner: to ${k}, no jump`, dxz < 0.01 && Math.abs(dy) < 0.15, `moved ${dxz.toFixed(3)} m, up/down ${dy.toFixed(3)} m`);
-  }
-  await p.evaluate(x => __viewer.walker.startFly(new __viewer.THREE.Vector3(0.9 + x, 3.4, 7.2), -0.8, -0.4), dx); await p.waitForTimeout(500);
-  const f0 = await pos(p);
-  for (const k of ['corner_timber', 'corner_aggregate', 'corner_timber']) { await opt(p, 'corner', k); await p.waitForTimeout(200); }
-  await p.waitForTimeout(400);
-  const f1 = await pos(p);
-  check(`${L}, flying: switching the corner, the camera stays put`, Math.hypot(f1[0] - f0[0], f1[2] - f0[2]) < 0.01 && Math.abs(f1[1] - f0[1]) < 0.15, `moved ${Math.hypot(f1[0] - f0[0], f1[2] - f0[2]).toFixed(3)} m`);
+  await opt(p, 'post', 'post_as_drawn');
+  await shot(p, `${L}_corner_24`, '24_lounge_corner'); await shot(p, `${L}_corner_15`, '15_lounge_from_alfresco');
   // ---- goToCam('24_lounge_corner'): the camera lands on the render's camera
   const cam = await p.evaluate(async L => (await (await fetch(`../web/cameras${L === 'b' ? '-b' : ''}.json`)).json()).find(c => c.name === '24_lounge_corner'), L);
   for (const mode of ['fly', 'walk']) {
@@ -92,17 +57,10 @@ for (const L of ['a', 'b']) {
     check(`${L}: goToCam('24_lounge_corner') (${mode})`, !!cam && dh < 0.35 && dv < 0.35, `${dh.toFixed(2)} m off, ${dv.toFixed(2)} m up/down`);
   }
   await p.close();
-  // ---- URL param and remembered choice
+  // ---- a stale ?corner= is ignored, with no console error (the 'console clean' check at the end)
   p = await open(ctx, `&layout=${L}&corner=aggregate`);
-  const u = await p.evaluate(() => __viewer.model.corner);
-  check(`${L}: ?corner=aggregate`, u === 'corner_aggregate', u);
-  await p.close();
-  p = await open(ctx, `&layout=${L}`);
-  await p.evaluate(() => { __viewer.setPanel(true); window.__openCategory('alfresco'); });
-  await p.locator('#cards-corner .card').filter({ has: p.locator('b', { hasText: /^Aggregate corner$/ }) }).click();
-  await p.reload(); await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 180000 });
-  const r = await p.evaluate(() => __viewer.model.corner);
-  check(`${L}: the picked card is remembered`, r === 'corner_aggregate', r);
+  const u = await p.evaluate(() => [__viewer.model.corner, document.querySelectorAll('#cards-corner').length]);
+  check(`${L}: ?corner=aggregate is ignored`, u[0] === undefined && u[1] === 0, JSON.stringify(u));
   await p.close(); await ctx.close();
 }
 
