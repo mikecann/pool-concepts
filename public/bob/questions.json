@@ -5,7 +5,17 @@
       {
         "id": "layout-b",
         "title": "The layout changed slightly since your SK02 drawing",
-        "detail": "The lounge wall moved 0.88 m east to line up with the house, the pool moved 0.5 m east, and the lounge now runs out to the old garden bed. The 3D model and drawings show it all."
+        "detail": "The lounge wall moved 0.88 m east to line up with the house, the pool moved 0.5 m east, and the lounge now runs out to the old garden bed. The 3D model and drawings show it all.",
+        "images": [
+          {
+            "src": "../model/img/07_aerial_southwest__proposed.jpg",
+            "caption": "Your SK02 layout"
+          },
+          {
+            "src": "renders/07_aerial_southwest__proposed.jpg",
+            "caption": "Our layout now"
+          }
+        ]
       }
     ]
   },
@@ -15,17 +25,35 @@
       {
         "id": "east-fence",
         "title": "East fence past the pillar",
-        "detail": "Can the fence run straight past the east face of the pavilion pillar (so the pillar's inside the pool area), then along the deck edge?"
+        "detail": "Can the fence run straight past the east face of the pavilion pillar (so the pillar's inside the pool area), then along the deck edge?",
+        "images": [
+          {
+            "src": "renders/q/q_east_fence__proposed.jpg",
+            "caption": "The fence stepping past the pillar"
+          }
+        ]
       },
       {
         "id": "kitchen-slider",
         "title": "Kitchen sliding door",
-        "detail": "Our quote from the builder includes a security door for it, permanently fixed shut since it opens into the pool area. Does it need to be in the drawings?"
+        "detail": "Our quote from the builder includes a security door for it, permanently fixed shut since it opens into the pool area. Does it need to be in the drawings?",
+        "images": [
+          {
+            "src": "renders/q/q_kitchen_slider__proposed.jpg",
+            "caption": "The kitchen sliding door"
+          }
+        ]
       },
       {
         "id": "north-fence",
         "title": "North fence moved north",
-        "detail": "About 1.5 m further north than SK02, with the play area moved north too so it stays clear."
+        "detail": "About 1.5 m further north than SK02, with the play area moved north too so it stays clear.",
+        "images": [
+          {
+            "src": "renders/q/q_north_fence__proposed.jpg",
+            "caption": "The moved north fence"
+          }
+        ]
       },
       {
         "id": "boundary",
@@ -40,12 +68,28 @@
       {
         "id": "deck-edges",
         "title": "Timber deck: how does it finish at the edges?",
-        "detail": "We're not sure how the timber deck should finish. In the 3D model it runs right out to the edges. But if it has to sit on timber bearers, the limestone walls might need a cap round the edge like the sunken fire pit lounge, with the timber framed inside it. If so, the narrow strip along the east fence is probably too thin for timber, so the timber would stop at the spa deck, level with the lounge's south wall. What do you reckon?"
+        "detail": "We're not sure how the timber deck should finish. In the 3D model it runs right out to the edges. But if it has to sit on timber bearers, the limestone walls might need a cap round the edge like the sunken fire pit lounge, with the timber framed inside it. If so, the narrow strip along the east fence is probably too thin for timber, so the timber would stop at the spa deck, level with the lounge's south wall. What do you reckon?",
+        "images": [
+          {
+            "src": "renders/q/q_deck_edges__proposed.jpg",
+            "caption": "Preferred: timber to the edges"
+          },
+          {
+            "src": "renders/q/q_deck_edges__proposed_framed_short.jpg",
+            "caption": "Alternative: capped edge, timber stops at the spa deck"
+          }
+        ]
       },
       {
         "id": "equipment",
         "title": "Pump room: will it all fit?",
-        "detail": "Will everything fit in there, with enough ventilation? That's the pool and spa pumps and filter now, plus pool heating and spa heating equipment later, all reached through the doors."
+        "detail": "Will everything fit in there, with enough ventilation? That's the pool and spa pumps and filter now, plus pool heating and spa heating equipment later, all reached through the doors.",
+        "images": [
+          {
+            "src": "renders/q/22_pump_room__proposed_open.jpg",
+            "caption": "The pump room under the spa deck"
+          }
+        ]
       }
     ]
   },
@@ -60,7 +104,13 @@
       {
         "id": "roof-post",
         "title": "One post at the roof corner",
-        "detail": "A single post at the south-west corner, sitting on the lounge wall with a pier as its footing. Can the wall take it?"
+        "detail": "A single post at the south-west corner, sitting on the lounge wall with a pier as its footing. Can the wall take it?",
+        "images": [
+          {
+            "src": "renders/q/q_roof_post__proposed.jpg",
+            "caption": "The corner post on the lounge wall"
+          }
+        ]
       }
     ]
   },
@@ -70,7 +120,13 @@
       {
         "id": "coping-edge",
         "title": "Coping and edging",
-        "detail": "We'd like to talk through the coping and edge details in general: round the pool (400 x 400 aggregate, square or drop edge), round the sunken fire pit lounge, the wall tops and anywhere else the paving meets an edge."
+        "detail": "We'd like to talk through the coping and edge details in general: round the pool (400 x 400 aggregate, square or drop edge), round the sunken fire pit lounge, the wall tops and anywhere else the paving meets an edge.",
+        "images": [
+          {
+            "src": "renders/q/q_coping_edge__proposed.jpg",
+            "caption": "Pool coping and the lounge wall cap"
+          }
+        ]
       },
       {
         "id": "aggregate-tbd",
@@ -85,7 +141,13 @@
       {
         "id": "roller-pit",
         "title": "Below ground pool roller",
-        "detail": "We'd like one at the deep end, but we suspect it's too narrow there (only about 0.41 m of paving between the coping and the wall cap at the tight corner, plus the wall's footing). If it's not possible, we'll need to discuss."
+        "detail": "We'd like one at the deep end, but we suspect it's too narrow there (only about 0.41 m of paving between the coping and the wall cap at the tight corner, plus the wall's footing). If it's not possible, we'll need to discuss.",
+        "images": [
+          {
+            "src": "renders/q/q_roller_pit__proposed.jpg",
+            "caption": "Deep end, lids open"
+          }
+        ]
       }
     ]
   },
@@ -95,7 +157,17 @@
       {
         "id": "lighting",
         "title": "Lighting in the sunken lounge",
-        "detail": "What's required on the drawings for the lighting we'd like in the sunken fire pit lounge?"
+        "detail": "What's required on the drawings for the lighting we'd like in the sunken fire pit lounge?",
+        "images": [
+          {
+            "src": "renders/15_lounge_from_alfresco__proposed_dusk.jpg",
+            "caption": "Dusk"
+          },
+          {
+            "src": "renders/15_lounge_from_alfresco__proposed_night.jpg",
+            "caption": "Night"
+          }
+        ]
       }
     ]
   }

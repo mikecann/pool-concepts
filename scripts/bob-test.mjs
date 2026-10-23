@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);
 // Bob's page (/bob/) and the walkthrough's locked profile mode (/model/walk/?profile=bob). The profile wins over the
 // visitor's saved design and over URL options; it opens flying; no option UI shows, just the settings in the side
 // panel (Show dimensions, Quality, Walk/Fly, Measure, a help line); the visitor's own 'pool-settings' is never written (the profile's per-viewer preferences go to 'pool-settings-profile'), and the
@@ -207,7 +208,8 @@ check('no "Invalid Date" anywhere on the page', !(await (async () => { const q =
   check('  captions under them', (await li.locator('.qpics span').allTextContents()).join('|') === 'From across the canal|From the air');
   const qbox = await ip.locator('#questions').boundingBox(), pbox = await li.locator('.qpics').boundingBox();
   check('  inside the right-hand column', pbox.x >= qbox.x && pbox.x + pbox.width <= qbox.x + qbox.width + 1, `${Math.round(pbox.x)}-${Math.round(pbox.x + pbox.width)} in ${Math.round(qbox.x)}-${Math.round(qbox.x + qbox.width)}`);
-  check('  other items have none', (await ip.locator('.qpics').count()) === 1);
+  const withPics = 1 + JSON.parse(require('node:fs').readFileSync('public/bob/questions.json', 'utf8')).flatMap(s => s.items).filter(i => i.images?.length).length;
+  check('  only items with pictures show them', (await ip.locator('.qpics').count()) === withPics, `${await ip.locator('.qpics').count()} vs ${withPics}`);
   await ip.screenshot({ path: `${OUT}/bob-pics-1440.png` });
   await li.locator('.qpics a').nth(1).click(); await ip.waitForTimeout(400);
   const z = await ip.evaluate(() => ({ open: document.getElementById('zoom').open, src: document.getElementById('zoom-img').getAttribute('src'), cap: document.getElementById('zoom-cap').textContent }));
