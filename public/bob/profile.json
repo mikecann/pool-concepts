@@ -1,7 +1,7 @@
 {
   "layout": "b",
   "scenario": "proposed",
-  "revised": "2026-10-21",
+  "revised": "2026-10-23",
   "options": {
     "roller": "roller_pit",
     "kitchen": "kitchen_none",
@@ -13,7 +13,7 @@
     "passage": "passage_pavers",
     "bfence": "bfence_tubular",
     "bplant": "bplant_pots",
-    "wallcap": "wallcap_aggregate",
+    "wallcap": "wallcap_none",
     "deck": "deck_wide",
     "pier": "pier_straight_edge"
   },
