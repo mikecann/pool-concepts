@@ -42,12 +42,14 @@
 <path d="M43.187,88.6 L127.774,88.6 L127.774,97.6 L43.187,97.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M204.235,110.6 L249,110.6 L249,110.6 L204.235,110.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M249,110.6 L258.13,110.6 L258.13,110.6 L249,110.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M127.714,86.98 L131.974,86.98 L131.974,86.98 L127.714,86.98 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M238.614,88.8 L238.614,94.2 L232.914,94.7 L232.614,102.1 L211.214,102.1 L210.914,94.7 L205.214,94.2 L205.214,88.8 Z" fill="url(#water)" fill-rule="evenodd" stroke="#000" stroke-width="0.1" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M24,86.6 L37,86.6 L37,95.6 L24,95.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M266.26,221.4 L319,221.4 L319,230.4 L266.26,230.4 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M187.058,223.6 L262.267,223.6 L262.267,232.6 L187.058,232.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M42.176,211.6 L83.606,211.6 L83.606,220.6 L42.176,220.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M165.601,211.6 L182.857,211.6 L182.857,220.6 L165.601,220.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M182.798,209.98 L187.057,209.98 L187.057,209.98 L182.798,209.98 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M79.606,211.8 L169.602,211.8 L169.602,254.6 L79.606,254.6 Z" fill="url(#earth)" fill-rule="evenodd" stroke="none" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M84.606,212.6 L84.606,246 L84.729,246.932 L85.088,247.8 L85.66,248.546 L86.406,249.118 L87.274,249.477 L88.206,249.6 L161.002,249.6 L161.934,249.477 L162.802,249.118 L163.548,248.546 L164.12,247.8 L164.479,246.932 L164.602,246 L164.602,212.6 Z" fill="url(#water)" fill-rule="evenodd" stroke="#000" stroke-width="0" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <polyline points="296.652,129.8 314,129.8" fill="none" stroke="#000" stroke-width="0.18" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipA)"/>
@@ -57,13 +59,13 @@
 <path d="M43.187,86.6 L127.774,86.6 L127.774,88.6 L43.187,88.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M204.235,108.6 L249,108.6 L249,110.6 L204.235,110.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M249,108.6 L258.13,108.6 L258.13,110.6 L249,110.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
+<path d="M127.714,86.57 L131.974,86.57 L131.974,86.98 L127.714,86.98 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M289.758,113.6 L296.652,113.6 L296.652,166 L289.758,166 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M200.434,87.6 L204.214,87.6 L204.214,110.6 L200.434,110.6 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M258.329,108.6 L263.329,108.6 L263.329,113.4 L258.329,113.4 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M258.329,87 L263.329,87 L263.329,89.6 L258.329,89.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M127.974,87 L131.974,87 L131.974,101.6 L127.974,101.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M196.234,87 L200.234,87 L200.234,101.6 L196.234,101.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipA)" stroke-linejoin="round"/>
-<path d="M127.374,86.2 L132.573,86.2 L132.573,87.1 L127.374,87.1 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M263.386,86.6 L263.787,86.6 L263.787,89.6 L263.386,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M195.795,86.6 L196.194,86.6 L196.194,89.6 L195.795,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
 <path d="M200.275,86.6 L200.395,86.6 L200.395,89.6 L200.275,89.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipA)" stroke-linejoin="round"/>
@@ -112,13 +114,13 @@
 <polyline points="187.058,223.6 262.267,223.6" fill="none" stroke="#000" stroke-width="0.25" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
 <path d="M42.176,209.6 L83.606,209.6 L83.606,211.6 L42.176,211.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M165.601,209.6 L182.857,209.6 L182.857,211.6 L165.601,211.6 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
+<path d="M182.798,209.57 L187.057,209.57 L187.057,209.98 L182.798,209.98 Z" fill="url(#conc)" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M183.057,210 L187.058,210 L187.058,224.6 L183.057,224.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M262.267,210 L266.268,210 L266.268,224.6 L262.267,224.6 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M280.521,210 L284.119,210 L284.119,223 L280.521,223 Z" fill="url(#hatch45)" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M39.845,202 L44.507,202 L44.507,237.4 L39.845,237.4 Z" fill="#cfcfcf" fill-rule="evenodd" stroke="#000" stroke-width="0.25" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M76.606,209.48 L85.206,209.48 L85.206,210.8 L76.606,210.8 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M164.002,209.48 L172.602,209.48 L172.602,210.8 L164.002,210.8 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
-<path d="M182.458,209.2 L187.658,209.2 L187.658,210.1 L182.458,210.1 Z" fill="#d9d9d9" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M261.828,209.6 L262.227,209.6 L262.227,212.6 L261.828,212.6 Z" fill="#fbf7f0" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <path d="M262.308,209.6 L284.08,209.6 L284.08,210.1 L262.308,210.1 Z" fill="#c9b79c" fill-rule="evenodd" stroke="#000" stroke-width="0.18" clip-path="url(#clipB)" stroke-linejoin="round"/>
 <polyline points="84.606,210.6 84.606,246 84.729,246.932 85.088,247.8 85.66,248.546 86.406,249.118 87.274,249.477 88.206,249.6 161.002,249.6 161.934,249.477 162.802,249.118 163.548,248.546 164.12,247.8 164.479,246.932 164.602,246 164.602,210.6" fill="none" stroke="#000" stroke-width="0.5" stroke-linecap="butt" stroke-linejoin="round" clip-path="url(#clipB)"/>
