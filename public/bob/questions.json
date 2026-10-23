@@ -119,12 +119,20 @@
     "items": [
       {
         "id": "coping-edge",
-        "title": "Coping and edging",
-        "detail": "We'd like to talk through the coping and edge details in general: round the pool (400 x 400 aggregate, square or drop edge), round the sunken fire pit lounge, the wall tops and anywhere else the paving meets an edge.",
+        "title": "Coping and capping: where do we actually need it?",
+        "detail": "We think we'll need coping round the pool (400 x 400 aggregate, square or drop edge). But do we need capping anywhere else, like round the sunken fire pit lounge or along the wall facing the canal? Could it just be aggregate right to the edge there?",
         "images": [
           {
+            "src": "../model/img/layoutb_13_deep_end_to_house_wallcap_aggregate.jpg",
+            "caption": "With capping on the walls"
+          },
+          {
+            "src": "../model/img/layoutb_13_deep_end_to_house_wallcap_none.jpg",
+            "caption": "Aggregate right to the edge"
+          },
+          {
             "src": "renders/q/q_coping_edge__proposed.jpg",
-            "caption": "Pool coping and the lounge wall cap"
+            "caption": "Pool coping and the lounge wall cap, close up"
           }
         ]
       },
