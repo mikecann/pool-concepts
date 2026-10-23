@@ -187,6 +187,45 @@ await p.pdf({ path: `${OUT}/bob.pdf`, format: 'A4', printBackground: true });
 await p.close(); await pctx.close();
 
 check('no "Invalid Date" anywhere on the page', !(await (async () => { const q = await b.newPage(); await q.goto(`${SITE}/bob/`); await q.waitForTimeout(1500); const t = await q.locator('body').innerText(); await q.close(); return /Invalid Date/.test(t); })()));
+// ---- an item's pictures (images: [{src, caption}]): a test copy of questions.json with one extra item, served in
+// place of the real one (which isn't touched)
+{
+  const ictx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+  const ip = await ictx.newPage(); watch(ip, 'bob pics');
+  const real = JSON.parse(readFileSync('public/bob/questions.json', 'utf8'));
+  const IMGS = [{ src: 'renders/01_canal_view__proposed.jpg', caption: 'From across the canal' }, { src: '../model/img/layoutb_07_aerial_southwest.jpg', caption: 'From the air' }];
+  const test = [...real, { section: 'Test pictures', items: [{ id: 'test-pics', title: 'An item with pictures', detail: 'Two of them.', images: IMGS }] }];
+  await ip.route('**/bob/questions.json', r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(test) }));
+  await ip.goto(`${SITE}/bob/`);
+  await ip.waitForFunction(() => document.querySelector('input[data-id="test-pics"]'), null, { timeout: 15000 });
+  const li = ip.locator('li', { has: ip.locator('input[data-id="test-pics"]') });
+  await li.scrollIntoViewIfNeeded();
+  await ip.waitForFunction(() => [...document.querySelectorAll('.qpics img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 15000 });
+  const th = await li.locator('.qpics img').evaluateAll(is => is.map(i => ({ h: Math.round(i.getBoundingClientRect().height), w: i.naturalWidth, src: i.getAttribute('src') })));
+  check('pictures: two thumbnails under the item, loaded, ~96-120 px high', th.length === 2 && th.every(t => t.w > 0 && t.h >= 96 && t.h <= 120), JSON.stringify(th));
+  check('  paths relative to /bob/', th[0]?.src.endsWith('/bob/renders/01_canal_view__proposed.jpg') && th[1]?.src.endsWith('/model/img/layoutb_07_aerial_southwest.jpg'));
+  check('  captions under them', (await li.locator('.qpics span').allTextContents()).join('|') === 'From across the canal|From the air');
+  const qbox = await ip.locator('#questions').boundingBox(), pbox = await li.locator('.qpics').boundingBox();
+  check('  inside the right-hand column', pbox.x >= qbox.x && pbox.x + pbox.width <= qbox.x + qbox.width + 1, `${Math.round(pbox.x)}-${Math.round(pbox.x + pbox.width)} in ${Math.round(qbox.x)}-${Math.round(qbox.x + qbox.width)}`);
+  check('  other items have none', (await ip.locator('.qpics').count()) === 1);
+  await ip.screenshot({ path: `${OUT}/bob-pics-1440.png` });
+  await li.locator('.qpics a').nth(1).click(); await ip.waitForTimeout(400);
+  const z = await ip.evaluate(() => ({ open: document.getElementById('zoom').open, src: document.getElementById('zoom-img').getAttribute('src'), cap: document.getElementById('zoom-cap').textContent }));
+  check('  clicking one opens it in the lightbox, with its caption', z.open && z.src.endsWith('/model/img/layoutb_07_aerial_southwest.jpg') && z.cap === 'From the air', JSON.stringify(z));
+  check('  and doesn\'t tick the item', !(await ip.locator('input[data-id="test-pics"]').isChecked()));
+  await ip.screenshot({ path: `${OUT}/bob-pics-lightbox.png` });
+  await ip.keyboard.press('Escape');
+  await ip.setViewportSize({ width: 390, height: 844 }); await ip.waitForTimeout(300);
+  await li.scrollIntoViewIfNeeded();
+  check('pictures at 390: no sideways scroll', await ip.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await li.screenshot({ path: `${OUT}/bob-pics-390.png` });
+  await ip.setViewportSize({ width: 1440, height: 900 });
+  await ip.emulateMedia({ media: 'print' });
+  const ph = await li.locator('.qpics img').first().evaluate(i => Math.round(i.getBoundingClientRect().height));
+  check('pictures in print: small', ph > 0 && ph <= 70, `${ph} px`);
+  await ictx.close();
+}
+
 check('console clean', errs.length === 0, errs.slice(0, 3).join(' | '));
 console.log(fail ? `${fail} FAILED` : 'PASS');
 await b.close();

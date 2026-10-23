@@ -45,6 +45,7 @@ h1, h2, h3, .jump a, .tile b, .btn, .tb-row b { font-family: var(--font-display)
 .muted { color: var(--muted); }
 
 /* the sticky jump bar */
+.sec-note { margin: -4px 0 14px; color: var(--muted); font-size: 14px; }
 .jump { position: sticky; top: 0; z-index: 5; background: var(--paper); border-bottom: 2px solid var(--ink); padding-top: env(safe-area-inset-top, 0px); }
 .jump .wrap { display: flex; align-items: center; gap: 4px 18px; min-height: 44px; flex-wrap: wrap; padding-block: 6px; }
 .jump .home { font-size: 18px; color: var(--ink); text-decoration: none; margin-right: auto; }
@@ -119,6 +120,13 @@ h2 { font-size: clamp(24px, 3.2vw, 30px); line-height: 1; }
 .q input { grid-row: span 2; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
 .q b { font-weight: 600; }
 .q span { color: var(--muted); font-size: 14px; }
+/* an item's pictures (optional images: [{src, caption}] in questions.json), under its detail and outside the label so
+   clicking one opens the lightbox instead of ticking the box; lined up with the text, past the checkbox */
+.qpics { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0 12px 12px 44px; list-style: none; }
+.qpics a { display: grid; gap: 3px; max-width: 180px; color: var(--muted); font-size: 12px; line-height: 1.3; text-decoration: none; cursor: zoom-in; }
+.qpics img { display: block; height: 104px; width: auto; max-width: 180px; object-fit: cover; border: 1px solid var(--rule); background: var(--sheet); }
+.qpics a:hover img { border-color: var(--ink); }
+@media (max-width: 520px) { .qpics img { height: 88px; max-width: 140px; } .qpics a { max-width: 140px; } }
 .q:has(input:checked) b { text-decoration: line-through; text-decoration-color: var(--muted); }
 .count { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
 
@@ -157,6 +165,8 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
   .entries { grid-template-columns: 1fr 1fr; gap: 14px; }
   .drawings .entries { grid-template-columns: 1fr; }
   .entry, .qlist li { break-inside: avoid; }
+  .qpics img { height: 64px; max-width: 110px; border-color: #999; }
+  .qpics a { max-width: 110px; font-size: 10px; color: #000; }
   .shot { aspect-ratio: auto; border-color: #999; }
   .shot img { height: auto; object-fit: contain; }
   /* the boxes print empty, ticked or not, so Bob can tick them on paper */
@@ -210,6 +220,7 @@ dialog button { font: inherit; background: var(--on-scrim); color: #172225; bord
 
   <section id="drawings" class="page drawings" aria-labelledby="drawings-h">
     <div class="sec-head"><h2 id="drawings-h">Drawings</h2></div>
+    <p class="sec-note">These aren't official drawings, just for your reference. We made them from our 3D model.</p>
     <div class="entries" data-list="drawings"></div>
     <p class="empty-note" data-empty="drawings" hidden>Drawings to come.</p>
   </section>
@@ -280,9 +291,15 @@ getJSON("/bob/questions.json").then(sections => {
   const items = Array.isArray(sections) ? sections.flatMap(s => s.items ?? []) : [];
   if (!items.length) { $("q-empty").hidden = false; return; }
   const done = store.get();
+  // an item's pictures: paths relative to /bob/ (renders/q/x.jpg, ../model/img/x.jpg), each opening the lightbox
+  const base = new URL("/bob/", location.href);
+  const pics = q => !Array.isArray(q.images) || !q.images.length ? "" : `<ul class="qpics">${q.images.filter(i => i?.src).map(i => {
+    const src = new URL(i.src, base).href;
+    return `<li><a href="${esc(src)}" data-zoom data-cap="${esc(i.caption ?? q.title)}"><img src="${esc(src)}" alt="${esc(i.caption ?? q.title)}" loading="lazy">${i.caption ? `<span>${esc(i.caption)}</span>` : ""}</a></li>`;
+  }).join("")}</ul>`;
   $("q-list").innerHTML = sections.map(s => `
     <div class="qsec"><h3>${esc(s.section)}</h3><ul class="qlist">${(s.items ?? []).map(q => `
-      <li><label class="q"><input type="checkbox" data-id="${esc(q.id)}"${done[q.id] ? " checked" : ""}><b>${esc(q.title)}</b><span>${esc(q.detail)}</span></label></li>`).join("")}
+      <li><label class="q"><input type="checkbox" data-id="${esc(q.id)}"${done[q.id] ? " checked" : ""}><b>${esc(q.title)}</b><span>${esc(q.detail)}</span></label>${pics(q)}</li>`).join("")}
     </ul></div>`).join("");
   const boxes = [...$("q-list").querySelectorAll("input[data-id]")];
   const count = () => { $("q-count").textContent = `${boxes.filter(b => b.checked).length} of ${boxes.length} done`; };
