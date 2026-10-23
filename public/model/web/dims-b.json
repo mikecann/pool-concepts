@@ -574,6 +574,43 @@
   "note": "1.89 m above the lawn outside"
  },
  {
+  "id": "deck_short_ew",
+  "label": "Framed deck (timber), west end to the east wall's cap",
+  "group": "spa",
+  "a": [
+   1.717,
+   2.38,
+   10.325
+  ],
+  "b": [
+   3.491,
+   2.38,
+   10.448
+  ],
+  "value_m": 1.779,
+  "set": "proposed",
+  "option": "deck_framed_short"
+ },
+ {
+  "id": "deck_short_strip_cap",
+  "label": "East strip in the caps' finish, the timber's north edge to the strip's end",
+  "group": "spa",
+  "a": [
+   3.349,
+   2.4,
+   8.754
+  ],
+  "b": [
+   3.571,
+   2.4,
+   5.566
+  ],
+  "value_m": 3.196,
+  "set": "proposed",
+  "option": "deck_framed_short",
+  "note": "the timber stops level with the lounge's south wall"
+ },
+ {
   "id": "deck_framed_fence_height",
   "label": "Straight east fence, height above the edge wall's cap it stands on",
   "group": "fences",
@@ -1672,7 +1709,7 @@
   ],
   "value_m": 0.682,
   "set": "proposed",
-  "hide_option": "deck_wide|deck_wide_framed"
+  "hide_option": "deck_wide|deck_wide_framed|deck_framed_short"
  },
  {
   "id": "strip_east_clear_straight",
@@ -1711,7 +1748,7 @@
   "value_m": 1.28,
   "set": "proposed",
   "option": "pier_straight",
-  "hide_option": "deck_wide|deck_wide_framed"
+  "hide_option": "deck_wide|deck_wide_framed|deck_framed_short"
  },
  {
   "id": "fence_straight_strip_height_lawn",
@@ -1768,7 +1805,7 @@
   "value_m": 1.28,
   "set": "proposed",
   "option": "pier_straight_edge",
-  "hide_option": "deck_wide|deck_wide_framed"
+  "hide_option": "deck_wide|deck_wide_framed|deck_framed_short"
  },
  {
   "id": "fence_straight_edge_strip_height_lawn",
