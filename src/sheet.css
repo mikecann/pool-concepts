@@ -61,6 +61,8 @@ button { font: inherit; color: inherit; }
 .vtitle .name { font-family: var(--font-display); font-size: 21px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; line-height: 1.05; }
 .vtitle .desc { color: var(--muted); font-size: 13.5px; }
 .vhead { display: flex; gap: 8px; justify-content: space-between; align-items: flex-end; }
+/* Round 31: the design picker (Final / SK02) beside Today / Both / New, wrapping under it on a narrow screen */
+.vctl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .modes { display: inline-flex; border: 1px solid var(--ink); flex: none; }
 .modes button { background: transparent; border: 0; padding: 4px 9px; cursor: pointer; font-family: var(--font-display);
   text-transform: uppercase; letter-spacing: .08em; font-weight: 600; font-size: 13px; }

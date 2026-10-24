@@ -6,7 +6,7 @@ import { PROPOSED_ONLY, VIEWS } from './views';
 import { BFENCE_CHOICES, BPLANT_CHOICES, DECK_CHOICES, LAYOUT_DEFAULTS, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
-  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string;
+  post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string; spaCover?: string;
   /** Round 19: which model the picture shows; SK02's ('a') unless it's a Layout B render. */ layout?: 'a' | 'b' };
 
 
@@ -84,6 +84,15 @@ const DAYV = [["15_lounge_from_alfresco", "Over the lounge"], ["06_sunken_lounge
 const NIGHTV = [["13_deep_end_to_house", "Deep end"], ["14_spa_to_canal", "Spa deck"], ["16_outdoor_kitchen", "Outdoor kitchen"], ["17_pool_overview", "From above"], ["01_canal_view", "From the canal"]];
 // the main renders are 16 Jan at 2:45 pm with no kitchen and no roller
 const RENDER_TIME = { date: "2027-01-16", minutes: 14 * 60 + 45 };
+// Round 31: the top viewer shows the final design by default (Layout B with the options in /bob/profile.json, the
+// design sent to Bob). Its pictures are Bob's set (the-pool's render_profile.py), from the same cameras as today's
+// ones but at 1 pm, not 2:45 pm. The strip's thumbnails for it are made by scripts/make-final-thumbs.mjs.
+const FINAL_IMG = '/bob/renders/', FINAL_PROFILE = '/bob/profile.json';
+const FINAL_TIME = { date: "2027-01-16", minutes: 13 * 60 };
+const VIEW_HINTS = {
+  final: "Drag across the picture to wipe between today and the final design. Today's pictures are 16 Jan at 2:45 pm and the final design's are 16 Jan at 1 pm, so the shadows don't match.",
+  sk02: "Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. No outdoor kitchen is shown: it isn't decided yet (see the options below).",
+};
 const SEASON_DATE = { summer: "2027-01-16", winter: "2027-06-21" } as const;
 const hhmm = (k: string) => Number(k.slice(0, 2)) * 60 + Number(k.slice(2));
 
@@ -167,6 +176,8 @@ const BFENCE_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_n
 export function allImageUrls() {
   return [
     ...VIEWS.flatMap(([id]) => [...(PROPOSED_ONLY.has(id) ? [] : [`img/${id}__existing.jpg`]), `img/${id}__proposed.jpg`, `img/thumb_${id}.jpg`]),
+    // (the final design's, outside /model/)
+    ...VIEWS.flatMap(([id]) => [`..${FINAL_IMG}${id}__proposed.jpg`, `..${FINAL_IMG}thumbs/thumb_${id}.jpg`]),
     ...ROLLER.flatMap(([o]) => ROLLER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => kitchenSrc(o, v))),
     ...POSTS.flatMap(([o]) => POST_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
@@ -196,10 +207,16 @@ const HTML = /* html */ `
       <span class="label" id="vnum">View 01</span>
       <span class="name" id="vname">From the canal</span>
     </div>
-    <div class="modes" role="group" aria-label="What to show">
-      <button id="m-today" aria-pressed="false">Today</button>
-      <button id="m-compare" aria-pressed="true">Both</button>
-      <button id="m-proposed" aria-pressed="false">New</button>
+    <div class="vctl">
+      <div class="modes" role="group" aria-label="Which design">
+        <button id="v-final" aria-pressed="true">Final</button>
+        <button id="v-sk02" aria-pressed="false">SK02</button>
+      </div>
+      <div class="modes" role="group" aria-label="What to show">
+        <button id="m-today" aria-pressed="false">Today</button>
+        <button id="m-compare" aria-pressed="true">Both</button>
+        <button id="m-proposed" aria-pressed="false">New</button>
+      </div>
     </div>
   </div>
   <div class="stage" id="stage">
@@ -207,11 +224,11 @@ const HTML = /* html */ `
     <img id="img-proposed" class="top" alt="">
     <div class="handle" id="handle" aria-hidden="true"></div>
     <span class="tag l" id="tag-l">Today</span>
-    <span class="tag r" id="tag-r">Proposed</span>
+    <span class="tag r" id="tag-r">Final design</span>
     <button class="fly" id="v-fly" type="button">Open in 3D</button>
   </div>
   <span class="desc hint" id="vdesc"></span>
-  <p class="hint">Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. No outdoor kitchen is shown: it isn't decided yet (see the options below).</p>
+  <p class="hint" id="vhint"></p>
   <div class="strip" id="strip" role="list"></div>
 </section>
 
@@ -452,7 +469,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Notes</span>
   <h2>How accurate it is</h2>
-  <p>The backyard as it is today, and with Bob Bruce's SK02 pool, spa, sunken lounge and alfresco built in. Levels come from the Denada feature survey, the design from SK02, finishes from Naturaliste's estimate QU-597.</p>
+  <p>The backyard as it is today, and with the final design or Bob Bruce's SK02 built in. Levels come from the Denada feature survey, the design from SK02 and the changes we've made to it since (Layout B and the options), finishes from Naturaliste's estimate QU-597.</p>
 </div>
 <section class="block" aria-label="Accuracy">
   <dl class="facts mono">
@@ -517,6 +534,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   // ---------- load images before they're clicked ----------
   const warmed = new Set<string>();
   const warm = (urls: string[]) => urls.forEach(u => { if (warmed.has(u)) return; warmed.add(u); const i = new Image(); i.decoding = 'async'; i.src = u; });
+  const idle = (window as any).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 2500));
   const scroller = root.closest('.panel-scroll') as HTMLElement | null;
   const warmNear = (el: HTMLElement, urls: string[]) => {
     const ob = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { warm(urls); ob.disconnect(); } }, { root: scroller, rootMargin: '700px 0px' });
@@ -531,7 +549,14 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   };
 
   // ---------- before / after ----------
-  let current = 0, picked = 'compare', split = 50;
+  // (design: what "New" shows, the final design or SK02 as Bob drew it; today's pictures are the same for both)
+  let current = 0, picked = 'compare', split = 50, design: 'final' | 'sk02' = 'final';
+  const proposedSrc = (id: string) => (design === 'final' ? `${FINAL_IMG}${id}__proposed.jpg` : `${I}${id}__proposed.jpg`);
+  const thumbSrc = (id: string) => (design === 'final' ? `${FINAL_IMG}thumbs/thumb_${id}.jpg` : `${I}thumb_${id}.jpg`);
+  const warmViews = () => warm(VIEWS.flatMap(([id]) => [proposedSrc(id), ...(PROPOSED_ONLY.has(id) ? [] : [`${I}${id}__existing.jpg`])]));
+  // the final design's options for "Open in 3D", read as Bob's view and "Use the final design" read them
+  const finalDesign: Promise<{ layout?: 'a' | 'b'; options?: Partial<Fly>; lights?: { scheme?: string } } | null> =
+    fetch(FINAL_PROFILE, { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
   const setSplit = (v: number, remember = true) => { $('stage').style.setProperty('--split', v + '%'); if (remember) split = v; };
   const applyMode = () => {
     // Round 28: a view with no "today" picture shows the proposed one only (your Today/Both pick comes back after it)
@@ -549,7 +574,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     current = i;
     const [id, name, desc] = VIEWS[i];
     if (!PROPOSED_ONLY.has(id)) { img('img-today').src = `${I}${id}__existing.jpg`; img('img-today').alt = `${name}, today`; }
-    img('img-proposed').src = `${I}${id}__proposed.jpg`; img('img-proposed').alt = `${name}, with the proposed pool and alfresco`;
+    img('img-proposed').src = proposedSrc(id); img('img-proposed').alt = design === 'final' ? `${name}, with the final design` : `${name}, with the proposed pool and alfresco`;
     $('vnum').textContent = 'View ' + id.slice(0, 2);
     $('vname').textContent = name;
     $('vdesc').textContent = desc;
@@ -559,7 +584,7 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   VIEWS.forEach(([id, name], i) => {
     const b = document.createElement('button');
     b.className = 'thumb'; b.type = 'button'; b.setAttribute('role', 'listitem');
-    b.innerHTML = `<img src="${I}thumb_${id}.jpg" alt="" loading="lazy"><span><b>${id.slice(0, 2)}</b>${name}</span>`;
+    b.innerHTML = `<img src="${thumbSrc(id)}" alt="" loading="lazy"><span><b>${id.slice(0, 2)}</b>${name}</span>`;
     b.onclick = () => show(i);
     $('strip').appendChild(b);
   });
@@ -572,7 +597,23 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   $('m-today').onclick = () => { picked = 'today'; applyMode(); };
   $('m-compare').onclick = () => { picked = 'compare'; applyMode(); };
   $('m-proposed').onclick = () => { picked = 'proposed'; applyMode(); };
-  $('v-fly').onclick = () => fly({ cam: VIEWS[current][0], scenario: picked === 'today' && !PROPOSED_ONLY.has(VIEWS[current][0]) ? 'existing' : 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none' });
+  const applyDesign = () => {
+    (['final', 'sk02'] as const).forEach(d => $('v-' + d).setAttribute('aria-pressed', String(d === design)));
+    $('tag-r').textContent = design === 'final' ? 'Final design' : 'As drawn (SK02)';
+    $('vhint').textContent = VIEW_HINTS[design];
+    root.querySelectorAll<HTMLImageElement>('.thumb img').forEach((t, k) => (t.src = thumbSrc(VIEWS[k][0])));
+    show(current);
+  };
+  $('v-final').onclick = () => { design = 'final'; applyDesign(); idle(warmViews); };
+  $('v-sk02').onclick = () => { design = 'sk02'; applyDesign(); idle(warmViews); };
+  $('v-fly').onclick = () => {
+    const cam = VIEWS[current][0], scenario = picked === 'today' && !PROPOSED_ONLY.has(cam) ? 'existing' : 'proposed';
+    if (design === 'sk02') { fly({ cam, scenario, ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none' }); return; }
+    // the final design: Layout B with every option and the lighting from profile.json, at the time of the picture
+    // (today's are 2:45 pm). If the profile can't be read, it still opens Layout B, with that layout's defaults.
+    void finalDesign.then(p => fly({ ...p?.options, cam, scenario, ...(scenario === 'existing' ? RENDER_TIME : FINAL_TIME),
+      lighting: p?.lights?.scheme, layout: p?.layout ?? 'b' }));
+  };
 
   // ---------- option pickers ----------
   type Picker = { opts: string[][]; optBox?: HTMLElement; viewBox: HTMLElement; img: string; tag: string; note?: string; views: string[][];
@@ -721,7 +762,6 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   try { theme = localStorage.getItem('pool-theme') || 'auto'; } catch { /* private mode */ }
   setTheme(theme);
 
-  show(0); applyMode();
-  const idle = (window as any).requestIdleCallback ?? ((f: () => void) => setTimeout(f, 2500));
-  idle(() => warm(VIEWS.flatMap(([id]) => [`${I}${id}__proposed.jpg`, `${I}${id}__existing.jpg`])));
+  applyDesign();
+  idle(warmViews);
 }

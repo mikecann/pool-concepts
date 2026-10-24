@@ -4,16 +4,17 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 
 // The build writes index.html + assets/ into public/model/ next to the renders (img/) and model files (web/),
-// so it must never empty that folder. In dev, serve img/ and web/ from there too.
+// so it must never empty that folder. In dev, serve img/ and web/ from there too, and /bob/ (the final design's
+// profile and renders, which the renders page shows) from public/bob.
 const TYPES: Record<string, string> = { '.jpg': 'image/jpeg', '.png': 'image/png', '.json': 'application/json', '.glb': 'model/gltf-binary' };
 const modelFiles = (): Plugin => ({
   name: 'model-files',
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      const m = req.url?.split('?')[0].match(/^\/model\/((img|web)\/.+)$/);
+      const m = req.url?.split('?')[0].match(/^\/(model\/(?:img|web)|bob)\/(.+)$/);
       if (!m) return next();
-      const file = normalize(join('public/model', decodeURIComponent(m[1])));
-      if (!file.startsWith(normalize('public/model/')) || !existsSync(file) || !statSync(file).isFile()) return next();
+      const dir = join('public', m[1]), file = normalize(join(dir, decodeURIComponent(m[2])));
+      if (!file.startsWith(normalize(dir + '/')) || !existsSync(file) || !statSync(file).isFile()) return next();
       res.setHeader('Content-Type', TYPES[extname(file)] ?? 'application/octet-stream');
       res.setHeader('Content-Length', statSync(file).size);
       createReadStream(file).pipe(res);
