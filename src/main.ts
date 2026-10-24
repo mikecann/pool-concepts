@@ -14,7 +14,7 @@ import { FAR_LAYER, OVERLAY_LAYER, inMirror } from './mirror';
 import { SkyVis, SKYVIS_OFF } from './skyvis';
 import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures } from './compile';
 import { VIEW_NAMES } from './views';
-import { LAYOUT_CHOICES, OPTION_DEFAULTS, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
+import { LAYOUT_CHOICES, LAYOUT_DEFAULTS, OPTION_DEFAULTS, layoutDefault, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -51,21 +51,29 @@ const OPTION_LISTS: Record<OptionField, Choice[]> = { roller: ROLLER_CHOICES, ki
 /** Option groups that have been dropped (Round 29: the bench corner, now mitred in the model): ignored without a warning. */
 const RETIRED_OPTIONS = ['corner'];
 const PROFILES = ['bob'];
+/** A profile's JSON, fresh (no-cache). Throws if it can't be fetched or isn't JSON. */
+async function fetchProfileJson(name: string): Promise<any> {
+  const r = await fetch(`/${name}/profile.json`, { cache: 'no-cache' });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.json() ?? {};
+}
 async function loadProfile(name: string): Promise<Profile> {
-  const warn = (what: string) => console.warn(`profile ${name}: ${what}`);
   let raw: any = {};
-  try {
-    const r = await fetch(`/${name}/profile.json`, { cache: 'no-cache' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    raw = await r.json() ?? {};
-  } catch (e) { warn(`couldn't load profile.json (${String((e as Error)?.message ?? e)}), showing the defaults`); }
+  try { raw = await fetchProfileJson(name); }
+  catch (e) { console.warn(`profile ${name}: couldn't load profile.json (${String((e as Error)?.message ?? e)}), showing the defaults`); }
+  return parseProfile(name, raw);
+}
+/** Check a profile.json against the contract above: anything missing or invalid falls back to its default, with a warning. */
+function parseProfile(name: string, raw: any): Profile {
+  const warn = (what: string) => console.warn(`profile ${name}: ${what}`);
+  if (!raw || typeof raw !== 'object') raw = {};
   const layout: Layout = raw.layout === 'a' || raw.layout === 'b' ? raw.layout : (warn(`layout ${JSON.stringify(raw.layout)} isn't a or b, using a`), 'a');
   if (raw.scenario !== undefined && raw.scenario !== 'proposed') warn(`scenario ${JSON.stringify(raw.scenario)}: a profile is always proposed`);
   const given = raw.options && typeof raw.options === 'object' ? raw.options : {};
   for (const k of Object.keys(given)) if (!(k in OPTION_LISTS) && !RETIRED_OPTIONS.includes(k)) warn(`unknown option ${k}, ignored`);
   const options = Object.fromEntries((Object.keys(OPTION_LISTS) as OptionField[]).map(k => {
-    // Layout B's own default pillar fence (see the Round 26 note in main())
-    const def = k === 'pier' && layout === 'b' ? 'pier_straight_edge' : OPTION_DEFAULTS[k], v = given[k];
+    // Layout B has its own defaults (the pillar fence, the wall tops: see LAYOUT_DEFAULTS)
+    const def = layoutDefault(k, layout), v = given[k];
     if (OPTION_LISTS[k].some(c => c.value === v)) return [k, v];
     warn(`${k}: ${v === undefined ? 'missing' : `${JSON.stringify(v)} isn't an option`}, using ${def}`);
     return [k, def];
@@ -87,10 +95,13 @@ if (profile) document.documentElement.classList.add('profile');
 type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?: Scenario; date?: string; minutes?: number; mode?: Mode; layout?: Layout; dims?: boolean; dimGroups?: string[];
   /** Round 26: the lighting adjust panel's settings, per scheme. */ lightAdjust?: Record<string, LightAdjust>;
   /** Round 26: a pillar fence was picked on purpose (so Layout B's own default doesn't replace it). */ pierChosen?: boolean;
+  /** Round 30: the same for the wall tops. A saved wall top without it came along as a default. */ wallcapChosen?: boolean;
   options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting' | 'wallcap' | 'deck', string>> };
 // a profile keeps its viewer's preferences (quality, fps, people, mode, dims) apart, and never any of the design
 const SETTINGS_KEY = profile ? 'pool-settings-profile' : 'pool-settings';
-const DESIGN_SETTINGS = ['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen'] as const;
+const DESIGN_SETTINGS = ['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen', 'wallcapChosen'] as const;
+/** The option groups with a per-layout default (LAYOUT_DEFAULTS), and the setting that says one was picked on purpose. */
+const CHOSEN_FLAGS: Partial<Record<keyof typeof OPTION_DEFAULTS, 'pierChosen' | 'wallcapChosen'>> = { pier: 'pierChosen', wallcap: 'wallcapChosen' };
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 if (profile) for (const k of DESIGN_SETTINGS) delete settings[k];
 // the time and date aren't remembered any more (Round 17d): drop what older visits saved
@@ -117,7 +128,9 @@ let fromUrl = false;   // true while applying URL values, so remember() leaves t
 // switching loads the page again with the other one. What you had going (where you were and where you looked, the
 // mode, the time and date, Today or Proposed, every option) is handed to that load through sessionStorage.
 type Handoff = { layout: Layout; at: number; mode: Mode; feet: number[]; cam: number[]; yaw: number; pitch: number;
-  minutes: number; date: string; scenario: Scenario; people: boolean; options: NonNullable<Settings['options']> };
+  minutes: number; date: string; scenario: Scenario; people: boolean; options: NonNullable<Settings['options']>;
+  /** Round 30: "Use the final design" changed the layout: apply the options exactly as given (they're Bob's, for this layout). */
+  final?: boolean };
 const HANDOFF_KEY = 'pool-layout-swap';
 const urlLayout = params.get('layout') === 'a' || params.get('layout') === 'b' ? params.get('layout') as Layout : null;
 const LAYOUT: Layout = profile?.layout ?? urlLayout ?? (settings.layout === 'b' ? 'b' : 'a');
@@ -428,6 +441,8 @@ async function main() {
   group('bfence', BFENCE_CHOICES, 'bfence', () => '13_deep_end_to_house');
   group('bplant', BPLANT_CHOICES, 'bplant', () => '13_deep_end_to_house');
   group('wallcap', WALLCAP_CHOICES, 'wallcap', () => '13_deep_end_to_house');
+  // Round 30: a wall top picked yourself sticks in both layouts (Layout B's own default doesn't replace it)
+  $('cards-wallcap').addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card')) remember({ wallcapChosen: true }); }, true);
   group('deck', DECK_CHOICES, 'deck', () => '14_spa_to_canal');
   // Round 27: the spa deck's outline is a Layout B option; SK02's layout has the one squared deck, so grey them there
   if (LAYOUT === 'a') {
@@ -818,12 +833,13 @@ async function main() {
    * Round 19: switch to the other layout. Hands over where you are and where you're looking, the mode, the time and
    * every option, then loads the page with that layout's model behind the loading cover (only that model downloads).
    */
-  function swapLayout(to: Layout) {
+  function swapLayout(to: Layout, over: Partial<Pick<Handoff, 'options' | 'scenario' | 'final'>> = {}) {
     if (to === layoutPick || profile) return;
     layoutPick = to;
     remember({ layout: to });
+    // (over: "Use the final design" hands over its own options instead of the ones on screen)
     const h: Handoff = { layout: to, at: Date.now(), mode: walker.mode, feet: walker.feet.toArray(), cam: camera.position.toArray(),
-      yaw: walker.yaw, pitch: walker.pitch, minutes: S.minutes, date: S.date, scenario: S.scenario, people: model.people, options: currentOptions() };
+      yaw: walker.yaw, pitch: walker.pitch, minutes: S.minutes, date: S.date, scenario: S.scenario, people: model.people, options: currentOptions(), ...over };
     try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(h)); } catch { /* private mode: the layout and options are still remembered */ }
     // a renders-page link's camera, time and options are now in the handoff: drop them, or they'd win again
     const u = new URL(location.href);
@@ -935,6 +951,8 @@ async function main() {
   walker.place(1.3, 3.0, 2.6, (156 * Math.PI) / 180, -0.08);
   // last visit's choices first; deep links from the renders page then override them. A profile's design instead.
   const o: NonNullable<Settings['options']> = profile ? { ...profile.options, lighting: profile.lights.scheme } : settings.options ?? {};
+  // this layout's own defaults first (Layout B's pillar fence and wall tops), for whatever isn't saved or linked
+  for (const k of Object.keys(LAYOUT_DEFAULTS) as (keyof typeof OPTION_DEFAULTS)[]) (model as any)[k] = layoutDefault(k, LAYOUT);
   const valid = (v: string | undefined, list: Choice[]) => (v && list.some(c => c.value === v) ? v : undefined);
   model.roller = valid(o.roller, ROLLER_CHOICES) ?? model.roller;
   model.kitchen = valid(o.kitchen, KITCHEN_CHOICES) ?? model.kitchen;
@@ -989,9 +1007,10 @@ async function main() {
     const built = new Set<string>();
     model.root.traverse(o => { for (const k of [o.userData.option, o.userData.hide_option]) if (typeof k === 'string') k.split(/[+|]/).forEach(p => built.add(p)); });
     return (key: keyof typeof OPTION_DEFAULTS, v: string | undefined) => {
-      const def = OPTION_DEFAULTS[key];
+      const def = layoutDefault(key, LAYOUT);
       if (!v) return def;
-      if (v === def || /(^|_)none$/.test(v) || built.has(v)) return v;
+      // (the final design is for this layout: every option of it is kept)
+      if (handoff?.final || v === def || v === OPTION_DEFAULTS[key] || /(^|_)none$/.test(v) || built.has(v)) return v;
       dropped.push(v); return def;
     };
   };
@@ -1014,7 +1033,7 @@ async function main() {
     fromUrl = false;
     // ...and the same view, in the same mode. Walking, the spot may now be inside the moved wall or over the moved
     // pool: then you stand at the nearest place you can
-    const name = title(LAYOUT_CHOICES, LAYOUT);
+    const name = handoff.final ? `Showing the final design<small>${title(LAYOUT_CHOICES, LAYOUT)}</small>` : title(LAYOUT_CHOICES, LAYOUT);
     swapHint = name;
     if (toMode(handoff.mode) === 'walk') {
       const [x, y, z] = handoff.feet, spot = walker.nearestStand(x, z, y);
@@ -1037,10 +1056,19 @@ async function main() {
     if (params.get('cam')) goToCam(params.get('cam')!, true, true);
   }
   // Round 26: Layout B's own default pillar fence is "Deck edge, then past the pillar" (Mike, 18 Oct); SK02's stays as
-  // drawn. A fence picked on purpose (or linked) wins; one that only came along as the other layout's default doesn't.
-  if (!profile && !(settings.pierChosen === true || params.has('pier') || params.has('pillar'))) {
-    const def = LAYOUT === 'b' ? 'pier_straight_edge' : 'pier_as_drawn', other = LAYOUT === 'b' ? 'pier_as_drawn' : 'pier_straight_edge';
-    if (model.pier === other) { model.pier = def; model.apply(); renderRoller(); }
+  // drawn. Round 30: the same for the wall tops (no cap in B, the aggregate cap in SK02's). An option picked on purpose
+  // (its card, or "Use the final design") or linked wins; one that's only the other layout's default (saved along with
+  // everything else, or handed over by a swap) becomes this layout's. A saved wall top from before the flag existed
+  // counts as not picked on purpose.
+  if (!profile) {
+    let changed = false;
+    for (const k of Object.keys(LAYOUT_DEFAULTS) as (keyof typeof OPTION_DEFAULTS)[]) {
+      const linked = params.has(k) || (k === 'pier' && params.has('pillar'));
+      if (settings[CHOSEN_FLAGS[k]!] === true || linked) continue;
+      const def = layoutDefault(k, LAYOUT), others = (['a', 'b'] as Layout[]).filter(l => l !== LAYOUT).map(l => layoutDefault(k, l));
+      if ((model as any)[k] !== def && others.includes((model as any)[k])) { (model as any)[k] = def; changed = true; }
+    }
+    if (changed) { model.apply(); renderRoller(); }
   }
   model.setAdjust(adjustFor(model.lighting));
   // Round 22: pier_inset in Layout B (remembered, linked or handed over): the drawn fence instead, and say so
@@ -1114,6 +1142,36 @@ async function main() {
       navigator.clipboard.writeText(json).then(() => { copyNote.textContent = 'Copied. Paste it to whoever is updating the page for Bob.'; }, fallback);
     } catch { fallback(); }
   };
+  // Round 30: "Use the final design": every option, and the lighting with its adjustments, as /bob/profile.json has them
+  // (the design we're having built, which Bob's view shows). Saved as your own choices, as if each was picked on
+  // purpose; you can still change any of them. A different layout loads that layout's model, keeping your view and
+  // mode, as the layout cards do; the same layout changes in place. If the profile can't be read, nothing changes.
+  const finalField = $('final-design-field'), finalNote = $('final-design-note');
+  finalField.hidden = !!profile;
+  const useFinalDesign = async () => {
+    if (profile) return;
+    finalNote.textContent = '';
+    let fin: Profile;
+    try { fin = parseProfile('bob', await fetchProfileJson('bob')); }
+    catch (e) { finalNote.textContent = `Couldn't load the final design (${String((e as Error)?.message ?? e)}). Nothing has changed.`; return; }
+    const { layout, lights } = fin, options = { ...fin.options, lighting: lights.scheme };
+    const adjust = { ...(settings.lightAdjust ?? {}) };
+    if (lights.adjust) adjust[lights.scheme] = lights.adjust; else delete adjust[lights.scheme];
+    remember({ options, layout, scenario: 'proposed', lightAdjust: adjust, pierChosen: true, wallcapChosen: true });
+    settingsDlg.close();
+    if (layout !== LAYOUT) { swapLayout(layout, { options, scenario: 'proposed', final: true }); return; }
+    // the same layout: in place, as picking each card would (you stay where you are, in your mode)
+    ensureProposed();
+    heldPier = null;
+    for (const k of Object.keys(OPTION_LISTS) as OptionField[]) (model as any)[k] = options[k];
+    model.lighting = valid(lights.scheme, lightingChoices) ?? model.lighting;
+    if (LAYOUT === 'b' && model.pier === 'pier_inset') { heldPier = 'pier_inset'; model.pier = 'pier_as_drawn'; }   // (Round 22)
+    optChanged();
+    if (!adjustBox.hidden) renderAdjust();
+    renderRoller();
+    showHint('Showing the final design<small>You can still change any of the options</small>', 3500);
+  };
+  $('final-design').onclick = () => { void useFinalDesign(); };
   $('settings-btn').onclick = () => settingsDlg.showModal();
   settingsDlg.addEventListener('click', e => { if (e.target === settingsDlg) settingsDlg.close(); });   // the backdrop
   settingsDlg.addEventListener('close', () => $('settings-btn').focus());
@@ -1437,7 +1495,7 @@ async function main() {
     get post() { return post; },
     setOption: (k: string, v: string) => { (model as any)[k] = v; optChanged(); cardGroups.forEach(r => r()); },
     hinges, blankets, covers: () => coversRef, tape: () => tape, setMeasure: (on: boolean) => setMeasure(on), measureAt: (x: number, y: number) => measureAt(x, y),
-    setPanel, dims, setDims, layout: LAYOUT, swapLayout: (to: Layout) => swapLayout(to), profile, designProfile,
+    setPanel, dims, setDims, layout: LAYOUT, swapLayout: (to: Layout) => swapLayout(to), profile, designProfile, useFinalDesign,
   };
 }
 

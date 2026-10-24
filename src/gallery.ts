@@ -3,7 +3,7 @@
 // Every picture can "fly" the 3D view to the same camera, time and options.
 
 import { PROPOSED_ONLY, VIEWS } from './views';
-import { BFENCE_CHOICES, BPLANT_CHOICES, DECK_CHOICES, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
+import { BFENCE_CHOICES, BPLANT_CHOICES, DECK_CHOICES, LAYOUT_DEFAULTS, LIGHTING_CHOICES, NFENCE_CHOICES, WALLCAP_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, PLAY_CHOICES } from './choices';
 
 export type Fly = { cam: string; scenario?: 'existing' | 'proposed'; date?: string; minutes?: number; roller?: string; kitchen?: string;
   post?: string; pump?: string; play?: string; pier?: string; nfence?: string; passage?: string; bfence?: string; bplant?: string; lighting?: string; wallcap?: string; deck?: string;
@@ -331,7 +331,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Options to decide</span>
   <h2>Wall tops</h2>
-  <p>The finish on top of the new retaining walls and the sunken lounge's walls.</p>
+  <p>The finish on top of the new retaining walls and the sunken lounge's walls. SK02 draws the aggregate cap; in Layout B, the design we're building, there's no cap.</p>
 </div>
 <section class="block" aria-label="Wall top options">
   <div class="fstage"><img id="wc-img" alt=""><span class="tag l" id="wc-tag"></span><button class="fly" id="wc-fly" type="button">Open in 3D</button></div>
@@ -576,7 +576,9 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
 
   // ---------- option pickers ----------
   type Picker = { opts: string[][]; optBox?: HTMLElement; viewBox: HTMLElement; img: string; tag: string; note?: string; views: string[][];
-    src: (o: string, v: string) => string; onFly: (o: string, v: string, go?: (f: Fly) => void) => void; flyBtn: string };
+    src: (o: string, v: string) => string; onFly: (o: string, v: string, go?: (f: Fly) => void) => void; flyBtn: string;
+    /** Round 30: each layout's default in this group, where they differ (LAYOUT_DEFAULTS): its picture's tag says so. */
+    defaults?: Record<'a' | 'b', string> };
   const picker = (cfg: Picker) => {
     const st = { o: 0, v: 0 };
     // Round 21: Layout B's render of the same option from the same camera, beside SK02's, when there is one
@@ -604,6 +606,8 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
       const bName = layoutBName(cfg.src(o[0], v[0]));
       bStage.hidden = !bName; pair.classList.toggle('single', !bName);
       if (bName) { bImg.src = I + bName; bImg.alt = `${v[1]}: ${o[1]}, Layout B`; bTag.textContent = `${o[1]}, Layout B`; $(cfg.tag).textContent = `${o[1]}, SK02`; }
+      if (cfg.defaults?.a === o[0]) $(cfg.tag).textContent += ' (as drawn)';
+      if (bName && cfg.defaults?.b === o[0]) bTag.textContent += ' (the final design)';
     };
     $(cfg.flyBtn).onclick = () => cfg.onFly(cfg.opts[st.o][0], cfg.views[st.v][0]);
     render();
@@ -633,7 +637,8 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
     onFly: (o, v, go = fly) => go({ cam: v.slice(0, -5), scenario: 'proposed', date: '2027-01-16', minutes: v.endsWith('1940') ? 19 * 60 + 40 : 21 * 60, roller: 'none', kitchen: 'kitchen_none', lighting: o }) });
   picker({ opts: WALLCAP, optBox: $('wc-opts'), viewBox: $('wc-views'), img: 'wc-img', tag: 'wc-tag', note: 'wc-note', flyBtn: 'wc-fly',
     views: WALLCAP_VIEWS, src: (o, v) => `${I}options_${v}_${o}.jpg`,
-    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', wallcap: o }) });
+    // (Open in 3D always opens the wall top shown, whichever is the default in that layout)
+    onFly: (o, v, go = fly) => go({ cam: v, scenario: 'proposed', ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none', wallcap: o }), defaults: LAYOUT_DEFAULTS.wallcap });
   // (Layout B's own renders: no SK02 picture beside them, and Open in 3D opens Layout B)
   picker({ opts: SPADECK, optBox: $('sd-opts'), viewBox: $('sd-views'), img: 'sd-img', tag: 'sd-tag', note: 'sd-note', flyBtn: 'sd-fly',
     views: SPADECK_VIEWS, src: (o, v) => `${I}layoutb_${v}_${o}.jpg`,

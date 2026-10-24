@@ -2,7 +2,9 @@
 // is now in Perth (AWST, UTC+8), whatever the browser's timezone; option changes are remembered across a reload, the
 // time and date are not (a reload goes back to now), old saved times are ignored, and ?t= / ?date= still win.
 // The clock is mocked: an init script shifts Date to a chosen moment (time keeps running from there).
+// Round 30: Layout B's own default wall top (no cap) and the "Use the final design" button.
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
 const b = await chromium.launch({ headless: true, channel: 'chromium', args: ['--enable-unsafe-webgpu', '--enable-gpu', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 let fail = 0;
 const check = (name, ok, info = '') => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${name.padEnd(56)} ${info}`); if (!ok) fail++; };
@@ -128,6 +130,100 @@ const state = p => p.evaluate(() => { const V = __viewer, m = V.model; return { 
   ({ s, errs } = await seeded({ session: { 'pool-layout-swap': handoff } }, '&layout=a'));
   check('a layout swap handed over in the drone opens flying there', s.mode === 'fly' && Math.abs(s.y - 25) < 0.5, JSON.stringify(s));
   check('  console clean', errs.length === 0, errs[0] ?? '');
+}
+// 6. Round 30: Layout B's own default wall top is no cap (the final design); SK02's stays the aggregate cap. A saved
+//    wall top without wallcapChosen came along as a default, so it gives way to the layout's; a picked or linked one wins.
+const FINAL = JSON.parse(readFileSync('public/bob/profile.json', 'utf8'));
+const KEYS6 = ['roller', 'kitchen', 'post', 'pump', 'play', 'spaCover', 'pier', 'nfence', 'passage', 'bfence', 'bplant', 'wallcap', 'deck'];
+/** A new context with localStorage seeded once (a reload keeps what the page saved since), and a page opened in it. */
+const seededOpen = async (local, q) => {
+  const ctx = await b.newContext({ viewport: { width: 1400, height: 850 } });
+  await ctx.addInitScript(s => { try { if (location.pathname.startsWith('/model/') && !sessionStorage.seeded) { sessionStorage.seeded = 1; localStorage.setItem('pool-settings', JSON.stringify(s)); } } catch {} }, local);
+  // every hint shown, kept (one shown while loading is gone again by the time it has settled)
+  await ctx.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+    const h = document.getElementById('hint'); window.__hints = [];
+    if (h) new MutationObserver(() => { if (!h.hidden) window.__hints.push(h.textContent); }).observe(h, { childList: true, subtree: true, characterData: true, attributes: true });
+  }));
+  const { p, errs } = await open(ctx, q);
+  return { ctx, p, errs };
+};
+{
+  const wallcapOf = async (local, q) => { const { ctx, p } = await seededOpen(local, q); const w = await p.evaluate(() => __viewer.model.wallcap); await ctx.close(); return w; };
+  let w = await wallcapOf({}, '&layout=b');
+  check('wall tops: a first visit to Layout B shows no cap', w === 'wallcap_none', w);
+  w = await wallcapOf({}, '&layout=a');
+  check('  a first visit to SK02\'s layout: the aggregate cap', w === 'wallcap_aggregate', w);
+  w = await wallcapOf({ layout: 'b', options: { wallcap: 'wallcap_aggregate' } }, '');
+  check('  a saved aggregate cap without wallcapChosen, in B: no cap', w === 'wallcap_none', w);
+  w = await wallcapOf({ layout: 'b', wallcapChosen: true, options: { wallcap: 'wallcap_aggregate' } }, '');
+  check('  the same with wallcapChosen: the aggregate cap', w === 'wallcap_aggregate', w);
+  w = await wallcapOf({}, '&layout=b&wallcap=aggregate');
+  check('  ?wallcap=aggregate in B: the aggregate cap', w === 'wallcap_aggregate', w);
+}
+// 7. Round 30: "Use the final design" in the settings: every option and the lighting as /bob/profile.json, saved as
+//    your own. From another layout it loads that layout, keeping the view and the mode; in the same layout, in place.
+{
+  const snapshot = p => p.evaluate(keys => ({ layout: __viewer.layout, mode: __viewer.walker.mode, cam: __viewer.camera.position.toArray(), scenario: __viewer.state().scenario,
+    lighting: __viewer.model.lighting, m: Object.fromEntries(keys.map(k => [k, __viewer.model[k]])), saved: JSON.parse(localStorage.getItem('pool-settings') ?? '{}'),
+    dialog: document.getElementById('settings').open, hint: (window.__hints ?? []).join(' | '), marker: window.__marker === 1 }), KEYS6);
+  const matches = s => KEYS6.filter(k => s.m[k] !== FINAL.options[k]);
+  const savedMatches = s => KEYS6.filter(k => s.saved.options?.[k] !== FINAL.options[k]);
+  // ---- from SK02's layout, flying high over the yard (a layout swap: the page reloads)
+  const own = { layout: 'a', wallcapChosen: true, options: { wallcap: 'wallcap_aggregate', kitchen: 'kitchen_split', roller: 'roller_deep', lighting: 'lights_specced' } };
+  let { ctx, p, errs } = await seededOpen(own, '');
+  await p.evaluate(() => { __viewer.setMode('fly'); __viewer.walker.startFly(new __viewer.THREE.Vector3(4, 12, 6), 0.4, -0.6); }); await p.waitForTimeout(500);
+  const a0 = await snapshot(p);
+  check('final design: starts in SK02\'s layout with the saved design', a0.layout === 'a' && a0.m.kitchen === 'kitchen_split' && a0.m.roller === 'roller_deep' && a0.m.wallcap === 'wallcap_aggregate' && a0.mode === 'fly', JSON.stringify(a0.m));
+  await p.locator('#settings-btn').click();
+  check('  settings: a "Use the final design" button, with a note', (await p.locator('#final-design').textContent()) === 'Use the final design' && await p.locator('#final-design').isVisible()
+    && /design we're having built/.test(await p.locator('#final-design-field .final-help').textContent()));
+  await Promise.all([p.waitForURL(/layout=b/, { timeout: 30000 }), p.locator('#final-design').click()]);
+  await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 120000 });
+  const a1 = await snapshot(p);
+  check('  loads the profile\'s layout', a1.layout === FINAL.layout, a1.layout);
+  check('  every option is the profile\'s', matches(a1).length === 0, matches(a1).map(k => `${k}: ${a1.m[k]}`).join(', '));
+  check('  lighting is the profile\'s scheme, Proposed', a1.lighting === FINAL.lights.scheme && a1.scenario === 'proposed', `${a1.lighting} ${a1.scenario}`);
+  check('  saved as your own (options, layout, picked on purpose)', savedMatches(a1).length === 0 && a1.saved.options?.lighting === FINAL.lights.scheme && a1.saved.layout === FINAL.layout && a1.saved.wallcapChosen === true && a1.saved.pierChosen === true,
+    savedMatches(a1).join(', '));
+  check('  the light adjustments are the profile\'s', FINAL.lights.adjust ? JSON.stringify(a1.saved.lightAdjust?.[FINAL.lights.scheme]) === JSON.stringify(FINAL.lights.adjust) : !a1.saved.lightAdjust?.[FINAL.lights.scheme]);
+  const moved = Math.hypot(a1.cam[0] - a0.cam[0], a1.cam[1] - a0.cam[1], a1.cam[2] - a0.cam[2]);
+  check('  the same mode, the same view (flying: within 0.5 m)', a1.mode === a0.mode && moved < 0.5, `${a1.mode}, moved ${moved.toFixed(2)} m`);
+  check('  says so', /final design/i.test(a1.hint), a1.hint);
+  // and it sticks: a reload is still the final design (Layout B's defaults don't override it)
+  await p.reload(); await p.waitForFunction(() => window.__marks?.some(m => m[0] === 'settled'), null, { timeout: 120000 });
+  const a2 = await snapshot(p);
+  check('  after a reload: still the final design', a2.layout === FINAL.layout && matches(a2).length === 0 && a2.lighting === FINAL.lights.scheme, matches(a2).join(', '));
+  check('  console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await ctx.close();
+  // ---- in Layout B with your own wall top and kitchen: in place, no reload, the camera stays put
+  ({ ctx, p, errs } = await seededOpen({ layout: 'b', wallcapChosen: true, options: { wallcap: 'wallcap_aggregate', kitchen: 'kitchen_split' } }, ''));
+  await p.evaluate(() => { __viewer.place(1.3, 3.0, 2.6, 156, -5); window.__marker = 1; }); await p.waitForTimeout(800);
+  const b0 = await snapshot(p);
+  check('final design, same layout: starts with your own wall top and kitchen', b0.layout === 'b' && b0.m.wallcap === 'wallcap_aggregate' && b0.m.kitchen === 'kitchen_split' && b0.mode === 'walk', JSON.stringify(b0.m));
+  // the profile can't be read: a note in the dialog, and nothing changes
+  await p.route('**/bob/profile.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: '{ not json' }));
+  await p.locator('#settings-btn').click(); await p.locator('#final-design').click(); await p.waitForTimeout(500);
+  const bad = await snapshot(p), badNote = await p.locator('#final-design-note').textContent();
+  check('  a broken profile.json: says so, changes nothing', /couldn't/i.test(badNote) && bad.dialog && JSON.stringify(bad.m) === JSON.stringify(b0.m) && JSON.stringify(bad.saved) === JSON.stringify(b0.saved), badNote);
+  await p.unroute('**/bob/profile.json');
+  await p.locator('#final-design').click();
+  await p.waitForFunction(o => Object.entries(o).every(([k, v]) => __viewer.model[k] === v), FINAL.options, { timeout: 10000 }).catch(() => {});
+  await p.waitForTimeout(300);
+  const b1 = await snapshot(p);
+  check('  every option is the profile\'s, in place (no reload)', matches(b1).length === 0 && b1.marker && b1.layout === 'b', matches(b1).map(k => `${k}: ${b1.m[k]}`).join(', '));
+  check('  lighting is the profile\'s scheme, Proposed', b1.lighting === FINAL.lights.scheme && b1.scenario === 'proposed', b1.lighting);
+  check('  saved as your own', savedMatches(b1).length === 0 && b1.saved.wallcapChosen === true && b1.saved.pierChosen === true, savedMatches(b1).join(', '));
+  const still = Math.hypot(b1.cam[0] - b0.cam[0], b1.cam[1] - b0.cam[1], b1.cam[2] - b0.cam[2]);
+  check('  the camera and mode stay put', still < 0.01 && b1.mode === 'walk', `moved ${still.toFixed(3)} m, ${b1.mode}`);
+  check('  the dialog closes and a hint says so', !b1.dialog && /final design/i.test(b1.hint), b1.hint);
+  check('  the Finishes summary follows', /no cap/i.test(await p.locator('#tab-finishes span').textContent()));
+  check('  console clean', errs.length === 0, errs.slice(0, 2).join(' | '));
+  await ctx.close();
+  // ---- not offered in Bob's own locked view
+  ({ ctx, p } = await seededOpen({}, '&profile=bob'));
+  await p.locator('#settings-btn').click();
+  check('final design: not shown in the ?profile=bob walkthrough', !(await p.locator('#final-design').isVisible()));
+  await ctx.close();
 }
 console.log(fail ? `FAIL (${fail})` : 'PASS');
 await b.close();

@@ -400,4 +400,6 @@ ul.assume li::marker { color: var(--accent); }
 /* Copy design for Bob (settings): a quiet confirmation, or the JSON to copy by hand if the clipboard is refused */
 .copy-design { display: grid; gap: 6px; }
 .copy-note { font-size: 12.5px; color: var(--muted, inherit); min-height: 1em; }
+/* Use the final design (settings): what it does, under the button */
+.final-help { font-size: 12.5px; line-height: 1.45; color: var(--muted, inherit); }
 .copy-design textarea { width: 100%; font: 12px/1.4 var(--font-mono, ui-monospace, monospace); padding: 8px; border: 1px solid var(--rule); background: var(--sheet, transparent); color: inherit; resize: vertical; }

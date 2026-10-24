@@ -29,7 +29,8 @@ const profile = JSON.parse(readFileSync('public/bob/profile.json', 'utf8'));
 let p = await ctx.newPage(); watch(p, 'walk');
 // the visitor's own design: something else entirely
 await p.goto(`${SITE}/robots.txt`);
-const OWN = JSON.stringify({ layout: 'a', quality: 'Medium', fps: true, options: { kitchen: 'kitchen_split', roller: 'roller_deep', wallcap: 'wallcap_none' } });
+// (wallcapChosen: Round 30, a wall top that isn't SK02's default but Layout B's only sticks in SK02's layout if picked on purpose)
+const OWN = JSON.stringify({ layout: 'a', quality: 'Medium', fps: true, wallcapChosen: true, options: { kitchen: 'kitchen_split', roller: 'roller_deep', wallcap: 'wallcap_none' } });
 await p.evaluate(s => localStorage.setItem('pool-settings', s), OWN);
 await p.goto(`${SITE}/model/walk/?profile=bob&kitchen=kitchen_split&layout=a&scenario=existing&nohelp`);
 await settled(p);

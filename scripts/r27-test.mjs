@@ -1,5 +1,5 @@
 // Round 27 tests: Wall tops (wallcap_*, both layouts) and Layout B's Spa deck (deck_*). Cards and defaults (greyed
-// in SK02's layout), each option's parts (instanced ones too, and the wall tops the wide deck covers), the dims
+// in SK02's layout; no cap is Layout B's default), each option's parts (instanced ones too, and the wall tops the wide deck covers), the dims
 // following the deck, no camera jump when switching (walking on the deck, flying), the spa cover's E-roll on the wide
 // deck, ?wallcap= / ?deck= and remembered choices. Screenshots of each option. Headless on the real GPU.
 //   node scripts/r27-test.mjs [--out review/round16opts]
@@ -43,7 +43,9 @@ for (const L of ['a', 'b']) {
   // ---- cards and defaults
   await p.evaluate(() => { __viewer.setPanel(true); window.__openCategory('finishes'); });
   const wt = await p.locator('#cards-wallcap .card b').allTextContents();
-  check(`${L}: Finishes > Wall tops: three cards, aggregate by default`, wt.join(' | ') === 'Aggregate cap | Limestone cap | No cap' && (await p.evaluate(() => __viewer.model.wallcap)) === 'wallcap_aggregate', wt.join(' | '));
+  // (Round 30: Layout B's default is no cap, the final design; SK02's stays the aggregate cap)
+  const wdef = L === 'b' ? 'wallcap_none' : 'wallcap_aggregate', wnow = await p.evaluate(() => __viewer.model.wallcap);
+  check(`${L}: Finishes > Wall tops: three cards, ${wdef} by default`, wt.join(' | ') === 'Aggregate cap | Limestone cap | No cap' && wnow === wdef, `${wt.join(' | ')}; ${wnow}`);
   await p.evaluate(() => window.__openCategory('spa'));
   const dk = await p.evaluate(() => [...document.querySelectorAll('#cards-deck .card')].map(c => ({ t: c.querySelector('b').textContent, off: c.disabled })));
   if (L === 'a') check('a: Spa deck: all three cards greyed (Layout B only)', dk.length === 3 && dk.every(c => c.off), JSON.stringify(dk));
