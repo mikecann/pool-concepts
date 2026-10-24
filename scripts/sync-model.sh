@@ -22,6 +22,21 @@ for p in sorted(glob.glob(os.path.join(src, "*.png"))):
     n += 1
 print(n, "Layout B images")
 PY
+# The final design at 2:45 pm (renders/model/final_1445/<cam>__proposed.png, render_profile.py --time 14:45 --day-only)
+# -> img/final_<cam>.jpg and img/thumb_final_<cam>.jpg, for the renders page's top viewer
+uv run --quiet --with pillow python - $POOL/renders/model/final_1445 $OUT/img <<'PY'
+import glob, os, sys
+from PIL import Image
+src, dst = sys.argv[1], sys.argv[2]
+n = 0
+for p in sorted(glob.glob(os.path.join(src, "*__proposed.png"))):
+    b = os.path.basename(p)[:-len("__proposed.png")]
+    im = Image.open(p).convert("RGB")
+    im.resize((1600, 900), Image.LANCZOS).save(os.path.join(dst, f"final_{b}.jpg"), quality=84, optimize=True, progressive=True)
+    im.resize((480, 270), Image.LANCZOS).save(os.path.join(dst, f"thumb_final_{b}.jpg"), quality=80, optimize=True, progressive=True)
+    n += 1
+print(n, "final design images")
+PY
 # pool-model.glb, cameras.json and lights.json come from the-pool's scripts/web/export.sh; the -b files are Layout B
 # (export.sh pool-model-b.blend b), loaded only when that layout is chosen
 cp $POOL/model/web/pool-model.glb $POOL/model/web/cameras.json $POOL/model/web/lights.json $OUT/web/

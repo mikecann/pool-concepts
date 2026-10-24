@@ -85,12 +85,12 @@ const NIGHTV = [["13_deep_end_to_house", "Deep end"], ["14_spa_to_canal", "Spa d
 // the main renders are 16 Jan at 2:45 pm with no kitchen and no roller
 const RENDER_TIME = { date: "2027-01-16", minutes: 14 * 60 + 45 };
 // Round 31: the top viewer shows the final design by default (Layout B with the options in /bob/profile.json, the
-// design sent to Bob). Its pictures are Bob's set (the-pool's render_profile.py), from the same cameras as today's
-// ones but at 1 pm, not 2:45 pm. The strip's thumbnails for it are made by scripts/make-final-thumbs.mjs.
-const FINAL_IMG = '/bob/renders/', FINAL_PROFILE = '/bob/profile.json';
-const FINAL_TIME = { date: "2027-01-16", minutes: 13 * 60 };
+// design sent to Bob). Its pictures (img/final_<view>.jpg, thumbs img/thumb_final_<view>.jpg) are the-pool's
+// renders/model/final_1445/, rendered from that profile at 2:45 pm so their shadows match today's. Bob's own set is
+// 1 pm and stays as he was sent it.
+const FINAL_PROFILE = '/bob/profile.json';
 const VIEW_HINTS = {
-  final: "Drag across the picture to wipe between today and the final design. Today's pictures are 16 Jan at 2:45 pm and the final design's are 16 Jan at 1 pm, so the shadows don't match.",
+  final: "Drag across the picture to wipe between today and the final design. Renders are 16 Jan at 2:45 pm.",
   sk02: "Drag across the picture to wipe between today and the proposed design. Renders are 16 Jan at 2:45 pm. No outdoor kitchen is shown: it isn't decided yet (see the options below).",
 };
 const SEASON_DATE = { summer: "2027-01-16", winter: "2027-06-21" } as const;
@@ -176,8 +176,7 @@ const BFENCE_VIEWS = [['13_deep_end_to_house', 'From the deep end'], ['05_pool_n
 export function allImageUrls() {
   return [
     ...VIEWS.flatMap(([id]) => [...(PROPOSED_ONLY.has(id) ? [] : [`img/${id}__existing.jpg`]), `img/${id}__proposed.jpg`, `img/thumb_${id}.jpg`]),
-    // (the final design's, outside /model/)
-    ...VIEWS.flatMap(([id]) => [`..${FINAL_IMG}${id}__proposed.jpg`, `..${FINAL_IMG}thumbs/thumb_${id}.jpg`]),
+    ...VIEWS.flatMap(([id]) => [`img/final_${id}.jpg`, `img/thumb_final_${id}.jpg`]),
     ...ROLLER.flatMap(([o]) => ROLLER_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
     ...KITCHEN.flatMap(([o]) => KITCHEN_VIEWS.map(([v]) => kitchenSrc(o, v))),
     ...POSTS.flatMap(([o]) => POST_VIEWS.map(([v]) => `img/options_${v}_${o}.jpg`)),
@@ -551,8 +550,8 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   // ---------- before / after ----------
   // (design: what "New" shows, the final design or SK02 as Bob drew it; today's pictures are the same for both)
   let current = 0, picked = 'compare', split = 50, design: 'final' | 'sk02' = 'final';
-  const proposedSrc = (id: string) => (design === 'final' ? `${FINAL_IMG}${id}__proposed.jpg` : `${I}${id}__proposed.jpg`);
-  const thumbSrc = (id: string) => (design === 'final' ? `${FINAL_IMG}thumbs/thumb_${id}.jpg` : `${I}thumb_${id}.jpg`);
+  const proposedSrc = (id: string) => (design === 'final' ? `${I}final_${id}.jpg` : `${I}${id}__proposed.jpg`);
+  const thumbSrc = (id: string) => (design === 'final' ? `${I}thumb_final_${id}.jpg` : `${I}thumb_${id}.jpg`);
   const warmViews = () => warm(VIEWS.flatMap(([id]) => [proposedSrc(id), ...(PROPOSED_ONLY.has(id) ? [] : [`${I}${id}__existing.jpg`])]));
   // the final design's options for "Open in 3D", read as Bob's view and "Use the final design" read them
   const finalDesign: Promise<{ layout?: 'a' | 'b'; options?: Partial<Fly>; lights?: { scheme?: string } } | null> =
@@ -609,9 +608,9 @@ export function buildGallery(root: HTMLElement, fly: (f: Fly) => void, imgBase =
   $('v-fly').onclick = () => {
     const cam = VIEWS[current][0], scenario = picked === 'today' && !PROPOSED_ONLY.has(cam) ? 'existing' : 'proposed';
     if (design === 'sk02') { fly({ cam, scenario, ...RENDER_TIME, roller: 'none', kitchen: 'kitchen_none' }); return; }
-    // the final design: Layout B with every option and the lighting from profile.json, at the time of the picture
-    // (today's are 2:45 pm). If the profile can't be read, it still opens Layout B, with that layout's defaults.
-    void finalDesign.then(p => fly({ ...p?.options, cam, scenario, ...(scenario === 'existing' ? RENDER_TIME : FINAL_TIME),
+    // the final design: Layout B with every option and the lighting from profile.json, at 2:45 pm like the pictures.
+    // If the profile can't be read, it still opens Layout B, with that layout's defaults.
+    void finalDesign.then(p => fly({ ...p?.options, cam, scenario, ...RENDER_TIME,
       lighting: p?.lights?.scheme, layout: p?.layout ?? 'b' }));
   };
 
