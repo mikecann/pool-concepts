@@ -445,7 +445,8 @@ async function main() {
   group('wallcap', WALLCAP_CHOICES, 'wallcap', () => '13_deep_end_to_house');
   // Round 30: a wall top picked yourself sticks in both layouts (Layout B's own default doesn't replace it)
   $('cards-wallcap').addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card')) remember({ wallcapChosen: true }); }, true);
-  group('deck', DECK_CHOICES, 'deck', () => '14_spa_to_canal');
+  // the spa view's camera stands on the east strip, which the planter bed fills: look at the bed from above instead
+  group('deck', DECK_CHOICES, 'deck', () => model.deck === 'deck_wide_bed' ? '07_aerial_southwest' : '14_spa_to_canal');
   // Round 27: the spa deck's outline is a Layout B option; SK02's layout has the one squared deck, so grey them there
   if (LAYOUT === 'a') {
     for (const card of $('cards-deck').querySelectorAll<HTMLButtonElement>('.card')) {

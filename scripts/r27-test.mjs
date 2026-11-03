@@ -48,8 +48,8 @@ for (const L of ['a', 'b']) {
   check(`${L}: Finishes > Wall tops: three cards, ${wdef} by default`, wt.join(' | ') === 'Aggregate cap | Limestone cap | No cap' && wnow === wdef, `${wt.join(' | ')}; ${wnow}`);
   await p.evaluate(() => window.__openCategory('spa'));
   const dk = await p.evaluate(() => [...document.querySelectorAll('#cards-deck .card')].map(c => ({ t: c.querySelector('b').textContent, off: c.disabled })));
-  if (L === 'a') check('a: Spa deck: all three cards greyed (Layout B only)', dk.length === 3 && dk.every(c => c.off), JSON.stringify(dk));
-  else check('b: Spa deck: three cards, "Timber to the edges" by default', dk.map(c => c.t).join(' | ') === 'Timber to the edges | Timber with a cap border | Squared deck' && !dk.some(c => c.off) && (await p.evaluate(() => __viewer.model.deck)) === 'deck_wide');
+  if (L === 'a') check('a: Spa deck: all four cards greyed (Layout B only)', dk.length === 4 && dk.every(c => c.off), JSON.stringify(dk));
+  else check('b: Spa deck: four cards, "Timber to the edges" by default', dk.map(c => c.t).join(' | ') === 'Timber to the edges | Timber with a cap border | Timber, planter bed by the fence | Squared deck' && !dk.some(c => c.off) && (await p.evaluate(() => __viewer.model.deck)) === 'deck_wide');
   await p.screenshot({ path: `${OUT}/${L}_panel_spa_deck.png` });
   // ---- wall tops: only the chosen cap shows (in B, not under the wide deck)
   for (const deck of L === 'b' ? ['deck_wide', 'deck_as_is'] : ['deck_wide']) {
