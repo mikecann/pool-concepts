@@ -372,7 +372,7 @@ export class Model {
   bplant = 'bplant_bed';
   /** Round 27: the wall tops (both layouts), and Layout B's spa deck outline (SK02's layout has no deck_ parts). */
   wallcap = 'wallcap_aggregate';
-  deck = 'deck_wide';
+  deck = 'deck_wide_bed';
   /** Round 21: the west boundary fence along the pool (Today always shows the existing one). */
   bfence = 'bfence_perforated';
   /** The pool's roll-on cover: 'off' (rolled at its end), 'moving' (being rolled on or off) or 'on' (flat on the pool). */

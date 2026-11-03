@@ -122,15 +122,18 @@ export const DECK_CHOICES: Choice[] = [
 ];
 
 /** What render.py shows when nothing in a group is picked. */
-export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced', wallcap: 'wallcap_aggregate', deck: 'deck_wide' };
+export const OPTION_DEFAULTS = { roller: 'none', kitchen: 'kitchen_none', post: 'post_as_drawn', pump: 'pump_doors', play: 'play_as_is', spaCover: 'spa_cover_none', pier: 'pier_as_drawn', nfence: 'nfence_as_drawn', passage: 'passage_pavers', bfence: 'bfence_perforated', bplant: 'bplant_bed', lighting: 'lights_specced', wallcap: 'wallcap_aggregate', deck: 'deck_wide_bed' };
 /**
  * The walkthrough's default where it differs by layout. SK02's layout ('a') stays as drawn (OPTION_DEFAULTS, which is
  * also what render.py shows); Layout B's defaults follow the design we're building. Round 26: the pillar fence (Mike,
- * 18 Oct); Round 30: no wall caps (the aggregate runs to the edge, as in /bob/profile.json).
+ * 18 Oct); Round 30: no wall caps (the aggregate runs to the edge, as in /bob/profile.json). Round 33: the planter
+ * bed in the east strip (deck_wide_bed, Mike, 3 Nov). The deck is Layout B only, so 'a' builds no deck_ parts: its
+ * 'deck_wide' is the old default, there so a deck saved before Round 33 (not picked on purpose) becomes the bed.
  */
 export const LAYOUT_DEFAULTS: Partial<Record<keyof typeof OPTION_DEFAULTS, Record<'a' | 'b', string>>> = {
   pier: { a: 'pier_as_drawn', b: 'pier_straight_edge' },
   wallcap: { a: 'wallcap_aggregate', b: 'wallcap_none' },
+  deck: { a: 'deck_wide', b: 'deck_wide_bed' },
 };
 /** An option group's default in a layout. */
 export const layoutDefault = (k: keyof typeof OPTION_DEFAULTS, layout: 'a' | 'b') => LAYOUT_DEFAULTS[k]?.[layout] ?? OPTION_DEFAULTS[k];
