@@ -16,7 +16,9 @@ import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures
 import { VIEW_NAMES } from './views';
 import { LAYOUT_CHOICES, LAYOUT_DEFAULTS, OPTION_DEFAULTS, layoutDefault, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
-import { moveFragmentVarsIntoMain } from './webkit';
+import { moveFragmentVarsIntoMain, polyfillSchedulerYield } from './webkit';
+
+polyfillSchedulerYield();   // or Safari and iPhones wait a frame between every shader they build (see webkit.ts)
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const app = $('app'), world = $('world'), canvas = $<HTMLCanvasElement>('canvas');

@@ -54,3 +54,18 @@ function usedByHelpers(codes: string, names: Set<string>) {
   }
   return false;
 }
+
+/**
+ * three's compileAsync() pauses between every object it builds (several times per object) with scheduler.yield().
+ * Safari has no scheduler.yield, so three falls back to waiting for the next animation frame each time: 137 objects
+ * took ~9 s on a Mac and longer on a phone (30 frames a second in Low Power Mode), with the CPU and GPU idle.
+ * This stands in for it with a message to ourselves, which still lets input and painting through between objects
+ * but doesn't wait for a frame. Chrome has the real one, so this does nothing there.
+ */
+export function polyfillSchedulerYield() {
+  const s = ((globalThis as any).scheduler ??= {});
+  if (typeof s.yield === 'function') return;
+  const ch = new MessageChannel(), queue: (() => void)[] = [];
+  ch.port1.onmessage = () => queue.shift()?.();
+  s.yield = () => new Promise<void>(resolve => { queue.push(resolve); ch.port2.postMessage(0); });
+}
