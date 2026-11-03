@@ -93,7 +93,7 @@ export class TapeMeasure {
     const label = document.createElement('div');
     label.className = 'measure-label';
     const d = a.distanceTo(b), h = Math.hypot(b.x - a.x, b.z - a.z), v = Math.abs(b.y - a.y);
-    label.innerHTML = `${fmt(d)}<small>&#8596; ${fmt(h)} &nbsp;&#8597; ${fmt(v)}</small>`;
+    label.innerHTML = `${fmt(d)}<small>&#8596;&#xFE0E; ${fmt(h)} &nbsp;&#8597;&#xFE0E; ${fmt(v)}</small>`;
     this.labels.appendChild(label);
     const item = { a, b, line, label };
     this.items.push(item);
