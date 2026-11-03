@@ -16,6 +16,7 @@ import { AsyncPipelines, compileFor, pinRenderDepth, renderClean, uploadTextures
 import { VIEW_NAMES } from './views';
 import { LAYOUT_CHOICES, LAYOUT_DEFAULTS, OPTION_DEFAULTS, layoutDefault, BFENCE_CHOICES, BPLANT_CHOICES, LIGHTING_CHOICES, WALLCAP_CHOICES, DECK_CHOICES, KITCHEN_CHOICES, POST_CHOICES, PUMP_CHOICES, SPA_COVER_CHOICES, PLAY_CHOICES, NFENCE_CHOICES, PASSAGE_CHOICES, PIER_CHOICES, ROLLER_CHOICES, type Choice } from './choices';
 import { compass, sunTimes } from './sun';
+import { moveFragmentVarsIntoMain } from './webkit';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const app = $('app'), world = $('world'), canvas = $<HTMLCanvasElement>('canvas');
@@ -192,8 +193,9 @@ async function main() {
   progress(0.02, handoff ? `Loading ${LAYOUT_CHOICES.find(c => c.value === LAYOUT)!.title}…` : 'Loading the model…');
   const modelData = Model.fetch(BASE, LAYOUT, f => progress(0.02 + f * 0.6, `Loading the model… ${Math.round(f * 100)}%`));
   // ?gpu=1 turns on GPU timestamp queries for scripts/perf.mjs (they cost a little, so they're off normally)
-  const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance', trackTimestamp: params.has('gpu') });
+  const renderer = new WebGPURenderer({ canvas, antialias: false, powerPreference: 'high-performance', trackTimestamp: params.has('gpu'), forceWebGL: params.has('webgl') });
   await renderer.init();
+  moveFragmentVarsIntoMain(renderer, params.has('localvars'));   // or iPhones and Safari draw nothing (see webkit.ts)
   mark('renderer');
   S.quality = startQuality();
   renderer.toneMapping = AgXToneMapping;
