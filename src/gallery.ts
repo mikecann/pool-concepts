@@ -359,7 +359,7 @@ const HTML = /* html */ `
 <div class="section-head">
   <span class="label">Options to decide · Layout B</span>
   <h2>Spa deck</h2>
-  <p>In Layout B, the timber spa deck out to the walls' edges with a planter bed along the east fence (the final design), the same timber over that strip with pots, or squared as drawn.</p>
+  <p>In Layout B, the timber spa deck out to the walls' edges with pots along the east fence (the final design), the same timber with a planter bed in that strip instead, or squared as drawn.</p>
 </div>
 <section class="block" aria-label="Spa deck options">
   <div class="fstage"><img id="sd-img" alt=""><span class="tag l" id="sd-tag"></span><button class="fly" id="sd-fly" type="button">Open in 3D</button></div>

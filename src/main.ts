@@ -99,13 +99,13 @@ type Settings = { quality?: Quality; fps?: boolean; people?: boolean; scenario?:
   /** Round 26: the lighting adjust panel's settings, per scheme. */ lightAdjust?: Record<string, LightAdjust>;
   /** Round 26: a pillar fence was picked on purpose (so Layout B's own default doesn't replace it). */ pierChosen?: boolean;
   /** Round 30: the same for the wall tops. A saved wall top without it came along as a default. */ wallcapChosen?: boolean;
-  /** Round 33: the same for the spa deck (the planter bed became Layout B's default). */ deckChosen?: boolean;
+  /** Round 34: the same for the spa deck. Round 33's deckChosen is ignored, so a bed saved with it goes back to the timber. */ deckPicked?: boolean;
   options?: Partial<Record<'roller' | 'kitchen' | 'fence' | 'pier' | 'nfence' | 'passage' | 'post' | 'pump' | 'play' | 'spaCover' | 'bfence' | 'bplant' | 'lighting' | 'wallcap' | 'deck', string>> };
 // a profile keeps its viewer's preferences (quality, fps, people, mode, dims) apart, and never any of the design
 const SETTINGS_KEY = profile ? 'pool-settings-profile' : 'pool-settings';
-const DESIGN_SETTINGS = ['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen', 'wallcapChosen', 'deckChosen'] as const;
+const DESIGN_SETTINGS = ['options', 'layout', 'scenario', 'lightAdjust', 'pierChosen', 'wallcapChosen', 'deckPicked'] as const;
 /** The option groups with a per-layout default (LAYOUT_DEFAULTS), and the setting that says one was picked on purpose. */
-const CHOSEN_FLAGS: Partial<Record<keyof typeof OPTION_DEFAULTS, 'pierChosen' | 'wallcapChosen' | 'deckChosen'>> = { pier: 'pierChosen', wallcap: 'wallcapChosen', deck: 'deckChosen' };
+const CHOSEN_FLAGS: Partial<Record<keyof typeof OPTION_DEFAULTS, 'pierChosen' | 'wallcapChosen' | 'deckPicked'>> = { pier: 'pierChosen', wallcap: 'wallcapChosen', deck: 'deckPicked' };
 const settings: Settings = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}') ?? {}; } catch { return {}; } })();
 if (profile) for (const k of DESIGN_SETTINGS) delete settings[k];
 // the time and date aren't remembered any more (Round 17d): drop what older visits saved
@@ -450,8 +450,8 @@ async function main() {
   $('cards-wallcap').addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card')) remember({ wallcapChosen: true }); }, true);
   // the spa view's camera stands on the east strip, which the planter bed fills: look at the bed from above instead
   group('deck', DECK_CHOICES, 'deck', () => model.deck === 'deck_wide_bed' ? '07_aerial_southwest' : '14_spa_to_canal');
-  // Round 33: a spa deck picked yourself sticks (Layout B's default, the planter bed, doesn't replace it)
-  $('cards-deck').addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card')) remember({ deckChosen: true }); }, true);
+  // Round 33: a spa deck picked yourself sticks (Layout B's default doesn't replace it)
+  $('cards-deck').addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card')) remember({ deckPicked: true }); }, true);
   // Round 27: the spa deck's outline is a Layout B option; SK02's layout has the one squared deck, so grey them there
   if (LAYOUT === 'a') {
     for (const card of $('cards-deck').querySelectorAll<HTMLButtonElement>('.card')) {
@@ -1165,7 +1165,7 @@ async function main() {
     const { layout, lights } = fin, options = { ...fin.options, lighting: lights.scheme };
     const adjust = { ...(settings.lightAdjust ?? {}) };
     if (lights.adjust) adjust[lights.scheme] = lights.adjust; else delete adjust[lights.scheme];
-    remember({ options, layout, scenario: 'proposed', lightAdjust: adjust, pierChosen: true, wallcapChosen: true, deckChosen: true });
+    remember({ options, layout, scenario: 'proposed', lightAdjust: adjust, pierChosen: true, wallcapChosen: true, deckPicked: true });
     settingsDlg.close();
     if (layout !== LAYOUT) { swapLayout(layout, { options, scenario: 'proposed', final: true }); return; }
     // the same layout: in place, as picking each card would (you stay where you are, in your mode)
