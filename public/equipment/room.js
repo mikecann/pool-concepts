@@ -42,9 +42,12 @@ export const HOUSE_OPENINGS = [ // on the west wall x = -184; y range, RL range
 export const PATIO = { x0: 3826, x1: 10300, y0: 5133, y1: 9376, rl: 2.47 };
 export const ALFRESCO = { x0: -706, x1: 3826, y0: 5133, y1: 8825, rl: 2.38 };
 // pool-side paving at RL 2.38 out to the boundary and north to the pool fence (pool is cut out of it)
-export const POOL_PAVING = [[-7000, -400], [-240, -400], [-240, 5133], [-706, 5133], [-706, 11640], [-5683, 11640], [-6275, 8130], [-7000, 3800]];
+export const POOL_PAVING = [[-7000, -400], [-240, -400], [-240, 5133], [-706, 5133], [-706, 8825], [-184, 8825], [-184, 11640], [-5683, 11640], [-6275, 8130], [-7000, 3800]];
 export const YARD_POLY = [[-5683, 11640], [-184, 11640], [-184, 17400], [-4700, 17400]];
 export const YARD_RL = 2.40;
+// paved area north of the pool, inside the pool fence (house west wall is x = -184 from y 9376 north)
+export const POOLSIDE = { x0: -5600, x1: -184, y0: 8900, y1: 11640, rl: 2.38 };
+export const GATE = { x0: -2140, x1: -1234, y: 11640 };
 export const WEST_FENCE = { h: 1.8, line: [[-7000, 3800], [-6275, 8130], [-5683, 11640], [-4700, 17400]] };
 export const NORTH_FENCE = { h: 1.2, line: [[-5683, 11640], [-184, 11640]] };
 

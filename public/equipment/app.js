@@ -64,7 +64,7 @@ function rebuild() {
   for (const it of result.items) { const g = buildItem(it); setItemStatus(g, it.status); gi.add(g); itemGroups[it.id] = g; }
   for (const it of result.items) {
     // wall-mounted units outside stand on a post
-    if (it.item.wallMount && (it.zone === 'yard' || it.zone === 'terrace') && it.pl.rl - it.floor > 0.1) {
+    if (it.item.wallMount && (it.zone === 'yard' || it.zone === 'terrace' || it.zone === 'poolside') && it.pl.rl - it.floor > 0.1) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, it.pl.rl - it.floor, 0.08), new THREE.MeshStandardMaterial({ color: 0x8a8f86 }));
       post.position.copy(P(it.pl.x, it.pl.y, it.floor + (it.pl.rl - it.floor) / 2)); gi.add(post);
     }
@@ -72,8 +72,7 @@ function rebuild() {
   dyn.add(gi);
   peopleGroup = new THREE.Group();
   const pe = layout.people || {};
-  if (pe.standing) { const p = buildPerson('standing', pe.standing); p.userData.kind = 'standing'; peopleGroup.add(p); }
-  if (pe.kneeling) { const p = buildPerson('kneeling', pe.kneeling); p.userData.kind = 'kneeling'; peopleGroup.add(p); }
+  for (const kind of ['standing', 'kneeling']) for (const pos of [].concat(pe[kind] || [])) { const p = buildPerson(kind, pos); p.userData.kind = kind; peopleGroup.add(p); }
   dyn.add(peopleGroup);
   buildDims(layout, access);
   applySea();
@@ -144,7 +143,7 @@ function bounds(includeYard = false) {
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
   for (const [x, y] of ROOM_POLY) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
   for (const it of result.items) if (it.zone !== 'yard' || includeYard) for (const [x, y] of it.g.body) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  for (const p of Object.values(layoutOf(state.layout).people || {})) if (p.y < 6000 || includeYard) { x0 = Math.min(x0, p.x - 300); x1 = Math.max(x1, p.x + 300); y0 = Math.min(y0, p.y - 300); y1 = Math.max(y1, p.y + 300); }
+  for (const p of Object.values(layoutOf(state.layout).people || {}).flat()) if (p.y < 6000 || includeYard) { x0 = Math.min(x0, p.x - 300); x1 = Math.max(x1, p.x + 300); y0 = Math.min(y0, p.y - 300); y1 = Math.max(y1, p.y + 300); }
   return { x0: x0 - 400, x1: x1 + 400, y0: y0 - 400, y1: y1 + 400 };
 }
 function setCam(pos, target, fov = 45) {
@@ -178,10 +177,10 @@ function setPreset(name) {
     const [yx, yy] = centroid(outside('yard'), [-4400, 13500]);
     state.deck = 'solid'; state.walls = 'solid';
     const t = P(yx, yy, 2.9); setCam(t.clone().add(new THREE.Vector3(2.5, 5.2, 7.5)), t);
-  } else if (name === 'terrace') {
-    const [tx, ty] = centroid(outside('terrace'), [6300, 3000]);
+  } else if (name === 'heatpump') {
+    // the heat pump, the house's west wall with its windows, the north pool fence and the pool's north end, from the south-west and above
     state.deck = 'solid'; state.walls = 'solid';
-    const t = P(tx, ty, 2.1); setCam(t.clone().add(new THREE.Vector3(-1.5, 3.4, 5.6)), t);
+    setCam(P(-6200, 6000, 8.5), P(-1700, 10900, 2.8));
   }
   for (const btn of document.querySelectorAll('#presets button')) btn.setAttribute('aria-pressed', btn.dataset.preset === name);
   $('#cut').hidden = name !== 'cutaway';

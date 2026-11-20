@@ -25,8 +25,8 @@ try {
   }
   await page.evaluate(() => window.__eq.show({ layout: 'sideYard', preset: 'yard', sea: 'today' }));
   await page.screenshot({ path: `${OUT}/sideYard-yard.png` });
-  await page.evaluate(() => window.__eq.show({ layout: 'terrace', preset: 'terrace', sea: 'today' }));
-  await page.screenshot({ path: `${OUT}/terrace-terrace.png` });
+  await page.evaluate(() => window.__eq.show({ layout: 'poolside', preset: 'heatpump', sea: 'today' }));
+  await page.screenshot({ path: `${OUT}/poolside-heatpump.png` });
   await page.evaluate(() => window.__eq.show({ layout: 'hatch', preset: 'inside', sea: 'today' }));
   await page.screenshot({ path: `${OUT}/hatch-inside.png` });
   await page.evaluate(() => window.__eq.show({ layout: 'sideYard', preset: 'plan', labels: true, sea: 'today' }));

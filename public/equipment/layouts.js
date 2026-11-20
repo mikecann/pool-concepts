@@ -127,19 +127,17 @@ export const LAYOUTS = [
     thermal: 'Heat pump breathes freely. Quiet model on a daytime timer for the neighbour.',
   },
   {
-    id: 'terrace', title: 'Gear under the deck, heat pumps on the east terrace', access: 'stairs', spaType: 'shell',
+    id: 'poolside', title: 'Gear under the deck, heat pump by the kitchen wall', access: 'stairs', spaType: 'shell',
     seaEntersRoomAtRl: 2.32, rank: 'ok',
-    structures: [{ name: 'plinth', x0: 5900, y0: 1800, x1: 6700, y1: 4550, rl0: 1.80, rl1: 2.10 }],
     placements: [
       ...A, SUMP,
-      { item: 'pool_heat_pump', x: 6300, y: 3960, rl: 2.10, rotDeg: 90 },
-      { item: 'spa_heat_pump', x: 6300, y: 2305, rl: 2.10, rotDeg: 90 },
+      { item: 'pool_heat_pump', x: -931, y: 10690, rl: 2.38, rotDeg: -90 },
     ],
-    people: { standing: { x: 690, y: 460, rl: 1.12 } },
+    people: { standing: [{ x: 690, y: 460, rl: 1.12 }, { x: -2400, y: 10700, rl: 2.38 }] }, // one in the stair well, one beside the heat pump
     views: V_HATCH,
-    verdict: 'Works, and the pipes are short, but the units sit in the view to the canal.',
-    flood: 'Terrace is the 25-year level; on a 300 mm plinth the units reach the 100-year level.',
-    thermal: 'Open air on all sides, 2.5 m clear in front.',
+    verdict: 'Heat pump in the open inside the pool fence, on a blank stretch of the kitchen wall.',
+    flood: 'Heat pump is dry to the 200-year level. The gear under the deck is dry only if the room is sealed.',
+    thermal: '4.6 m of clear air in front. The spa\'s electric element needs no air, so it can stay under the deck.',
   },
   {
     id: 'heatPumpInside', title: 'Heat pump under the deck (why it cannot work)', access: 'hatch', spaType: 'shell',

@@ -1,7 +1,7 @@
 // Fit check. Pure maths (no three.js) so it also runs in Node.
 // Plan units mm, RLs metres. Each placed item becomes a set of convex plan polygons with an RL range:
 // body, clearance volumes, service-lift volume, airflow plume.
-import { ROOM_POLY, SPA, RL, TERRACE, YARD_POLY, YARD_RL, SEA_LEVELS, pointInPoly, inSpa, inRoomFree, inRect, OUTER_POLY, LOUNGE_POLY } from './room.js';
+import { ROOM_POLY, SPA, RL, TERRACE, YARD_POLY, YARD_RL, POOLSIDE, POOL, HOUSE, SEA_LEVELS, pointInPoly, inSpa, inRoomFree, inRect, OUTER_POLY, LOUNGE_POLY } from './room.js';
 
 const D2R = Math.PI / 180;
 const EPS = 1;           // mm
@@ -77,6 +77,18 @@ export function polysOverlap(a, b) {
 }
 const rlOverlap = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0) > EPS / 1000;
 
+// shortest plan distance (mm) from a convex polygon to an axis-aligned rectangle, by walking its edges
+function distToRect(poly, r) {
+  let best = 1e12;
+  for (let i = 0; i < poly.length; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[(i + 1) % poly.length];
+    for (let k = 0; k <= 40; k++) {
+      const x = x1 + ((x2 - x1) * k) / 40, y = y1 + ((y2 - y1) * k) / 40;
+      best = Math.min(best, Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.y0 - y, 0, y - r.y1)));
+    }
+  }
+  return best;
+}
 function samples(poly, n = 9) {
   // grid of points inside a convex quad/polygon, pulled 0.5% toward the centre
   let cx = 0, cy = 0; for (const [x, y] of poly) { cx += x; cy += y; } cx /= poly.length; cy /= poly.length;
@@ -96,17 +108,19 @@ const inExtra = (x, y, ctx) => (ctx.extraFloor || []).some(r => inRect(x, y, r))
 export function zoneOf(g, pl, ctx) {
   if (pointInPoly(pl.x, pl.y, ROOM_POLY) || inExtra(pl.x, pl.y, ctx)) return 'room';
   if (inRect(pl.x, pl.y, TERRACE)) return 'terrace';
+  if (inRect(pl.x, pl.y, POOLSIDE)) return 'poolside';
   if (pointInPoly(pl.x, pl.y, YARD_POLY)) return 'yard';
   return 'none';
 }
 
 const inTerrace = (x, y) => inRect(x, y, TERRACE);
-function insideZone(zone, x, y, ctx) { return zone === 'yard' ? pointInPoly(x, y, YARD_POLY) : zone === 'terrace' ? inTerrace(x, y) : (inRoomFree(x, y) || inExtra(x, y, ctx)); }
+function insideZone(zone, x, y, ctx) { return zone === 'poolside' ? inRect(x, y, POOLSIDE) : zone === 'yard' ? pointInPoly(x, y, YARD_POLY) : zone === 'terrace' ? inTerrace(x, y) : (inRoomFree(x, y) || inExtra(x, y, ctx)); }
 
 // Is a point free air for a discharge plume to travel through?
 function airFree(x, y, rl, ctx) {
   if (inRoomFree(x, y) || inExtra(x, y, ctx)) return true;
   if (inSpa(x, y)) return false;
+  if (x >= HOUSE.x0 && x <= HOUSE.x1 && y >= HOUSE.y0 && y <= HOUSE.y1) return false; // the house is solid
   const door = ctx.doors.find(d => x >= d.x0 && x <= d.x1 && y >= d.y0 && y <= d.y1 && rl >= d.sill && rl <= d.head);
   if (door) return true;
   if (pointInPoly(x, y, OUTER_POLY) && !pointInPoly(x, y, LOUNGE_POLY)) return false; // inside masonry
@@ -130,7 +144,7 @@ export function checkLayout(layout, catalogue, ctx) {
   const floorUnder = (e, zone) => {
     const t = structs.find(t => pointInPoly(e.pl.x, e.pl.y, t.poly) && e.pl.rl >= t.rl1 - 0.02);
     if (t) return t.rl1;
-    return zone === 'room' ? RL.pad : zone === 'terrace' ? TERRACE.rl : zone === 'yard' ? YARD_RL : e.pl.rl;
+    return zone === 'room' ? RL.pad : zone === 'terrace' ? TERRACE.rl : zone === 'yard' ? YARD_RL : zone === 'poolside' ? POOLSIDE.rl : e.pl.rl;
   };
   const res = {};
   const add = (id, status, note) => {
@@ -159,6 +173,13 @@ export function checkLayout(layout, catalogue, ctx) {
         const touchesSpa = zone === 'room' && out.some(([x, y]) => inSpa(x, y));
         add(id, 'clash', touchesSpa ? 'overlaps the spa' : zone === 'room' ? 'pokes through a wall' : 'off the terrace');
       }
+    }
+    // outdoors: distance from the pool water (2 m electrical zone, 3.5 m some makers ask for)
+    if (zone !== 'room' && zone !== 'none' && (item.outdoorOnly || item.heatW > 0)) {
+      const dist = distToRect(g.body, POOL) / 1000;
+      if (dist < 2.0) add(id, 'clash', `${(2.0 - dist).toFixed(2)} m inside the 2 m electrical zone round the pool`);
+      else if (dist < 3.5) add(id, 'tight', `${dist.toFixed(1)} m from the pool: inside the 3.5 m some makers ask for`);
+      e.poolDist = dist;
     }
     if (zone === 'room' && item.outdoorOnly) add(id, 'clash', 'maker says outdoors only');
     if (zone === 'room' && item.mustBeOutsideRoom) add(id, 'clash', 'maker says outside the room');

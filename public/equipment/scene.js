@@ -5,7 +5,7 @@ import { sideRect, dims, circlePoly } from './fit.js';
 import {
   LOUNGE_POLY, OUTER_POLY, ROOM_POLY, ROOM_VOID, SPA, RL, STRIP_POLY, LOWER_STEPS, UPPER_STEPS, BENCH, BENCH_RL, TERRACE,
   EAST_STEPS, EAST_LOW_GROUND, CANAL_STRIP, CANAL, POOL, FENCE, HOUSE, HOUSE_OPENINGS, PATIO, ALFRESCO, POOL_PAVING, YARD_POLY, YARD_RL,
-  WEST_FENCE, NORTH_FENCE,
+  WEST_FENCE, NORTH_FENCE, GATE,
 } from './room.js';
 
 export const M = 0.001;
@@ -227,7 +227,14 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
     }
   };
   panelFence(WEST_FENCE.line.map(([x, y]) => [x, y]), WEST_FENCE.h, 0x8a8f86, 0.8);
-  panelFence(NORTH_FENCE.line, NORTH_FENCE.h, COL.fence, 0.5);
+  // north pool fence with the gate gap; the leaf stands ajar in a warmer tone
+  panelFence([[NORTH_FENCE.line[0][0], GATE.y], [GATE.x0, GATE.y]], NORTH_FENCE.h, COL.fence, 0.5);
+  panelFence([[GATE.x1, GATE.y], [NORTH_FENCE.line[1][0], GATE.y]], NORTH_FENCE.h, COL.fence, 0.5);
+  const leaf = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(GATE.x1 - GATE.x0) * M, NORTH_FENCE.h, 0.04), new THREE.MeshStandardMaterial({ color: 0xb59a74, transparent: true, opacity: 0.8 }));
+  leaf.geometry.translate(-Math.abs(GATE.x1 - GATE.x0) * M / 2, 0, 0); // pivot at the hinge end (east)
+  leaf.position.set(GATE.x1 * M, RL.deck + NORTH_FENCE.h / 2, -GATE.y * M);
+  leaf.rotation.y = -Math.PI / 3; // ajar, swinging north
+  groups.context.add(leaf);
 
   // ground: canal strip, canal wall, water, the low ground east and the terrace with its steps
   const groundMat = std(COL.ground);
