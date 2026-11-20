@@ -1,49 +1,37 @@
-// ACCESS OPTIONS AND LAYOUTS.
+// WHAT THE VIEWER SHOWS. Three independent choices (heat pump spot, way in, floor drain) plus fixed gear under the deck.
 // Plan units mm, origin = lounge's inside SW corner, x east, y north. RLs in metres.
-//
-// ACCESS: how you get into the room. Each option changes the geometry the viewer draws and the fit check:
-//   hatch:    deck hatch rectangle (lid drawn open)
-//   stairs:   the lower lounge steps hinge up; a standing well opens under them
-//   eastDoor: louvred door through the east masonry wall
-//   panels:   lift-out deck panels over the band east of the spa
-// overhead:   openings you can lift things out of (a tall item fits if its footprint is inside one)
-// airPath:    is there a real path for air in and out of the room?
-export const ACCESS = {
+// Placements: x, y = centre of the item's footprint (mm); rl = RL of its base (m); rotDeg 0 = front faces south.
+
+// Way in. overhead = openings you can lift things out of; airPath = a real path for air in and out of the room.
+export const WAYS = {
   hatch: {
     label: 'Hatch',
-    hatch: { x0: 0, y0: -1400, x1: 1600, y1: -250, name: 'hatch' },
+    line: 'Deck hatch 1.6 x 1.15 m, as drawn. You climb 1.26 m down onto the gear.',
+    hatch: { x0: 0, y0: -1400, x1: 1600, y1: -250 },
     overhead: [{ name: 'hatch', x0: 0, y0: -1400, x1: 1600, y1: -250 }],
     airPath: false,
+    person: { kind: 'standing', x: 1850, y: -600, rl: 2.38 },
   },
   stairs: {
     label: 'Stairs',
+    line: 'The lounge steps lift on gas struts. You stand in a well with the gear in reach.',
     stairs: { x0: 0, y0: 0, x1: 1380, y1: 920, liftDeg: 109 },
     well: { x0: 0, y0: -240, x1: 1380, y1: 920, rl: 1.12 },
     wallCut: { x0: 0, y0: -240, x1: 1380, y1: 0, rl0: 0.88, rl1: 2.0 },
     overhead: [{ name: 'open stairs', x0: 0, y0: 0, x1: 1380, y1: 920 }],
     airPath: true,
-  },
-  eastDoor: {
-    label: 'East door',
-    door: { y0: 550, y1: 1350, sill: 1.45, head: 2.15, wallX0: 4695, wallX1: 4935 },
-    overhead: [],
-    airPath: true,
-  },
-  panels: {
-    label: 'Deck panels',
-    hatch: { x0: 3760, y0: -282, x1: 4695, y1: 1420, name: 'panels' },
-    overhead: [{ name: 'deck panels', x0: 3760, y0: -282, x1: 4695, y1: 1420 }],
-    airPath: true,
+    person: { kind: 'standing', x: 690, y: 460, rl: 1.12 },
   },
 };
 
-// Camera views per layout. inside: eye and target [x, y, RL]; cut: the cutaway plane.
-const V_HATCH = { inside: { eye: [40, -700, 1.75], target: [2300, -950, 1.4] }, cut: { axis: 'x', at: 800 } };
-const V_DOOR = { inside: { eye: [3100, -1000, 1.75], target: [4400, 300, 1.3] }, cut: { axis: 'y', at: 100 } };
-const V_YARD = { inside: { eye: [3500, -1000, 1.75], target: [4300, 300, 1.5] }, cut: { axis: 'y', at: 300 } };
+// Floor drain: how high the sea must be to get into the equipment room.
+export const DRAINS = {
+  canal: { label: 'To canal', seaEntersRoomAtRl: 1.12 },
+  sump: { label: 'Sump pump', seaEntersRoomAtRl: 2.32 },
+};
 
-// Placements. x, y = centre of the item's footprint (mm); rl = RL of its base (m); rotDeg 0 = front faces south.
-const A = [
+// Gear under the deck: the same in every state.
+export const GEAR = [
   { item: 'pool_pump', x: 385, y: -1300, rl: 1.12, rotDeg: 180 },
   { item: 'pool_filter', x: 1300, y: -1150, rl: 1.12, rotDeg: 0 },
   { item: 'chlor_cell', x: 900, y: -1385, rl: 1.30, rotDeg: 0 },
@@ -53,104 +41,48 @@ const A = [
   { item: 'spa_filter', x: 800, y: -430, rl: 1.12, rotDeg: 0 },
   { item: 'spa_heater', x: 1300, y: -420, rl: 1.12, rotDeg: 0 },
   { item: 'spa_controller', x: 1210, y: -285, rl: 1.80, rotDeg: 0 },
-  { item: 'acid_drum', x: 5300, y: 3000, rl: 1.80, rotDeg: 0 },
 ];
-const SUMP = { item: 'sump_pump', x: 1450, y: -720, rl: 1.12, rotDeg: 0 };
+export const SUMP = { item: 'sump_pump', x: 1450, y: -720, rl: 1.12, rotDeg: 0 };
 
-export const LAYOUTS = [
-  {
-    id: 'hatch', title: 'As drawn: everything under the hatch', access: 'hatch', spaType: 'shell',
-    seaEntersRoomAtRl: 1.12, rank: 'weak',
-    placements: A,
-    people: { standing: { x: 1850, y: -600, rl: 2.38 } },
-    views: V_HATCH,
-    verdict: 'Fits on the floor but you climb down onto the gear, and the control boxes cannot hang at the makers\' height.',
-    flood: 'The floor drain to the canal lets the sea in at the 2-year level.',
-    thermal: 'About 300 W of heat, 1 kW during a spa session. Deck gaps and a grille are enough.',
+// Pool heat pump spots (one shown at a time). view = the "Heat pump" camera: eye and target [x, y, RL].
+export const HEAT_PUMPS = {
+  kitchen: {
+    label: 'Kitchen wall',
+    line: 'Against the house, inside the pool fence. About 13 m of pipe.',
+    placement: { item: 'pool_heat_pump', x: -931, y: 10690, rl: 2.38, rotDeg: -90 },
+    person: { kind: 'standing', x: -931, y: 11420, rl: 2.38 },
+    view: { eye: [-6200, 6000, 8.5], target: [-1700, 10900, 2.8] },
   },
-  {
-    id: 'stairs', title: 'Stairs that lift, room sealed as a tub', access: 'stairs', spaType: 'shell',
-    seaEntersRoomAtRl: 2.32, rank: 'ok',
-    placements: [...A, SUMP],
-    people: { standing: { x: 690, y: 460, rl: 1.12 } },
-    views: V_HATCH,
-    verdict: 'Best way to keep the gear under the deck: stand-up access with everything in reach.',
-    flood: 'Dry to the 200-year level if the walls are tanked and the drain becomes a sump pump.',
-    thermal: 'Same 300 W. Slatted stair risers let it out.',
+  yard: {
+    label: 'Side yard',
+    line: 'North of the pool fence, on the boundary side. About 19 m of pipe.',
+    placement: { item: 'pool_heat_pump', x: -4450, y: 13000, rl: 2.40, rotDeg: 180 },
+    person: { kind: 'standing', x: -3300, y: 13000, rl: 2.40 },
+    view: { eye: [-2300, 9000, 7.2], target: [-4450, 12900, 2.6] },
   },
-  {
-    id: 'eastDoor', title: 'East side door', access: 'eastDoor', spaType: 'shell',
-    seaEntersRoomAtRl: 1.45, rank: 'weak',
-    placements: [
-      { item: 'pool_pump', x: 1985, y: -1300, rl: 1.12, rotDeg: 180 },
-      { item: 'pool_filter', x: 2850, y: -1180, rl: 1.12, rotDeg: 0 },
-      { item: 'chlor_cell', x: 2440, y: -1385, rl: 1.60, rotDeg: 0 },
-      { item: 'ph_doser', x: 2440, y: -1375, rl: 1.85, rotDeg: 180 },
-      { item: 'chlor_pack', x: 3250, y: -1380, rl: 1.80, rotDeg: 180 },
-      { item: 'spa_jet_pump', x: 4000, y: -150, rl: 1.12, rotDeg: 90 },
-      { item: 'spa_filter', x: 3950, y: 380, rl: 1.12, rotDeg: 0 },
-      { item: 'spa_heater', x: 4560, y: 0, rl: 1.12, rotDeg: 90 },
-      { item: 'spa_controller', x: 4650, y: 0, rl: 1.80, rotDeg: -90 },
-      { item: 'acid_drum', x: 5300, y: 3000, rl: 1.80, rotDeg: 0 },
-    ],
-    people: { kneeling: { x: 5200, y: 950, rl: 1.4 } },
-    views: V_DOOR,
-    verdict: 'Nobody enters the pool area, but the door is 0.7 m high and it is a crawl in beside the spa.',
-    flood: 'The sill at RL 1.45 lets the sea in between the 2 and 5-year levels.',
-    thermal: 'Good through-draught for the pumps.',
+  corner: {
+    label: 'Pool corner',
+    line: 'South-west corner of the pool paving, by the canal. About 9 m of pipe.',
+    placement: { item: 'pool_heat_pump', x: -6900, y: -150, rl: 2.38, rotDeg: 180 },
+    person: { kind: 'standing', x: -5800, y: -150, rl: 2.38 },
+    view: { eye: [-3600, 3600, 7.2], target: [-6700, -100, 2.6] },
   },
-  {
-    id: 'sideYard', title: 'Pool gear in the side yard, spa pack under the deck', access: 'panels', spaType: 'shell',
-    seaEntersRoomAtRl: 2.32, rank: 'pick',
-    structures: [
-      { name: 'raised shelf', x0: 3780, y0: -250, x1: 4680, y1: 1050, rl0: 1.12, rl1: 1.80 },
-      { name: 'filter step', x0: 3780, y0: 1050, x1: 4680, y1: 1400, rl0: 1.12, rl1: 1.55 },
-    ],
-    placements: [
-      { item: 'pool_pump', x: -4500, y: 13000, rl: 2.40, rotDeg: 90 },
-      { item: 'chlor_cell', x: -4500, y: 13560, rl: 2.75, rotDeg: 90 },
-      { item: 'pool_filter', x: -4500, y: 14050, rl: 2.40, rotDeg: 0 },
-      { item: 'chlor_pack', x: -4900, y: 13200, rl: 3.40, rotDeg: 90 },
-      { item: 'ph_doser', x: -4900, y: 13600, rl: 3.45, rotDeg: 90 },
-      { item: 'acid_drum', x: -4900, y: 14050, rl: 2.40, rotDeg: 0 },
-      { item: 'pool_heat_pump', x: -3950, y: 15300, rl: 2.40, rotDeg: 180 },
-      { item: 'spa_jet_pump', x: 4000, y: 200, rl: 1.80, rotDeg: 90 },
-      { item: 'spa_heater', x: 4050, y: 800, rl: 1.80, rotDeg: 0 },
-      { item: 'spa_filter', x: 4500, y: 1225, rl: 1.55, rotDeg: 0 },
-      { item: 'spa_controller', x: 4650, y: 300, rl: 1.85, rotDeg: -90 },
-      SUMP,
-    ],
-    people: { standing: { x: -3700, y: 13400, rl: 2.40 } },
-    views: V_YARD,
-    verdict: 'Pool gear serviced standing up in the open, makers\' rules met, heat pump in free air.',
-    flood: 'Side yard is dry to the 200-year level. Spa pack sits at the 25-year level inside a sealed room.',
-    thermal: 'Heat pump breathes freely. Quiet model on a daytime timer for the neighbour.',
-  },
-  {
-    id: 'poolside', title: 'Gear under the deck, heat pump by the kitchen wall', access: 'stairs', spaType: 'shell',
-    seaEntersRoomAtRl: 2.32, rank: 'ok',
-    placements: [
-      ...A, SUMP,
-      { item: 'pool_heat_pump', x: -931, y: 10690, rl: 2.38, rotDeg: -90 },
-    ],
-    people: { standing: [{ x: 690, y: 460, rl: 1.12 }, { x: -2400, y: 10700, rl: 2.38 }] }, // one in the stair well, one beside the heat pump
-    views: V_HATCH,
-    verdict: 'Heat pump in the open inside the pool fence, on a blank stretch of the kitchen wall.',
-    flood: 'Heat pump is dry to the 200-year level. The gear under the deck is dry only if the room is sealed.',
-    thermal: '4.6 m of clear air in front. The spa\'s electric element needs no air, so it can stay under the deck.',
-  },
-  {
-    id: 'heatPumpInside', title: 'Heat pump under the deck (why it cannot work)', access: 'hatch', spaType: 'shell',
-    seaEntersRoomAtRl: 1.12, rank: 'no',
-    placements: [
-      { item: 'pool_heat_pump', x: 4230, y: 500, rl: 1.12, rotDeg: 90 },
-      { item: 'pool_pump', x: 385, y: -1300, rl: 1.12, rotDeg: 180 },
-      { item: 'pool_filter', x: 1300, y: -1150, rl: 1.12, rotDeg: 0 },
-    ],
-    people: { standing: { x: 1850, y: -600, rl: 2.38 } },
-    views: V_HATCH,
-    verdict: 'It needs 1.66 m of height in a 1.095 m room and 2.5 m of clear air in front where it has 0.25 m.',
-    flood: 'Wet at the 2-year level.',
-    thermal: 'It would swap the room\'s air every 6 seconds. Every maker says outdoors only.',
-  },
-];
+};
+
+// Other camera views. inside: eye and target; cut: the cutaway plane.
+export const VIEWS = { inside: { eye: [40, -700, 1.75], target: [2300, -950, 1.4] }, cut: { axis: 'x', at: 800 } };
+
+// Everything the viewer needs for one combination of choices.
+export function makeLayout({ hp, way, drain }) {
+  const spot = HEAT_PUMPS[hp] || HEAT_PUMPS.kitchen, w = WAYS[way] || WAYS.hatch, d = DRAINS[drain] || DRAINS.canal;
+  return {
+    id: `${hp}-${way}-${drain}`,
+    access: way,
+    spaType: 'shell',
+    seaEntersRoomAtRl: d.seaEntersRoomAtRl,
+    placements: [...GEAR, ...(drain === 'sump' ? [SUMP] : []), spot.placement],
+    people: { standing: [w.person, spot.person].map(({ kind, ...p }) => p) },
+    openings: [],
+    views: VIEWS,
+  };
+}

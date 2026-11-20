@@ -15,32 +15,29 @@ try {
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   await page.goto(`${SITE}/equipment/`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.__eq && window.__eq.ready, null, { timeout: 60000 });
-  const layouts = await page.evaluate(() => window.__eq.layouts);
-  for (const layout of layouts) {
-    for (const preset of ['plan', 'canal', 'cutaway']) {
-      const fit = await page.evaluate(([layout, preset]) => window.__eq.show({ layout, preset, labels: false, sea: 'today' }), [layout, preset]);
-      await page.screenshot({ path: `${OUT}/${layout}-${preset}.png` });
-      if (preset === 'plan') console.log(layout, fit.map(f => `${f.id}:${f.status}`).join(' '));
+  const shot = async (name, opts) => {
+    const fit = await page.evaluate(o => window.__eq.show(o), opts);
+    await page.screenshot({ path: `${OUT}/${name}.png` });
+    return fit;
+  };
+  const hpNote = fit => { const h = fit.find(f => f.id === 'pool_heat_pump'); return `${h.status}: ${h.notes.join('; ') || 'no notes'}`; };
+  for (const hp of ['kitchen', 'yard', 'corner']) {
+    for (const way of ['hatch', 'stairs']) {
+      for (const view of ['canal', 'plan']) {
+        const fit = await shot(`${hp}-${way}-${view}`, { hp, way, view, drain: 'canal', sea: 'today', labels: false });
+        if (view === 'plan' && way === 'hatch') console.log(hp, hpNote(fit));
+      }
     }
+    await shot(`${hp}-heatpump`, { hp, way: 'hatch', view: 'heatpump', drain: 'canal', sea: 'today' });
   }
-  await page.evaluate(() => window.__eq.show({ layout: 'sideYard', preset: 'yard', sea: 'today' }));
-  await page.screenshot({ path: `${OUT}/sideYard-yard.png` });
-  await page.evaluate(() => window.__eq.show({ layout: 'poolside', preset: 'heatpump', sea: 'today' }));
-  await page.screenshot({ path: `${OUT}/poolside-heatpump.png` });
-  await page.evaluate(() => window.__eq.show({ layout: 'hatch', preset: 'inside', sea: 'today' }));
-  await page.screenshot({ path: `${OUT}/hatch-inside.png` });
-  await page.evaluate(() => window.__eq.show({ layout: 'sideYard', preset: 'plan', labels: true, sea: 'today' }));
-  await page.screenshot({ path: `${OUT}/sideYard-plan-labels.png` });
-  // sea levels
-  for (const [layout, sea] of [['sideYard', '5'], ['sideYard', '100'], ['eastDoor', '5'], ['eastDoor', '100']]) {
-    await page.evaluate(([layout, sea]) => window.__eq.show({ layout, preset: 'canal', sea, labels: false }), [layout, sea]);
-    await page.screenshot({ path: `${OUT}/sea-${layout}-${sea}yr.png` });
-  }
+  for (const way of ['hatch', 'stairs']) await shot(`cutaway-${way}`, { hp: 'kitchen', way, view: 'cutaway', drain: 'canal', sea: 'today' });
+  for (const drain of ['canal', 'sump']) await shot(`sea5-${drain}`, { hp: 'kitchen', way: 'hatch', view: 'canal', drain, sea: '5' });
+  await shot('kitchen-plan-labels', { hp: 'kitchen', way: 'hatch', view: 'plan', drain: 'canal', sea: 'today', labels: true });
   // phone
   const phone = await browser.newPage({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2, hasTouch: true });
   phone.on('pageerror', e => errors.push('phone pageerror: ' + e.message));
   phone.on('console', m => { if (m.type() === 'error') errors.push('phone: ' + m.text().slice(0, 300)); });
-  await phone.goto(`${SITE}/equipment/?preset=canal`, { waitUntil: 'load' });
+  await phone.goto(`${SITE}/equipment/?hp=yard&way=stairs&view=canal`, { waitUntil: 'load' });
   await phone.waitForFunction(() => window.__eq && window.__eq.ready, null, { timeout: 60000 });
   await phone.waitForTimeout(500);
   await phone.screenshot({ path: `${OUT}/phone-collapsed.png` });

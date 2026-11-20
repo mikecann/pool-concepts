@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { CATALOGUE } from './catalogue.js';
-import { LAYOUTS, ACCESS } from './layouts.js';
+import { WAYS, HEAT_PUMPS, DRAINS, makeLayout } from './layouts.js';
 import { ROOM_POLY, RL, SPA, SEA_LEVELS, roomStats } from './room.js';
 import { checkLayout, ctxFor, seaEntry } from './fit.js';
 import { buildWorld, buildSea, buildItem, buildPerson, setItemStatus, dimLine, disposeTree, P, M, COL } from './scene.js';
@@ -10,18 +10,25 @@ const $ = (s, r = document) => r.querySelector(s);
 const params = new URLSearchParams(location.search);
 const narrow = matchMedia('(max-width: 760px)').matches;
 
+const pick = (v, allowed, d) => (allowed.includes(v) ? v : d);
 const state = {
-  layout: params.get('layout') || 'sideYard', sea: params.get('sea') || 'today',
-  access: null, spa: null,
+  hp: pick(params.get('hp'), Object.keys(HEAT_PUMPS), 'kitchen'),
+  way: pick(params.get('way'), Object.keys(WAYS), 'hatch'),
+  drain: pick(params.get('drain'), Object.keys(DRAINS), 'canal'),
+  sea: pick(params.get('sea'), SEA_LEVELS.map(l => l.id), 'today'),
+  spa: 'shell',
   deck: params.get('deck') || 'solid', walls: params.get('walls') || 'solid',
   clearance: params.get('clearance') !== '0', airflow: params.get('airflow') !== '0',
   labels: params.get('labels') === '1',
-  standing: params.get('standing') !== '0', kneeling: params.get('kneeling') !== '0',
+  standing: true, kneeling: true,
   preset: null, cutAxis: 'x', cutAt: 800, panel: !narrow,
 };
-const layoutOf = id => LAYOUTS.find(l => l.id === id) || LAYOUTS[0];
-function adoptLayout(id) { const l = layoutOf(id); state.layout = l.id; state.access = params.get('access') || l.access; state.spa = params.get('spa') || l.spaType || 'cabinet'; }
-adoptLayout(state.layout);
+const currentLayout = () => makeLayout(state);
+// the URL always describes what is on screen
+function syncUrl() {
+  const q = new URLSearchParams({ hp: state.hp, way: state.way, drain: state.drain, sea: state.sea, view: state.preset || 'overview' });
+  history.replaceState(null, '', `?${q}`);
+}
 
 // ---- three.js -------------------------------------------------------------
 const canvas = $('#c');
@@ -55,10 +62,10 @@ new ResizeObserver(resize).observe($('#stage'));
 // ---- build ----------------------------------------------------------------
 function rebuild() {
   while (dyn.children.length) { const o = dyn.children[0]; dyn.remove(o); disposeTree(o); }
-  const layout = layoutOf(state.layout), access = ACCESS[state.access] || ACCESS.sideYard;
-  world = buildWorld({ access, accessId: state.access, spaType: state.spa, structures: layout.structures || [] });
+  const layout = currentLayout(), access = WAYS[state.way];
+  world = buildWorld({ access, accessId: state.way, spaType: state.spa });
   dyn.add(world.root);
-  result = checkLayout(layout, CATALOGUE, ctxFor(layout, state.access, ACCESS));
+  result = checkLayout(layout, CATALOGUE, ctxFor(layout, state.way, WAYS));
   itemGroups = {};
   const gi = new THREE.Group();
   for (const it of result.items) { const g = buildItem(it); setItemStatus(g, it.status); gi.add(g); itemGroups[it.id] = g; }
@@ -92,8 +99,7 @@ function buildDims(layout, access) {
   tag(P(hx, hy, RL.deck + 0.02), `deck ${RL.deck}`);
   tag(P(260, -1300, RL.pad), `floor ${RL.pad}`);
   tag(P(SPA.x, SPA.y, RL.deck + 0.02), `Ø${SPA.r * 2}`, state.spa === 'cabinet' ? 'cabinet' : 'in-ground');
-  if (access.hatch) { const h = access.hatch; tag(P((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2, RL.deck + 0.03), `${h.x1 - h.x0} × ${h.y1 - h.y0}`, h.name || 'hatch'); }
-  if (access.door) { const d = access.door; tag(P(d.wallX1 + 150, (d.y0 + d.y1) / 2, (d.sill + d.head) / 2), `${d.y1 - d.y0} × ${Math.round((d.head - d.sill) * 1000)}`, 'door'); }
+  if (access.hatch) { const h = access.hatch; tag(P((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2, RL.deck + 0.03), `${h.x1 - h.x0} × ${h.y1 - h.y0}`, 'hatch'); }
   if (access.stairs) { const s = access.stairs; tag(P((s.x0 + s.x1) / 2, 300, 3.3), 'stairs up'); }
   const lv = seaLevel(); tag(P(3000, -2300, lv.rl), `sea ${lv.rl.toFixed(2)}`, lv.label);
   for (const it of result.items) {
@@ -112,7 +118,7 @@ function buildDims(layout, access) {
 const seaLevel = () => SEA_LEVELS.find(l => l.id === state.sea) || SEA_LEVELS[0];
 let seaMesh = null;
 function applySea() {
-  const layout = layoutOf(state.layout), lv = seaLevel();
+  const layout = currentLayout(), lv = seaLevel();
   if (seaMesh) { world.groups.sea.remove(seaMesh); disposeTree(seaMesh); }
   seaMesh = buildSea(lv.rl, layout.seaEntersRoomAtRl ?? 99);
   world.groups.sea.add(seaMesh);
@@ -139,11 +145,11 @@ function applyView() {
 }
 
 // ---- camera presets -------------------------------------------------------
-function bounds(includeYard = false) {
+function bounds() {
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
   for (const [x, y] of ROOM_POLY) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  for (const it of result.items) if (it.zone !== 'yard' || includeYard) for (const [x, y] of it.g.body) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-  for (const p of Object.values(layoutOf(state.layout).people || {}).flat()) if (p.y < 6000 || includeYard) { x0 = Math.min(x0, p.x - 300); x1 = Math.max(x1, p.x + 300); y0 = Math.min(y0, p.y - 300); y1 = Math.max(y1, p.y + 300); }
+  for (const it of result.items) if (it.zone === 'room') for (const [x, y] of it.g.body) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  for (const p of Object.values(currentLayout().people).flat()) if (p.x > -300 && p.x < 6000 && p.y < 5000) { x0 = Math.min(x0, p.x - 300); x1 = Math.max(x1, p.x + 300); y0 = Math.min(y0, p.y - 300); y1 = Math.max(y1, p.y + 300); }
   return { x0: x0 - 400, x1: x1 + 400, y0: y0 - 400, y1: y1 + 400 };
 }
 function setCam(pos, target, fov = 45) {
@@ -152,13 +158,15 @@ function setCam(pos, target, fov = 45) {
 }
 function setPreset(name) {
   state.preset = name;
-  const layout = layoutOf(state.layout), b = bounds();
+  const layout = currentLayout(), b = bounds();
   const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2, ex = (b.x1 - b.x0) * M, ey = (b.y1 - b.y0) * M;
   const th = Math.tan((45 / 2) * Math.PI / 180), asp = camera.aspect;
   const dist = Math.max(ey / 2 / th, ex / 2 / (th * asp)) * 1.12;
-  const outside = zone => result.items.filter(i => i.zone === zone);
-  const centroid = (list, fb) => list.length ? [list.reduce((a, i) => a + i.pl.x, 0) / list.length, list.reduce((a, i) => a + i.pl.y, 0) / list.length] : fb;
-  if (name === 'plan') {
+  if (name === 'overview') {
+    // the whole pool area from above the canal: pool, room, both fences and the house
+    state.deck = 'solid'; state.walls = 'solid';
+    setCam(P(-1500, -13500, 15.5), P(-1500, 5200, 2.0));
+  } else if (name === 'plan') {
     state.deck = state.deck === 'off' ? 'off' : 'ghost';
     setCam(P(cx, cy - 20, 2.4 + dist), P(cx, cy, 2.4));
   } else if (name === 'canal') {
@@ -173,18 +181,15 @@ function setPreset(name) {
     state.cutAxis = cut.axis; state.cutAt = cut.at;
     state.deck = 'ghost'; state.walls = 'ghost';
     updateCut(true);
-  } else if (name === 'yard') {
-    const [yx, yy] = centroid(outside('yard'), [-4400, 13500]);
-    state.deck = 'solid'; state.walls = 'solid';
-    const t = P(yx, yy, 2.9); setCam(t.clone().add(new THREE.Vector3(2.5, 5.2, 7.5)), t);
   } else if (name === 'heatpump') {
-    // the heat pump, the house's west wall with its windows, the north pool fence and the pool's north end, from the south-west and above
+    // frames the chosen heat pump spot from the pool side, above
+    const v = HEAT_PUMPS[state.hp].view;
     state.deck = 'solid'; state.walls = 'solid';
-    setCam(P(-6200, 6000, 8.5), P(-1700, 10900, 2.8));
+    setCam(P(...v.eye), P(...v.target));
   }
   for (const btn of document.querySelectorAll('#presets button')) btn.setAttribute('aria-pressed', btn.dataset.preset === name);
   $('#cut').hidden = name !== 'cutaway';
-  applyView(); syncSegs();
+  applyView(); syncSegs(); syncUrl();
 }
 function updateCut(moveCamera = false) {
   const b = bounds();
@@ -228,36 +233,50 @@ function toggle(key, label) {
   return b;
 }
 function syncSegs() {
-  for (const [id, key] of [['seg-access', 'access'], ['seg-sea', 'sea'], ['seg-deck', 'deck'], ['seg-walls', 'walls']]) {
+  for (const [id, key] of [['seg-hp', 'hp'], ['seg-way', 'way'], ['seg-drain', 'drain'], ['seg-sea', 'sea'], ['seg-deck', 'deck'], ['seg-walls', 'walls']]) {
     const w = $('#' + id); if (!w) continue;
     for (const b of w.children) b.setAttribute('aria-pressed', b.dataset.v === state[key]);
   }
   for (const b of document.querySelectorAll('[data-k]')) b.setAttribute('aria-pressed', !!state[b.dataset.k]);
-  for (const b of document.querySelectorAll('.layouts button')) b.setAttribute('aria-pressed', b.dataset.id === state.layout);
 }
 const fmt = (n, d = 2) => n.toFixed(d);
 
+// The heat pump's own fit result, shown under its choice so it is not buried in the list below.
+function hpStatus() {
+  const it = result.items.find(i => i.id === 'pool_heat_pump');
+  if (!it) return [];
+  const notes = it.notes.filter(n => n.status !== 'fits');
+  if (!notes.length) return [el('p', { className: 'verdict', textContent: 'Fits, with its clearances and 2.5 m of clear air in front.' })];
+  return notes.map(n => el('p', { className: 'verdict' + (n.status === 'clash' ? ' hp-clash' : ''), textContent: n.note.charAt(0).toUpperCase() + n.note.slice(1) + '.' }));
+}
+
 function renderPanel() {
-  const panel = $('#panel'), layout = layoutOf(state.layout), st = roomStats();
+  const panel = $('#panel'), layout = currentLayout(), st = roomStats(), top = panel.scrollTop;
   panel.replaceChildren();
-  const lay = el('div', { className: 'layouts' });
-  for (const l of LAYOUTS) {
-    const b = el('button', { type: 'button', textContent: l.title }); b.dataset.id = l.id;
-    if (l.rank === 'pick') b.classList.add('pick');
-    b.onclick = () => { params.delete('access'); params.delete('spa'); adoptLayout(l.id); rebuild(); if (state.preset) setPreset(state.preset); syncSegs(); };
-    lay.append(b);
-  }
-  const notes = el('div', { className: 'lines' });
-  for (const k of ['verdict', 'flood', 'thermal']) if (layout[k]) notes.append(el('p', { textContent: layout[k] }));
-  panel.append(el('section', {}, lay, notes));
+  // Each choice moves the camera to what it changes, so a click always shows something.
+  const choose = (key, v) => {
+    state[key] = v; rebuild();
+    if (key === 'hp') setPreset('heatpump');
+    else if (key === 'way' && (state.preset === 'heatpump' || state.preset === 'overview')) setPreset('canal');
+    else if (state.preset === 'heatpump') setPreset('heatpump');
+    syncUrl();
+  };
+  panel.append(el('h1', { textContent: 'Pool equipment room' }));
+  panel.append(el('section', {}, el('h2', { textContent: 'Heat pump' }),
+    seg('seg-hp', Object.entries(HEAT_PUMPS).map(([k, v]) => [k, v.label]), state.hp, v => choose('hp', v)),
+    el('p', { className: 'verdict', textContent: HEAT_PUMPS[state.hp].line }),
+    ...hpStatus()));
   panel.append(el('section', {}, el('h2', { textContent: 'Way in' }),
-    seg('seg-access', Object.entries(ACCESS).map(([k, v]) => [k, v.label]), state.access, v => { state.access = v; rebuild(); if (state.preset) setPreset(state.preset); })));
+    seg('seg-way', Object.entries(WAYS).map(([k, v]) => [k, v.label]), state.way, v => choose('way', v)),
+    el('p', { className: 'verdict', textContent: WAYS[state.way].line })));
   const entry = seaEntry(layout);
-  const seaSec = el('section', {}, el('h2', { textContent: 'Sea level' }),
-    seg('seg-sea', SEA_LEVELS.map(l => [l.id, l.label]), state.sea, v => { state.sea = v; applySea(); }),
+  panel.append(el('section', {}, el('h2', { textContent: 'Sea level' }),
+    seg('seg-sea', SEA_LEVELS.map(l => [l.id, l.label]), state.sea, v => { state.sea = v; applySea(); syncUrl(); }),
+    el('div', { style: 'height:8px' }),
+    el('div', { className: 'seg-row' }, el('span', { className: 'verdict', textContent: 'Floor drain' }),
+      seg('seg-drain', Object.entries(DRAINS).map(([k, v]) => [k, v.label]), state.drain, v => choose('drain', v))),
     el('p', { className: 'verdict', textContent: entry ? `Sea gets into the room at the ${entry} level.` : 'Sea does not get into the room.' }),
-    el('p', { className: 'verdict', id: 'sea-note' }));
-  panel.append(seaSec);
+    el('p', { className: 'verdict', id: 'sea-note' })));
   panel.append(el('section', {}, el('div', { className: 'readout', id: 'readout', innerHTML:
     `<div>${fmt(st.net)} m² <span>floor</span></div><div>${fmt(st.volumeNet)} m³ <span>volume</span></div><div>${Math.round(st.headroom * 1000)} mm <span>headroom</span></div><div>${Math.round(result.heatW)} W <span>heat</span></div>` })));
   const c = result.summary;
@@ -280,8 +299,9 @@ function renderPanel() {
     el('div', { style: 'height:6px' }),
     seg('seg-walls', [['solid', 'Walls'], ['ghost', 'Ghost']], state.walls, v => { state.walls = v; applyView(); }),
     el('div', { style: 'height:8px' }),
-    el('div', { className: 'seg' }, toggle('clearance', 'Clearance'), toggle('airflow', 'Airflow'), toggle('labels', 'Labels'), toggle('standing', '1.75 m'), toggle('kneeling', 'Kneeling'))));
+    el('div', { className: 'seg' }, toggle('clearance', 'Clearance'), toggle('airflow', 'Airflow'), toggle('labels', 'Labels'))));
   syncSegs(); applySea();
+  panel.scrollTop = top;
 }
 function hi(id, on) {
   const g = itemGroups[id]; if (!g) return;
@@ -320,7 +340,7 @@ function loop() { if (dirty) draw(); requestAnimationFrame(loop); }
 setPanel(state.panel);
 resize();
 rebuild();
-setPreset(params.get('preset') || 'canal');
+setPreset(pick(params.get('view'), ['overview', 'plan', 'canal', 'inside', 'cutaway', 'heatpump'], 'overview'));
 for (const k of ['deck', 'walls']) if (params.get(k)) state[k] = params.get(k);
 applyView(); syncSegs();
 loop();
@@ -328,15 +348,14 @@ loop();
 // hooks for the screenshot script
 window.__eq = {
   ready: true,
-  state, layouts: LAYOUTS.map(l => l.id),
-  async show({ layout, access, spa, preset, labels, sea }) {
+  state,
+  async show({ hp, way, drain, view, labels, sea }) {
+    if (hp) state.hp = hp;
+    if (way) state.way = way;
+    if (drain) state.drain = drain;
     if (sea) state.sea = sea;
-    params.delete('access'); params.delete('spa');
-    if (layout) adoptLayout(layout);
-    if (access) state.access = access;
-    if (spa) state.spa = spa;
     if (labels !== undefined) state.labels = labels;
-    rebuild(); setPreset(preset || state.preset || 'canal'); draw();
+    rebuild(); setPreset(view || state.preset || 'canal'); draw();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     draw();
     return result.items.map(i => ({ id: i.id, status: i.status, notes: i.notes.map(n => n.note) }));

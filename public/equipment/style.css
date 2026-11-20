@@ -65,3 +65,10 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--water); out
   #presets { bottom: calc(12px + env(safe-area-inset-bottom)); }
   body.panel-open #presets { bottom: calc(52vh + 10px); }
 }
+
+#panel h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0; }
+.seg-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seg-row .verdict { margin: 0; }
+#panel .verdict { margin: 6px 0 0; }
+
+.verdict.hp-clash { color: var(--clash); }

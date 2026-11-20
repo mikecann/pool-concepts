@@ -1,7 +1,7 @@
 // Fit check. Pure maths (no three.js) so it also runs in Node.
 // Plan units mm, RLs metres. Each placed item becomes a set of convex plan polygons with an RL range:
 // body, clearance volumes, service-lift volume, airflow plume.
-import { ROOM_POLY, SPA, RL, TERRACE, YARD_POLY, YARD_RL, POOLSIDE, POOL, HOUSE, SEA_LEVELS, pointInPoly, inSpa, inRoomFree, inRect, OUTER_POLY, LOUNGE_POLY } from './room.js';
+import { ROOM_POLY, SPA, RL, TERRACE, YARD_POLY, YARD_RL, POOLSIDE, POOL_PAVING, POOL, HOUSE, SEA_LEVELS, beyondCanalWall, beyondBoundary, pointInPoly, inSpa, inRoomFree, inRect, OUTER_POLY, LOUNGE_POLY } from './room.js';
 
 const D2R = Math.PI / 180;
 const EPS = 1;           // mm
@@ -108,27 +108,26 @@ const inExtra = (x, y, ctx) => (ctx.extraFloor || []).some(r => inRect(x, y, r))
 export function zoneOf(g, pl, ctx) {
   if (pointInPoly(pl.x, pl.y, ROOM_POLY) || inExtra(pl.x, pl.y, ctx)) return 'room';
   if (inRect(pl.x, pl.y, TERRACE)) return 'terrace';
-  if (inRect(pl.x, pl.y, POOLSIDE)) return 'poolside';
+  if (pointInPoly(pl.x, pl.y, POOL_PAVING) && !inRect(pl.x, pl.y, POOL)) return 'poolside';
   if (pointInPoly(pl.x, pl.y, YARD_POLY)) return 'yard';
   return 'none';
 }
 
 const inTerrace = (x, y) => inRect(x, y, TERRACE);
-function insideZone(zone, x, y, ctx) { return zone === 'poolside' ? inRect(x, y, POOLSIDE) : zone === 'yard' ? pointInPoly(x, y, YARD_POLY) : zone === 'terrace' ? inTerrace(x, y) : (inRoomFree(x, y) || inExtra(x, y, ctx)); }
+function insideZone(zone, x, y, ctx) { return zone === 'poolside' ? (pointInPoly(x, y, POOL_PAVING) && !inRect(x, y, POOL)) : zone === 'yard' ? pointInPoly(x, y, YARD_POLY) : zone === 'terrace' ? inTerrace(x, y) : (inRoomFree(x, y) || inExtra(x, y, ctx)); }
 
 // Is a point free air for a discharge plume to travel through?
 function airFree(x, y, rl, ctx) {
   if (inRoomFree(x, y) || inExtra(x, y, ctx)) return true;
   if (inSpa(x, y)) return false;
   if (x >= HOUSE.x0 && x <= HOUSE.x1 && y >= HOUSE.y0 && y <= HOUSE.y1) return false; // the house is solid
-  const door = ctx.doors.find(d => x >= d.x0 && x <= d.x1 && y >= d.y0 && y <= d.y1 && rl >= d.sill && rl <= d.head);
-  if (door) return true;
+  if (beyondBoundary(x, y)) return false; // the boundary fence is solid
   if (pointInPoly(x, y, OUTER_POLY) && !pointInPoly(x, y, LOUNGE_POLY)) return false; // inside masonry
   return true; // outdoors, or the open-topped lounge
 }
 
 export function checkLayout(layout, catalogue, ctx) {
-  // ctx: { overhead: [rect], doors: [{x0,y0,x1,y1,sill,head}], airPath: bool, spaType }
+  // ctx: { overhead: [rect], airPath: bool, extraFloor: [rect] }
   const byId = Object.fromEntries(catalogue.map(i => [i.id, i]));
   const seen = {};
   const entries = (layout.placements || []).map(pl => {
@@ -140,10 +139,7 @@ export function checkLayout(layout, catalogue, ctx) {
   });
   const spaPoly = circlePoly(SPA.x, SPA.y, SPA.r, 48);
   for (const e of entries) e.g = geometry(e.item, e.pl);
-  const structs = (layout.structures || []).map(t => ({ ...t, poly: [[t.x0, t.y0], [t.x1, t.y0], [t.x1, t.y1], [t.x0, t.y1]] }));
   const floorUnder = (e, zone) => {
-    const t = structs.find(t => pointInPoly(e.pl.x, e.pl.y, t.poly) && e.pl.rl >= t.rl1 - 0.02);
-    if (t) return t.rl1;
     return zone === 'room' ? RL.pad : zone === 'terrace' ? TERRACE.rl : zone === 'yard' ? YARD_RL : zone === 'poolside' ? POOLSIDE.rl : e.pl.rl;
   };
   const res = {};
@@ -213,7 +209,7 @@ export function checkLayout(layout, catalogue, ctx) {
         if (v.kind !== 'clearance' || v.side === 'top') continue;
         const vp = samples(v.poly, 6);
         if (!vp.length) continue;
-        const outside = vp.filter(([x, y]) => !insideZone(zone, x, y, ctx)).length / vp.length;
+        const outside = vp.filter(([x, y]) => !insideZone(zone, x, y, ctx) && !(zone === 'poolside' && beyondCanalWall(x, y))).length / vp.length;
         if (outside > 0.2) { add(id, item.airflow ? 'clash' : 'tight', `${v.side} clearance runs into ${zone === 'room' ? 'a wall or the spa' : 'the boundary'}`); break; }
       }
     }
@@ -243,23 +239,6 @@ export function checkLayout(layout, catalogue, ctx) {
     }
     if (a.zone === 'room') for (const v of a.g.vols) {
       if (v.kind === 'clearance' && rlOverlap(v.rl0, v.rl1, RL.pad, RL.deck) && polysOverlap(v.poly, spaPoly)) { add(a.id, a.item.airflow ? 'clash' : 'tight', `${v.side} space meets the spa`); break; }
-    }
-  }
-
-  // structures (shelf, plinth): bodies inside them clash; bodies standing on them must be fully supported
-  for (const e of entries) {
-    if (e.missing) continue;
-    for (const t of structs) {
-      if (rlOverlap(e.g.rl0, e.g.rl1, t.rl0, t.rl1) && polysOverlap(e.g.body, t.poly)) add(e.id, 'clash', `sits inside the ${t.name || 'structure'}`);
-      else if (Math.abs(e.pl.rl - t.rl1) < 0.02 && polysOverlap(e.g.body, t.poly)) {
-        const pts = samples(e.g.body);
-        const off = pts.filter(([x, y]) => !pointInPoly(x, y, t.poly));
-        if (off.length) {
-          let over = 0;
-          for (const [x, y] of off) over = Math.max(over, Math.max(t.x0 - x, x - t.x1, t.y0 - y, y - t.y1));
-          add(e.id, 'tight', `hangs ${Math.round(over)} mm off the ${t.name || 'structure'}`);
-        }
-      }
     }
   }
 
@@ -309,10 +288,9 @@ export function checkLayout(layout, catalogue, ctx) {
 
 // Build the check context from an access option (see ACCESS in layouts.js).
 export function ctxFor(layout, accessId, ACCESS) {
-  const a = ACCESS[accessId] || ACCESS.sideYard;
+  const a = ACCESS[accessId] || ACCESS.hatch;
   return {
     overhead: [...(a.overhead || []), ...(layout.openings || [])],
-    doors: a.door ? [{ x0: a.door.wallX0, x1: a.door.wallX1, y0: a.door.y0, y1: a.door.y1, sill: a.door.sill, head: a.door.head }] : [],
     airPath: !!a.airPath,
     extraFloor: a.well ? [a.well] : [],
   };

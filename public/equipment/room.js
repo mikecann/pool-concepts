@@ -27,8 +27,8 @@ export const EAST_STEPS = [
   { y0: 953, y1: 1165, rl: 1.6 }, { y0: 650, y1: 953, rl: 1.4 }, { y0: 318, y1: 650, rl: 1.2 },
 ];
 export const EAST_LOW_GROUND = { x0: 4935, x1: 9170, y0: -1690, y1: 318, rl: 1.02 };
-export const CANAL_STRIP = { x0: -6000, x1: 9170, y0: -2890, y1: -1690, rl: 1.02 };
-export const CANAL = { x0: -6000, x1: 9170, y0: -4200, y1: -2890, wallT: 240 };
+export const CANAL_STRIP = { x0: -240, x1: 9170, y0: -2890, y1: -1690, rl: 1.02 };
+export const CANAL = { x0: -240, x1: 9170, y0: -4200, y1: -2890, wallT: 240 };
 export const POOL = { x0: -5165, x1: -1165, y0: 130, y1: 8130, floorRl: 0.6, waterRl: 2.3 };
 export const FENCE = { x: 4815, y0: -380, y1: 5100, h: 1.2 };
 
@@ -42,13 +42,43 @@ export const HOUSE_OPENINGS = [ // on the west wall x = -184; y range, RL range
 export const PATIO = { x0: 3826, x1: 10300, y0: 5133, y1: 9376, rl: 2.47 };
 export const ALFRESCO = { x0: -706, x1: 3826, y0: 5133, y1: 8825, rl: 2.38 };
 // pool-side paving at RL 2.38 out to the boundary and north to the pool fence (pool is cut out of it)
-export const POOL_PAVING = [[-7000, -400], [-240, -400], [-240, 5133], [-706, 5133], [-706, 8825], [-184, 8825], [-184, 11640], [-5683, 11640], [-6275, 8130], [-7000, 3800]];
+export const POOL_PAVING = [[-7685, -450], [-2108, -1684], [-240, -1690], [-240, 5133], [-706, 5133], [-706, 8825], [-184, 8825], [-184, 11640], [-5683, 11640], [-6275, 8130], [-7000, 3800]];
+// canal-side retaining wall (240 thick, top RL 2.323, paved over to 2.38): this line is its canal face. No fence on it.
+export const CANAL_WALL_LINE = [[-7685, -450], [-2108, -1684], [-240, -1690]];
+// polyline offset to the canal (south) side by d mm, mitred at the bend
+export function offsetSouth(line, d) {
+  const nrm = ([x1, y1], [x2, y2]) => { const l = Math.hypot(x2 - x1, y2 - y1); return [(y2 - y1) / l, -(x2 - x1) / l]; };
+  return line.map((p, i) => {
+    const a = i > 0 ? nrm(line[i - 1], p) : nrm(p, line[i + 1]), b = i < line.length - 1 ? nrm(p, line[i + 1]) : a;
+    let mx = a[0] + b[0], my = a[1] + b[1]; const l = Math.hypot(mx, my); mx /= l; my /= l;
+    const k = d / (mx * a[0] + my * a[1]);
+    return [p[0] + mx * k, p[1] + my * k];
+  });
+}
+// ground strip (RL 1.02, 1.2 m wide), canal wall (240) and water, following the retaining wall west of the building
+const ring = (a, b) => [...a, ...b.slice().reverse()];
+export const WEST_STRIP_POLY = ring(CANAL_WALL_LINE, offsetSouth(CANAL_WALL_LINE, 1200));
+export const WEST_CANAL_WALL_POLY = ring(offsetSouth(CANAL_WALL_LINE, 1200), offsetSouth(CANAL_WALL_LINE, 1440));
+export const WEST_WATER_POLY = ring(offsetSouth(CANAL_WALL_LINE, 1440), offsetSouth(CANAL_WALL_LINE, 3000));
+// is a point beyond (south of) the canal-side wall? (open air for clearances and plumes)
+export function beyondCanalWall(x, y) {
+  if (x < CANAL_WALL_LINE[0][0] || x > CANAL_WALL_LINE[2][0]) return false;
+  const [a, b] = x <= CANAL_WALL_LINE[1][0] ? [CANAL_WALL_LINE[0], CANAL_WALL_LINE[1]] : [CANAL_WALL_LINE[1], CANAL_WALL_LINE[2]];
+  return y < a[1] + ((b[1] - a[1]) * (x - a[0])) / (b[0] - a[0]);
+}
+// is a point beyond (west of) the boundary fence? (solid)
+export function beyondBoundary(x, y) {
+  const L = WEST_FENCE.line;
+  if (y < L[0][1] || y > L[L.length - 1][1]) return false;
+  for (let i = 0; i < L.length - 1; i++) if (y <= L[i + 1][1]) return x < L[i][0] + ((L[i + 1][0] - L[i][0]) * (y - L[i][1])) / (L[i + 1][1] - L[i][1]);
+  return false;
+}
 export const YARD_POLY = [[-5683, 11640], [-184, 11640], [-184, 17400], [-4700, 17400]];
 export const YARD_RL = 2.40;
 // paved area north of the pool, inside the pool fence (house west wall is x = -184 from y 9376 north)
-export const POOLSIDE = { x0: -5600, x1: -184, y0: 8900, y1: 11640, rl: 2.38 };
+export const POOLSIDE = { rl: 2.38 }; // the whole pool paving polygon (inside the fences) is the poolside zone
 export const GATE = { x0: -2140, x1: -1234, y: 11640 };
-export const WEST_FENCE = { h: 1.8, line: [[-7000, 3800], [-6275, 8130], [-5683, 11640], [-4700, 17400]] };
+export const WEST_FENCE = { h: 1.8, line: [[-7685, -450], [-7000, 3800], [-6275, 8130], [-5683, 11640], [-4700, 17400]] };
 export const NORTH_FENCE = { h: 1.2, line: [[-5683, 11640], [-184, 11640]] };
 
 // ---- sea levels, m AHD (Port Geographe tide gauge) ----------------------------------

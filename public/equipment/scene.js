@@ -5,7 +5,7 @@ import { sideRect, dims, circlePoly } from './fit.js';
 import {
   LOUNGE_POLY, OUTER_POLY, ROOM_POLY, ROOM_VOID, SPA, RL, STRIP_POLY, LOWER_STEPS, UPPER_STEPS, BENCH, BENCH_RL, TERRACE,
   EAST_STEPS, EAST_LOW_GROUND, CANAL_STRIP, CANAL, POOL, FENCE, HOUSE, HOUSE_OPENINGS, PATIO, ALFRESCO, POOL_PAVING, YARD_POLY, YARD_RL,
-  WEST_FENCE, NORTH_FENCE, GATE,
+  WEST_FENCE, NORTH_FENCE, GATE, WEST_STRIP_POLY, WEST_CANAL_WALL_POLY, WEST_WATER_POLY,
 } from './room.js';
 
 export const M = 0.001;
@@ -47,24 +47,6 @@ function part(geo, mat, edge = true) {
   return g;
 }
 
-// Merge the room ring and the outer ring into one polygon with a gap where the east door goes.
-function ringWithDoor(door) {
-  const outer = OUTER_POLY.map(p => [...p]);
-  const hole = ROOM_VOID;
-  const x0 = door.wallX0, x1 = door.wallX1;
-  // find the room edge on x0 that holds both y0 and y1
-  let ia = -1;
-  for (let i = 0; i < hole.length; i++) {
-    const a = hole[i], b = hole[(i + 1) % hole.length];
-    if (a[0] === x0 && b[0] === x0 && a[1] < door.y0 && b[1] > door.y1) { ia = i; break; }
-  }
-  if (ia < 0) return null;
-  const seq = [];
-  for (let k = 1; k <= hole.length; k++) seq.push(hole[(ia + k) % hole.length]); // b ... a
-  const idx1 = outer.findIndex(p => p[0] === x1 && p[1] === 5100);
-  return [...outer.slice(0, idx1 + 1), [x1, door.y1], [x0, door.y1], ...seq, [x0, door.y0], [x1, door.y0], ...outer.slice(idx1 + 1)];
-}
-
 function cutterPlanes(c) {
   const [x0, x1, z0, z1] = [c.x0 * M, c.x1 * M, -c.y1 * M, -c.y0 * M];
   return [
@@ -88,7 +70,7 @@ function makeArrow(from, dir, len, color, r = 0.014) {
 }
 
 // ---- the world ------------------------------------------------------------
-export function buildWorld({ access, accessId, spaType, structures = [] }) {
+export function buildWorld({ access, accessId, spaType }) {
   const root = new THREE.Group();
   const mats = {
     wall: std(COL.wall), paving: std(COL.paving), deck: std(COL.deck), joist: std(COL.joist),
@@ -98,16 +80,9 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
   groups.walls.name = 'walls'; groups.deck.name = 'deck';
   mats.ghostable = [mats.wall, mats.paving, mats.deck, mats.joist];
 
-  // masonry in bands so the east door can be a real opening
+  // masonry
   const lounge = LOUNGE_POLY, stairsMode = accessId === 'stairs';
-  const door = access.door;
-  const bands = door
-    ? [[RL.wallBase, door.sill, null], [door.sill, door.head, ringWithDoor(door)], [door.head, RL.towerTop, null]]
-    : [[RL.wallBase, RL.towerTop, null]];
-  for (const [r0, r1, ring] of bands) {
-    const g = ring ? slab(ring, [lounge], r0, r1) : slab(OUTER_POLY, [lounge, ROOM_VOID], r0, r1);
-    groups.walls.add(part(g, mats.wall));
-  }
+  groups.walls.add(part(slab(OUTER_POLY, [lounge, ROOM_VOID], RL.wallBase, RL.towerTop), mats.wall));
   // paving on top of the masonry (lounge surrounds), RL 2.38
   groups.walls.add(part(slab(OUTER_POLY, [lounge, ROOM_VOID], RL.towerTop, RL.deck), mats.paving));
   if (stairsMode && access.wallCut) mats.wall.clippingPlanes = cutterPlanes(access.wallCut), mats.wall.clipIntersection = true;
@@ -159,7 +134,6 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
 
   // spa (parametric)
   groups.spa.add(buildSpa(spaType));
-  for (const t of structures) groups.walls.add(part(box(t.x0, t.y0, t.x1, t.y1, t.rl0, t.rl1), mats.wall));
 
   // deck: boards over joists, hole for the spa, hatch cut
   const spaHole = circlePoly(SPA.x, SPA.y, SPA.r, 72);
@@ -178,7 +152,7 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
     lid.position.set(0, -0.0225, -((h.y1 - h.y0) * M) / 2);
     hing.add(lid);
     hing.rotation.x = (100 * Math.PI) / 180;
-    if (h.name !== 'panels') deckGroup.add(hing); // lift-out panels: shown as a hole, panels set aside
+    deckGroup.add(hing);
     // outline of the opening
     const o = [[h.x0, h.y0], [h.x1, h.y0], [h.x1, h.y1], [h.x0, h.y1]].map(([x, y]) => P(x, y, RL.deck + 0.003));
     const outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(o), new THREE.LineBasicMaterial({ color: COL.ink, transparent: true, opacity: 0.6 }));
@@ -186,22 +160,14 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
     deckGroup.add(outline);
   }
 
-  // east door leaf
-  if (door) {
-    const yc = (door.y0 + door.y1) / 2, hh = door.head - door.sill, g = new THREE.Group();
-    const leafMat = std(0x8b7355);
-    for (let k = 0; k < Math.floor(hh / 0.11); k++) {
-      const slat = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.016, (door.y1 - door.y0) * M - 0.04), leafMat);
-      slat.rotation.z = 0.6; slat.position.set(((door.wallX0 + door.wallX1) / 2) * M, door.sill + 0.06 + k * 0.11, -yc * M);
-      g.add(slat);
-    }
-    root.add(g);
-  }
-
   // pool-side paving (RL 2.38), pool basin
   const paveMat = std(COL.paving);
   const poolHole = [[POOL.x0, POOL.y0], [POOL.x1, POOL.y0], [POOL.x1, POOL.y1], [POOL.x0, POOL.y1]];
   groups.context.add(part(slab(POOL_PAVING, [poolHole], RL.towerTop, RL.deck), paveMat));
+  // the retaining wall under the paving on the canal side (a solid fill from the strip up to the wall top)
+  groups.context.add(part(slab(POOL_PAVING, [poolHole], RL.strip, RL.towerTop), std(COL.canalWall)));
+  // pool cover: a low lid flush with the paving, in a different tone
+  groups.context.add(new THREE.Mesh(box(POOL.x0, -330, POOL.x1, 60, RL.deck, RL.deck + 0.003), std(0xa7b0ae)));
   const basin = new THREE.Mesh(box(POOL.x0, POOL.y0, POOL.x1, POOL.y1, POOL.floorRl, RL.deck), new THREE.MeshStandardMaterial({ color: 0x3f6f7d, side: THREE.BackSide, roughness: 1 }));
   groups.context.add(basin);
   groups.context.add(new THREE.Mesh(box(POOL.x0, POOL.y0, POOL.x1, POOL.y1, POOL.waterRl - 0.01, POOL.waterRl), new THREE.MeshStandardMaterial({ color: COL.water, transparent: true, opacity: 0.55 })));
@@ -239,6 +205,9 @@ export function buildWorld({ access, accessId, spaType, structures = [] }) {
   // ground: canal strip, canal wall, water, the low ground east and the terrace with its steps
   const groundMat = std(COL.ground);
   const c = groups.context;
+  c.add(part(slab(WEST_STRIP_POLY, [], 0.4, CANAL_STRIP.rl), groundMat));
+  c.add(part(slab(WEST_CANAL_WALL_POLY, [], 0.0, RL.strip), std(COL.canalWall)));
+  c.add(new THREE.Mesh(slab(WEST_WATER_POLY, [], RL.water - 0.2, RL.water), new THREE.MeshStandardMaterial({ color: COL.water, transparent: true, opacity: 0.6 })));
   c.add(part(box(CANAL_STRIP.x0, CANAL_STRIP.y0, CANAL_STRIP.x1, CANAL_STRIP.y1, 0.4, CANAL_STRIP.rl), groundMat));
   c.add(part(box(CANAL.x0, CANAL.y1 - CANAL.wallT, CANAL.x1, CANAL.y1, 0.0, RL.strip), std(COL.canalWall)));
   c.add(new THREE.Mesh(box(CANAL.x0, CANAL.y0, CANAL.x1, CANAL.y1 - CANAL.wallT, RL.water - 0.2, RL.water), new THREE.MeshStandardMaterial({ color: COL.water, transparent: true, opacity: 0.6 })));
@@ -420,8 +389,11 @@ export function buildSea(level, entersRl) {
   const mat = new THREE.MeshBasicMaterial({ color: 0x3aa0b4, transparent: true, opacity: 0.3, depthWrite: false });
   const slabBox = (x0, y0, x1, y1, rl0, rl1) => { if (rl1 > rl0 + 0.002) g.add(new THREE.Mesh(box(x0, y0, x1, y1, rl0, rl1), mat)); };
   slabBox(CANAL.x0, CANAL.y0, CANAL.x1, CANAL.y1 - CANAL.wallT, 0, level);
+  const slabPoly = (poly, rl0, rl1) => { if (rl1 > rl0 + 0.002) g.add(new THREE.Mesh(slab(poly, [], rl0, rl1), mat)); };
+  slabPoly(WEST_WATER_POLY, 0, level);
   if (level > RL.strip) {
     slabBox(CANAL_STRIP.x0, CANAL_STRIP.y0, CANAL_STRIP.x1, CANAL_STRIP.y1 + CANAL.wallT, RL.strip, level);
+    slabPoly(WEST_STRIP_POLY, RL.strip, level); slabPoly(WEST_CANAL_WALL_POLY, RL.strip, level);
     const L = EAST_LOW_GROUND; slabBox(L.x0, L.y0, L.x1, L.y1, L.rl, level);
     for (const s of EAST_STEPS) slabBox(TERRACE.x0, s.y0, TERRACE.x1, s.y1, s.rl, level);
     slabBox(TERRACE.x0, TERRACE.y0, TERRACE.x1, TERRACE.y1, TERRACE.rl, level);
