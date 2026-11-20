@@ -138,14 +138,14 @@ export function buildWorld({ access, accessId, spaType }) {
   // deck: boards over joists, hole for the spa, hatch cut
   const spaHole = circlePoly(SPA.x, SPA.y, SPA.r, 72);
   const deckGroup = groups.deck;
-  const boards = part(slab(ROOM_VOID, [spaHole], RL.deck - 0.02, RL.deck), mats.deck);
-  const joists = part(slab(ROOM_VOID, [spaHole], RL.joistUnder, RL.deck - 0.02), mats.joist);
+  // a second hatch is cut as a hole in the deck (the first is cut with clipping planes below)
+  const h2 = access.hatch2;
+  const holes = [spaHole, ...(h2 ? [[[h2.x0, h2.y0], [h2.x1, h2.y0], [h2.x1, h2.y1], [h2.x0, h2.y1]]] : [])];
+  const boards = part(slab(ROOM_VOID, holes, RL.deck - 0.02, RL.deck), mats.deck);
+  const joists = part(slab(ROOM_VOID, holes, RL.joistUnder, RL.deck - 0.02), mats.joist);
   deckGroup.add(boards, joists);
-  if (access.hatch) {
-    const h = access.hatch;
-    const planes = cutterPlanes({ ...h, rl0: RL.joistUnder - 0.01, rl1: RL.deck + 0.01 });
-    for (const m of [mats.deck, mats.joist]) { m.clippingPlanes = planes; m.clipIntersection = true; }
-    // lid hinged along the south edge, swung open
+  // lid hinged along the south edge, swung open, and the outline of the opening
+  const lidFor = h => {
     const hing = new THREE.Group();
     hing.position.copy(P((h.x0 + h.x1) / 2, h.y0, RL.deck));
     const lid = part(new THREE.BoxGeometry((h.x1 - h.x0) * M, 0.045, (h.y1 - h.y0) * M), std(COL.deck));
@@ -153,12 +153,18 @@ export function buildWorld({ access, accessId, spaType }) {
     hing.add(lid);
     hing.rotation.x = (100 * Math.PI) / 180;
     deckGroup.add(hing);
-    // outline of the opening
     const o = [[h.x0, h.y0], [h.x1, h.y0], [h.x1, h.y1], [h.x0, h.y1]].map(([x, y]) => P(x, y, RL.deck + 0.003));
     const outline = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(o), new THREE.LineBasicMaterial({ color: COL.ink, transparent: true, opacity: 0.6 }));
     outline.userData.edge = true;
     deckGroup.add(outline);
+  };
+  if (access.hatch) {
+    const h = access.hatch;
+    const planes = cutterPlanes({ ...h, rl0: RL.joistUnder - 0.01, rl1: RL.deck + 0.01 });
+    for (const m of [mats.deck, mats.joist]) { m.clippingPlanes = planes; m.clipIntersection = true; }
+    lidFor(h);
   }
+  if (h2) lidFor(h2);
 
   // pool-side paving (RL 2.38), pool basin
   const paveMat = std(COL.paving);

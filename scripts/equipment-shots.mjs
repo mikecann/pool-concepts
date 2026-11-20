@@ -20,7 +20,7 @@ try {
   await page.waitForFunction(() => window.__eq && window.__eq.ready, null, { timeout: 60000 });
   await page.waitForTimeout(500);
   await page.screenshot({ path: `${OUT}/default.png` });
-  for (const hp of ['kitchen', 'yard', 'corner']) for (const way of ['hatch', 'stairs']) {
+  for (const hp of ['kitchen', 'yard', 'corner']) for (const way of ['hatch', 'stairs', 'twoHatches']) {
     const fit = await page.evaluate(o => window.__eq.show(o), { hp, way, home: true });
     await page.screenshot({ path: `${OUT}/${hp}-${way}.png` });
     if (way === 'hatch') { const h = fit.find(f => f.id === 'pool_heat_pump'); console.log(hp, h.status + ':', h.notes.join('; ') || 'no notes'); }

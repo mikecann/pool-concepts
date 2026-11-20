@@ -97,7 +97,7 @@ function buildDims(layout, access) {
   tag(P(hx, hy, RL.deck + 0.02), `deck ${RL.deck}`);
   tag(P(260, -1300, RL.pad), `floor ${RL.pad}`);
   tag(P(SPA.x, SPA.y, RL.deck + 0.02), `Ø${SPA.r * 2}`, state.spa === 'cabinet' ? 'cabinet' : 'in-ground');
-  if (access.hatch) { const h = access.hatch; tag(P((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2, RL.deck + 0.03), `${h.x1 - h.x0} × ${h.y1 - h.y0}`, 'hatch'); }
+  for (const [h, name] of [[access.hatch, 'hatch'], [access.hatch2, 'second hatch']]) if (h) tag(P((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2, RL.deck + 0.03), `${h.x1 - h.x0} × ${h.y1 - h.y0}`, name);
   if (access.stairs) { const s = access.stairs; tag(P((s.x0 + s.x1) / 2, 300, 3.3), 'stairs up'); }
   for (const it of result.items) {
     const { w, d, h } = it.g;
@@ -140,7 +140,7 @@ function setCam(pos, target, fov = 45) {
   camera.position.copy(pos); controls.target.copy(target); camera.up.set(0, 1, 0); camera.lookAt(target); controls.update(); invalidate();
 }
 function homeView() {
-  const target = P(-2000, 4300, 2.0), eye = P(-2000, -10400, 11.8);
+  const target = P(-1500, 4300, 2.0), eye = P(-1500, -12600, 13.3);
   // a tall, narrow screen sees less width, so stand further back
   const back = camera.aspect < 1 ? 1.75 : 1;
   setCam(target.clone().add(eye.sub(target).multiplyScalar(back)), target);
