@@ -54,9 +54,9 @@ export const HEAT_PUMPS = {
   },
   corner: {
     label: 'Pool corner',
-    line: 'South-west corner of the pool paving, by the canal. About 9 m of pipe.',
-    placement: { item: 'pool_heat_pump', x: -6900, y: -150, rl: 2.38, rotDeg: 180 },
-    person: { kind: 'standing', x: -5800, y: -150, rl: 2.38 },
+    line: 'South-west corner of the pool paving, back to the boundary fence. About 9 m of pipe.',
+    placement: { item: 'pool_heat_pump', x: -7222, y: 28, rl: 2.38, rotDeg: 90 },
+    person: { kind: 'standing', x: -6900, y: 1400, rl: 2.38 },
   },
 };
 

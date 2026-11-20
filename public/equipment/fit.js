@@ -209,8 +209,12 @@ export function checkLayout(layout, catalogue, ctx) {
         if (v.kind !== 'clearance' || v.side === 'top') continue;
         const vp = samples(v.poly, 6);
         if (!vp.length) continue;
-        const outside = vp.filter(([x, y]) => !insideZone(zone, x, y, ctx) && !(zone === 'poolside' && beyondCanalWall(x, y))).length / vp.length;
+        // By the pool, the boundary is a fence: a clearance may reach through it for air if the fence is an open
+        // type (tubular or perforated), so that is noted and not counted as blocked. A body may never cross it.
+        const through = zone === 'poolside' ? vp.filter(([x, y]) => beyondBoundary(x, y)).length / vp.length : 0;
+        const outside = vp.filter(([x, y]) => !insideZone(zone, x, y, ctx) && !(zone === 'poolside' && (beyondCanalWall(x, y) || beyondBoundary(x, y)))).length / vp.length;
         if (outside > 0.2) { add(id, item.airflow ? 'clash' : 'tight', `${v.side} clearance runs into ${zone === 'room' ? 'a wall or the spa' : 'the boundary'}`); break; }
+        if (through > 0.2 && item.airflow) add(id, 'tight', 'draws its air through the boundary fence, so that fence must be an open type, not solid');
       }
     }
   }

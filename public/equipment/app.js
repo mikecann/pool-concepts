@@ -140,7 +140,7 @@ function setCam(pos, target, fov = 45) {
   camera.position.copy(pos); controls.target.copy(target); camera.up.set(0, 1, 0); camera.lookAt(target); controls.update(); invalidate();
 }
 function homeView() {
-  const target = P(-1300, 4300, 2.0), eye = P(-1300, -9800, 11.2);
+  const target = P(-2000, 4300, 2.0), eye = P(-2000, -10400, 11.8);
   // a tall, narrow screen sees less width, so stand further back
   const back = camera.aspect < 1 ? 1.75 : 1;
   setCam(target.clone().add(eye.sub(target).multiplyScalar(back)), target);
@@ -169,7 +169,7 @@ function toggle(key, label) {
   return b;
 }
 function syncSegs() {
-  for (const [id, key] of [['seg-hp', 'hp'], ['seg-way', 'way'], ['seg-deck', 'deck'], ['seg-walls', 'walls']]) {
+  for (const [id, key] of [['seg-deck', 'deck'], ['seg-walls', 'walls']]) {
     const w = $('#' + id); if (!w) continue;
     for (const b of w.children) b.setAttribute('aria-pressed', b.dataset.v === state[key]);
   }
@@ -177,36 +177,58 @@ function syncSegs() {
 }
 const fmt = (n, d = 2) => n.toFixed(d);
 
-// The heat pump's own fit result, shown under its choice so it is not buried in the list below.
+// Line icons for the two choices.
+const ICONS = {
+  // a heat pump: a cabinet with its fan and grille
+  hp: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="9.5" cy="12" r="3.4"/><path d="M9.5 8.6v6.8M6.1 12h6.8M16 9.5h2.5M16 12h2.5M16 14.5h2.5"/></svg>',
+  // the way in: an opening in the deck with an arrow going down into it
+  way: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9h5M16 9h5M8 9v10h8V9"/><path d="M12 3v10M12 13l-3-3M12 13l3-3"/></svg>',
+};
+const head = (icon, text) => el('h2', { className: 'head', innerHTML: `${ICONS[icon]}<span>${text}</span>` });
+
+// Tabs with the chosen tab's text in a panel joined to it.
+function tabs(options, current, onPick, kids) {
+  const list = el('div', { className: 'tablist' }); list.setAttribute('role', 'tablist');
+  for (const [v, label] of options) {
+    const b = el('button', { textContent: label, type: 'button' });
+    b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', v === current);
+    b.onclick = () => { if (v !== current) onPick(v); };
+    list.append(b);
+  }
+  const panel = el('div', { className: 'tabpanel' }, ...kids); panel.setAttribute('role', 'tabpanel');
+  return el('div', { className: 'tabs' }, list, panel);
+}
+const statusLine = (status, text) => el('p', { className: `status ${status}` }, el('span', { className: `dot ${status}` }), el('span', { textContent: text }));
+
+// The heat pump's own fit result, shown with its choice so it is not buried in the list below.
 function hpStatus() {
   const it = result.items.find(i => i.id === 'pool_heat_pump');
   if (!it) return [];
   const notes = it.notes.filter(n => n.status !== 'fits');
-  if (!notes.length) return [el('p', { className: 'verdict', textContent: 'Fits, with its clearances and 2.5 m of clear air in front.' })];
-  return notes.map(n => el('p', { className: 'verdict' + (n.status === 'clash' ? ' hp-clash' : ''), textContent: n.note.charAt(0).toUpperCase() + n.note.slice(1) + '.' }));
+  if (!notes.length) return [statusLine('fits', 'Fits, with its clearances and 2.5 m of clear air in front.')];
+  return notes.map(n => statusLine(n.status, n.note.charAt(0).toUpperCase() + n.note.slice(1) + '.'));
 }
 
 function renderPanel() {
   const panel = $('#panel'), st = roomStats(), top = panel.scrollTop;
-  const wasOpen = $('#workings')?.open ?? false;
+  const open = { settings: $('#settings')?.open ?? false, workings: $('#workings')?.open ?? false };
   panel.replaceChildren();
   // A choice changes the model and leaves the camera where the viewer put it.
   const choose = (key, v) => { state[key] = v; rebuild(); syncUrl(); };
   panel.append(el('h1', { textContent: 'Pool equipment room' }));
-  panel.append(el('section', {}, el('h2', { textContent: 'Heat pump' }),
-    seg('seg-hp', Object.entries(HEAT_PUMPS).map(([k, v]) => [k, v.label]), state.hp, v => choose('hp', v)),
-    el('p', { className: 'verdict', textContent: HEAT_PUMPS[state.hp].line }),
-    ...hpStatus()));
-  panel.append(el('section', {}, el('h2', { textContent: 'Way in' }),
-    seg('seg-way', Object.entries(WAYS).map(([k, v]) => [k, v.label]), state.way, v => choose('way', v)),
-    el('p', { className: 'verdict', textContent: WAYS[state.way].line })));
-  panel.append(el('section', {}, el('h2', { textContent: 'View' }),
-    seg('seg-deck', [['solid', 'Deck'], ['ghost', 'Ghost'], ['off', 'Off']], state.deck, v => { state.deck = v; applyView(); }),
-    el('div', { style: 'height:6px' }),
-    seg('seg-walls', [['solid', 'Walls'], ['ghost', 'Ghost']], state.walls, v => { state.walls = v; applyView(); }),
-    el('div', { style: 'height:8px' }),
-    el('div', { className: 'seg' }, toggle('clearance', 'Clearance'), toggle('airflow', 'Airflow'), toggle('labels', 'Labels'))));
-  // The room's numbers and the item-by-item fit check, folded away until asked for.
+  panel.append(el('section', {}, head('hp', 'Heat pump'),
+    tabs(Object.entries(HEAT_PUMPS).map(([k, v]) => [k, v.label]), state.hp, v => choose('hp', v),
+      [el('p', { textContent: HEAT_PUMPS[state.hp].line }), ...hpStatus()])));
+  panel.append(el('section', {}, head('way', 'Way in'),
+    tabs(Object.entries(WAYS).map(([k, v]) => [k, v.label]), state.way, v => choose('way', v),
+      [el('p', { textContent: WAYS[state.way].line })])));
+
+  // Less important: how the model is drawn, and the numbers behind it. Folded away at the bottom.
+  const row = (label, control) => el('div', { className: 'set-row' }, el('span', { textContent: label }), control);
+  const settings = el('details', { id: 'settings', className: 'fold', open: open.settings }, el('summary', { textContent: 'Settings' }),
+    row('Deck', seg('seg-deck', [['solid', 'Solid'], ['ghost', 'Ghost'], ['off', 'Off']], state.deck, v => { state.deck = v; applyView(); })),
+    row('Walls', seg('seg-walls', [['solid', 'Solid'], ['ghost', 'Ghost']], state.walls, v => { state.walls = v; applyView(); })),
+    row('Show', el('div', { className: 'seg' }, toggle('clearance', 'Clearance'), toggle('airflow', 'Airflow'), toggle('labels', 'Labels'))));
   const c = result.summary;
   const counts = el('div', { className: 'counts', innerHTML: `<b>${c.fits}</b> fit · <b>${c.tight}</b> tight · <b class="${c.clash ? 'c' : ''}">${c.clash}</b> clash` });
   const ul = el('ul', { className: 'fit' });
@@ -220,11 +242,11 @@ function renderPanel() {
     li.onmouseenter = () => hi(it.id, true); li.onmouseleave = () => hi(it.id, false);
     ul.append(li);
   }
-  const workings = el('details', { id: 'workings', open: wasOpen }, el('summary', { textContent: 'Sizes and fit check' }),
+  const workings = el('details', { id: 'workings', className: 'fold', open: open.workings }, el('summary', { textContent: 'Sizes and fit check' }),
     el('div', { className: 'readout', id: 'readout', innerHTML:
       `<div>${fmt(st.net)} m² <span>floor</span></div><div>${fmt(st.volumeNet)} m³ <span>volume</span></div><div>${Math.round(st.headroom * 1000)} mm <span>headroom</span></div><div>${Math.round(result.heatW)} W <span>heat</span></div>` }),
     counts, ul);
-  panel.append(el('section', {}, workings));
+  panel.append(el('div', { className: 'bottom' }, settings, workings));
   syncSegs();
   panel.scrollTop = top;
 }
