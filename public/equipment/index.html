@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Equipment room</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/" } }
+</script>
+</head>
+<body>
+<main id="stage">
+  <canvas id="c" aria-label="3D view of the equipment room"></canvas>
+  <div id="labels"></div>
+  <nav id="presets" aria-label="Camera views">
+    <button data-preset="plan">Plan</button>
+    <button data-preset="canal">Canal</button>
+    <button data-preset="inside">Inside</button>
+    <button data-preset="cutaway">Cutaway</button>
+    <button data-preset="yard">Side yard</button>
+    <button data-preset="terrace">Terrace</button>
+    <input id="cut" type="range" min="0" max="100" value="50" aria-label="Cut position" hidden>
+  </nav>
+  <button id="panel-toggle" aria-expanded="true" aria-controls="panel" aria-label="Toggle panel"><span></span></button>
+</main>
+<aside id="panel"></aside>
+<noscript>This viewer needs JavaScript and WebGL.</noscript>
+<script type="module" src="app.js"></script>
+</body>
+</html>
