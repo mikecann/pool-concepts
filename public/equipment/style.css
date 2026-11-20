@@ -72,3 +72,11 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--water); out
 #panel .verdict { margin: 6px 0 0; }
 
 .verdict.hp-clash { color: var(--clash); }
+
+/* The folded-away workings */
+#workings summary { cursor: pointer; color: var(--muted); font-size: 13px; list-style: none; padding: 4px 0; }
+#workings summary::-webkit-details-marker { display: none; }
+#workings summary::before { content: '+'; display: inline-block; width: 14px; }
+#workings[open] summary::before { content: '\2212'; }
+#workings[open] summary { margin-bottom: 8px; }
+#workings .counts { margin-top: 12px; }

@@ -31,8 +31,6 @@ export const CATALOGUE = [
     clearance: {}, serviceLift: 0, airflow: null, heatW: 100, notes: '' },
   { id: 'spa_controller', name: 'Spa controller', shape: 'box', size: { w: 544, d: 90, h: 309 }, colour: '#9c9a8e', wallMount: true,
     clearance: {}, serviceLift: 0, airflow: null, heatW: 40, notes: 'Max 40 C ambient.' },
-  { id: 'sump_pump', name: 'Sump pump', shape: 'cylinder', size: { dia: 250, h: 350 }, colour: '#8a9aa6',
-    clearance: {}, serviceLift: 0, airflow: null, heatW: 0, notes: '' },
   { id: 'pool_heat_pump', name: 'Pool heat pump (17 kW)', shape: 'box', size: { w: 1036, d: 494, h: 655 }, colour: '#8fb0a5', outdoorOnly: true,
     clearance: { back: 500, left: 500, right: 500, top: 1000 },
     serviceLift: 0, airflow: { m3h: 4500, intake: 'back', discharge: 'front', throwMm: 2500 }, heatW: 600, notes: '53 dB(A) at 1 m.' },
